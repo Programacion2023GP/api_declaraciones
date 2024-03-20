@@ -2,30 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ObjResponse;
+
 use Illuminate\Http\Request;
+use App\Models\ObjResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 
-class ControllerMunicipios extends Controller
+class ControllerAmbitoPublico extends Controller
 {
-    public function show(Response $response, int $code)
+    public function show(Response $response)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $estado_civil = DB::table('Municipio')->select('Municipio as text', 'Clave as id')->where("CodeEstado", $code)->get();
+            $regimen = DB::table('AmbitoPublico')->select('valor as text', 'clave as id')->get();
 
             // Convertir el ID a número
-            $estado_civil = $estado_civil->map(function ($item) {
+            $regimen = $regimen->map(function ($item) {
                 $item->id = (int)$item->id;
                 return $item;
             });
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | lista de adscripcion.';
-            $response->data["alert_text"] = "usuarios adscripcion";
-            $response->data["result"] = $estado_civil;
+            $response->data["message"] = 'peticion satisfactoria | lista de AmbitoPublico.';
+            $response->data["alert_text"] = "AmbitoPublico encontrados";
+            $response->data["result"] = $regimen;
         } catch (\Exception $ex) {
             $response->data = ObjResponse::CatchResponse($ex->getMessage());
         }

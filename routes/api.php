@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ControllerAmbitoPublico;
+use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosGenerales;
 use App\Http\Controllers\ControllerDocumentoObtenido;
 use App\Http\Controllers\ControllerDomicilioDeclarante;
@@ -7,6 +9,7 @@ use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
+use App\Http\Controllers\ControllerNivelOrdenGobierno;
 use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
@@ -29,12 +32,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::post("login", [ControllerUsers::class, 'login']);
+/*
+TODO DATOS GENERALES
+*/
 Route::prefix('estadoCivil')->group(function () {
     Route::get('show', [ControllerSituacionPersonalEstadoCivil::class, 'show']);
 });
 Route::prefix('regimenes')->group(function () {
     Route::get('show', [ControllerRegimemMatrimonial::class, 'show']);
 });
+/*
+TODO DOMICILIO DECLARANTE
+*/
+
 Route::prefix('paises')->group(function () {
     Route::get('show', [ControllerPaises::class, 'show']);
     Route::get('showNacionalidad', [ControllerPaises::class, 'showNacionalidad']);
@@ -45,6 +55,12 @@ Route::prefix('entidades')->group(function () {
 Route::prefix('entidades')->group(function () {
     Route::get('show', [ControllerEntidadFederativa::class, 'show']);
 });
+Route::prefix('municipios')->group(function () {
+    Route::get('show/{code}', [ControllerMunicipios::class, 'show']);
+});
+/*
+TODO DATOS CURRICULARES 
+*/
 Route::prefix('nivelestudios')->group(function () {
     Route::get('show', [ControllerNivelEsudios::class, 'show']);
 });
@@ -54,9 +70,23 @@ Route::prefix('documentosbtenidos')->group(function () {
 Route::prefix('estatus')->group(function () {
     Route::get('show', [ControllerEstatus::class, 'show']);
 });
+/*
+TODO DATOS DEL EMPLEO CARGO O COMISION QUE INICIA 
+*/
+
+Route::prefix('ambitospublicos')->group(function () {
+    Route::get('show', [ControllerAmbitoPublico::class, 'show']);
+});
+Route::prefix('nivelordengobierno')->group(function () {
+    Route::get('show', [ControllerNivelOrdenGobierno::class, 'show']);
+});
+
 Route::prefix('datosgenerales')->group(function () {
     Route::post('create', [ControllerDatosGenerales::class, 'create']);
 });
 Route::prefix('domiciliodeclarante')->group(function () {
     Route::post("create", [ControllerDomicilioDeclarante::class, 'create']);
+});
+Route::prefix('datoscurriculares')->group(function () {
+    Route::post("create", [ControllerDatosCurriculares::class, 'create']);
 });
