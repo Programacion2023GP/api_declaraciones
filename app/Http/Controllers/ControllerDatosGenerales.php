@@ -6,6 +6,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerErrors;
 
 class ControllerDatosGenerales extends Controller
 {
@@ -58,7 +59,9 @@ class ControllerDatosGenerales extends Controller
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $SituacionPatrimonialId;
         } catch (\Exception $ex) {
-            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+            $erros = new ControllerErrors();
+            $erros->handleException('DatosGenerales', $ex);
+            $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede registrar");
         }
 
         return response()->json($response, $response->data["status_code"]);

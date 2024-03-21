@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerDatosCurriculares;
+use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
 use App\Http\Controllers\ControllerDatosGenerales;
 use App\Http\Controllers\ControllerDocumentoObtenido;
 use App\Http\Controllers\ControllerDomicilioDeclarante;
@@ -89,4 +90,7 @@ Route::prefix('domiciliodeclarante')->group(function () {
 });
 Route::prefix('datoscurriculares')->group(function () {
     Route::post("create", [ControllerDatosCurriculares::class, 'create']);
+});
+Route::prefix('datoscargoscomision')->group(function () {
+    Route::post("create", [ControllerDatosEmpleoCargoComision::class, 'create']);
 });
