@@ -8,6 +8,7 @@ use App\Http\Controllers\ControllerDocumentoObtenido;
 use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
+use App\Http\Controllers\ControllerExperienciaLaboral;
 use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
@@ -94,3 +95,7 @@ Route::prefix('datoscurriculares')->group(function () {
 Route::prefix('datoscargoscomision')->group(function () {
     Route::post("create", [ControllerDatosEmpleoCargoComision::class, 'create']);
 });
+Route::prefix('experiencialaboral')->group(function () {
+    Route::post("create", [ControllerExperienciaLaboral::class, 'create']);
+});
+
