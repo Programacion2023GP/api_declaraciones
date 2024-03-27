@@ -4,6 +4,7 @@ use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
 use App\Http\Controllers\ControllerDatosGenerales;
+use App\Http\Controllers\ControllerDatosPareja;
 use App\Http\Controllers\ControllerDocumentoObtenido;
 use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
@@ -14,6 +15,7 @@ use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
 use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
+use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerUsers;
 use Illuminate\Http\Request;
@@ -76,6 +78,12 @@ Route::prefix('estatus')->group(function () {
 TODO DATOS DEL EMPLEO CARGO O COMISION QUE INICIA 
 */
 
+/*
+TODO 
+*/
+Route::prefix('relacioncondeclarante')->group(function () {
+    Route::get('show', [ControllerRelacionDeclarante::class, 'show']);
+});
 Route::prefix('ambitospublicos')->group(function () {
     Route::get('show', [ControllerAmbitoPublico::class, 'show']);
 });
