@@ -10,12 +10,14 @@ use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
+use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
 use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
+use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerUsers;
 use Illuminate\Http\Request;
@@ -79,8 +81,15 @@ TODO DATOS DEL EMPLEO CARGO O COMISION QUE INICIA
 */
 
 /*
-TODO 
+TODO PAGINA 6 DATOSPAREJA
 */
+Route::prefix('sectores')->group(function () {
+    Route::get('show', [ControllerSectores::class, 'show']);
+});
+Route::prefix('monedas')->group(function () {
+    Route::get('show', [ControllerMonedas::class, 'show']);
+});
+
 Route::prefix('relacioncondeclarante')->group(function () {
     Route::get('show', [ControllerRelacionDeclarante::class, 'show']);
 });
@@ -106,4 +115,3 @@ Route::prefix('datoscargoscomision')->group(function () {
 Route::prefix('experiencialaboral')->group(function () {
     Route::post("create", [ControllerExperienciaLaboral::class, 'create']);
 });
-
