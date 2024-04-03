@@ -115,3 +115,6 @@ Route::prefix('datoscargoscomision')->group(function () {
 Route::prefix('experiencialaboral')->group(function () {
     Route::post("create", [ControllerExperienciaLaboral::class, 'create']);
 });
+Route::prefix('datospareja')->group(function () {
+    Route::post("create", [ControllerDatosPareja::class, 'create']);
+});
