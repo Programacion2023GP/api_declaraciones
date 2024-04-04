@@ -5,6 +5,7 @@ use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
 use App\Http\Controllers\ControllerDatosGenerales;
 use App\Http\Controllers\ControllerDatosPareja;
+use App\Http\Controllers\ControllerDependientesEconomicos;
 use App\Http\Controllers\ControllerDocumentoObtenido;
 use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
@@ -117,4 +118,7 @@ Route::prefix('experiencialaboral')->group(function () {
 });
 Route::prefix('datospareja')->group(function () {
     Route::post("create", [ControllerDatosPareja::class, 'create']);
+});
+Route::prefix('dependienteseconomicos')->group(function () {
+    Route::post("create", [ControllerDependientesEconomicos::class, 'create']);
 });

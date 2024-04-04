@@ -14,7 +14,7 @@ class ControllerRelacionDeclarante extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $nivel = DB::table('RelacionConDeclarante')->select('valor as text', 'clave as id')->get();
+            $nivel = DB::table('ParentescoRelacion')->select('valor as text', 'clave as id')->get();
 
             // Convertir el ID a número
             $nivel = $nivel->map(function ($item) {
