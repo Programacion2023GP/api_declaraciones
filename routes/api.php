@@ -20,6 +20,8 @@ use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
+use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
+use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -90,7 +92,12 @@ Route::prefix('sectores')->group(function () {
 Route::prefix('monedas')->group(function () {
     Route::get('show', [ControllerMonedas::class, 'show']);
 });
-
+Route::prefix('tipoinstrumento')->group(function () {
+    Route::get("show", [ControllerTiposInstrumentos::class, 'show']);
+});
+Route::prefix('bienenajenacion')->group(function () {
+    Route::get('show', [ControllerTipoBienEnajenacionBienes::class, 'show']);
+});
 Route::prefix('relacioncondeclarante')->group(function () {
     Route::get('show', [ControllerRelacionDeclarante::class, 'show']);
 });
@@ -122,3 +129,4 @@ Route::prefix('datospareja')->group(function () {
 Route::prefix('dependienteseconomicos')->group(function () {
     Route::post("create", [ControllerDependientesEconomicos::class, 'create']);
 });
+
