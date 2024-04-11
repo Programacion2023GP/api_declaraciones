@@ -11,6 +11,7 @@ use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
+use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
@@ -128,5 +129,8 @@ Route::prefix('datospareja')->group(function () {
 });
 Route::prefix('dependienteseconomicos')->group(function () {
     Route::post("create", [ControllerDependientesEconomicos::class, 'create']);
+});
+Route::prefix('ingresos')->group(function () {
+    Route::post("create", [ControllerIngresosNetos::class, 'create']);
 });
 
