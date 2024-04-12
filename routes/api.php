@@ -20,6 +20,7 @@ use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerSectores;
+use App\Http\Controllers\ControllerServidorPublico;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTiposInstrumentos;
@@ -134,3 +135,6 @@ Route::prefix('ingresos')->group(function () {
     Route::post("create", [ControllerIngresosNetos::class, 'create']);
 });
 
+Route::prefix('servidorpublico')->group(function () {
+    Route::post("create", [ControllerServidorPublico::class, 'create']);
+});
