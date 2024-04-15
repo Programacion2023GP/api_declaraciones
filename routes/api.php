@@ -11,6 +11,7 @@ use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
+use App\Http\Controllers\ControllerFormaAdquisicion;
 use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMunicipios;
@@ -23,7 +24,9 @@ use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerServidorPublico;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
+use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTiposInstrumentos;
+use App\Http\Controllers\ControllerTitular;
 use App\Http\Controllers\ControllerUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -109,7 +112,18 @@ Route::prefix('ambitospublicos')->group(function () {
 Route::prefix('nivelordengobierno')->group(function () {
     Route::get('show', [ControllerNivelOrdenGobierno::class, 'show']);
 });
-
+Route::prefix('titularbien')->group(function () {
+    Route::get('show', [ControllerTitular::class, 'show']);
+});
+Route::prefix('tipoinmueble')->group(function () {
+    Route::get('show', [ControllerTipoInmueble::class, 'show']);
+});
+Route::prefix('formadquisicion')->group(function () {
+    Route::get('show', [ControllerFormaAdquisicion::class, 'show']);
+});
+Route::prefix('formapago')->group(function () {
+    Route::get('show', [ControllerFormaAdquisicion::class, 'show']);
+});
 Route::prefix('datosgenerales')->group(function () {
     Route::post('create', [ControllerDatosGenerales::class, 'create']);
 });
