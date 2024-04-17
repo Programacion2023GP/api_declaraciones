@@ -14,6 +14,7 @@ use App\Http\Controllers\ControllerExperienciaLaboral;
 use App\Http\Controllers\ControllerFormaAdquisicion;
 use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerMonedas;
+use App\Http\Controllers\ControllerMotivosBaja;
 use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
@@ -28,6 +29,7 @@ use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerTitular;
 use App\Http\Controllers\ControllerUsers;
+use App\Http\Controllers\ControllerValorConforme;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -115,6 +117,9 @@ Route::prefix('nivelordengobierno')->group(function () {
 Route::prefix('titularbien')->group(function () {
     Route::get('show', [ControllerTitular::class, 'show']);
 });
+/*
+TODO PAGINA 10 Bienes Inmuebles (Situación Actual)
+*/
 Route::prefix('tipoinmueble')->group(function () {
     Route::get('show', [ControllerTipoInmueble::class, 'show']);
 });
@@ -124,31 +129,64 @@ Route::prefix('formadquisicion')->group(function () {
 Route::prefix('formapago')->group(function () {
     Route::get('show', [ControllerFormaAdquisicion::class, 'show']);
 });
+Route::prefix('valorconforme')->group(function () {
+    Route::get('show', [ControllerValorConforme::class, 'show']);
+});
+Route::prefix('motivobaja')->group(function () {
+    Route::get('show', [ControllerMotivosBaja::class, 'show']);
+});
+
+/*
+! PAGINA 1
+*/
 Route::prefix('datosgenerales')->group(function () {
     Route::post('create', [ControllerDatosGenerales::class, 'create']);
 });
+/*
+! PAGINA 2
+*/
 Route::prefix('domiciliodeclarante')->group(function () {
     Route::post("create", [ControllerDomicilioDeclarante::class, 'create']);
 });
+/*
+! PAGINA 3
+*/
 Route::prefix('datoscurriculares')->group(function () {
     Route::post("create", [ControllerDatosCurriculares::class, 'create']);
 });
+/*
+! PAGINA 4
+*/
 Route::prefix('datoscargoscomision')->group(function () {
     Route::post("create", [ControllerDatosEmpleoCargoComision::class, 'create']);
 });
+/*
+! PAGINA 5
+*/
 Route::prefix('experiencialaboral')->group(function () {
     Route::post("create", [ControllerExperienciaLaboral::class, 'create']);
 });
+/*
+! PAGINA 6
+*/
 Route::prefix('datospareja')->group(function () {
     Route::post("create", [ControllerDatosPareja::class, 'create']);
 });
+/*
+! PAGINA 7
+*/
 Route::prefix('dependienteseconomicos')->group(function () {
     Route::post("create", [ControllerDependientesEconomicos::class, 'create']);
 });
+/*
+! PAGINA 8
+*/
 Route::prefix('ingresos')->group(function () {
     Route::post("create", [ControllerIngresosNetos::class, 'create']);
 });
-
+/*
+! PAGINA 9
+*/
 Route::prefix('servidorpublico')->group(function () {
     Route::post("create", [ControllerServidorPublico::class, 'create']);
 });

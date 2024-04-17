@@ -13,6 +13,7 @@ class ControllerDatosEmpleoCargoComision extends Controller
     public function create(Response $response, Request $request)
     {
 
+
         $response->data = ObjResponse::DefaultResponse();
 
         try {
@@ -39,9 +40,9 @@ class ControllerDatosEmpleoCargoComision extends Controller
                 'Id_EntidadFederativa' => $request->Id_EntidadFederativa,
                 'Id_SituacionPatrimonial' => $request->Id_SituacionPatrimonial,
                 'Aclaraciones' => $request->Aclaraciones,
-                'CuentaConOtroCargoPublico'=>0,
+                'CuentaConOtroCargoPublico' => 0,
             ];
-            
+
             $DatosCurriculares = DB::table('DECL_DatosEmpleoCargoComision')->insert($datosInsercion);
 
 
