@@ -18,6 +18,7 @@ use App\Http\Controllers\ControllerMotivosBaja;
 use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
+use App\Http\Controllers\ControllerNombreEntePublico;
 use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
@@ -57,6 +58,7 @@ Route::prefix('estadoCivil')->group(function () {
 Route::prefix('regimenes')->group(function () {
     Route::get('show', [ControllerRegimemMatrimonial::class, 'show']);
 });
+
 /*
 TODO DOMICILIO DECLARANTE
 */
@@ -89,7 +91,9 @@ Route::prefix('estatus')->group(function () {
 /*
 TODO DATOS DEL EMPLEO CARGO O COMISION QUE INICIA 
 */
-
+Route::prefix('nombrentepublico')->group(function () {
+    Route::get('show', [ControllerNombreEntePublico::class, 'show']);
+});
 /*
 TODO PAGINA 6 DATOSPAREJA
 */
