@@ -12,6 +12,7 @@ use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
 use App\Http\Controllers\ControllerFormaAdquisicion;
+use App\Http\Controllers\ControllerFormaPago;
 use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMotivosBaja;
@@ -131,7 +132,7 @@ Route::prefix('formadquisicion')->group(function () {
     Route::get('show', [ControllerFormaAdquisicion::class, 'show']);
 });
 Route::prefix('formapago')->group(function () {
-    Route::get('show', [ControllerFormaAdquisicion::class, 'show']);
+    Route::get('show', [ControllerFormaPago::class, 'show']);
 });
 Route::prefix('valorconforme')->group(function () {
     Route::get('show', [ControllerValorConforme::class, 'show']);
