@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ControllerAmbitoPublico;
+use App\Http\Controllers\ControllerBienesInmuebles;
 use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
 use App\Http\Controllers\ControllerDatosGenerales;
@@ -194,4 +195,11 @@ Route::prefix('ingresos')->group(function () {
 */
 Route::prefix('servidorpublico')->group(function () {
     Route::post("create", [ControllerServidorPublico::class, 'create']);
+});
+
+/*
+! PAGINA 10
+*/
+Route::prefix('bienesinmuebles')->group(function () {
+    Route::post("create", [ControllerBienesInmuebles::class, 'create']);
 });
