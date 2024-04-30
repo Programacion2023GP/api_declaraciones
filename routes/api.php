@@ -33,6 +33,7 @@ use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerTitular;
 use App\Http\Controllers\ControllerUsers;
 use App\Http\Controllers\ControllerValorConforme;
+use App\Http\Controllers\ControllerVehiculos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -141,6 +142,14 @@ Route::prefix('valorconforme')->group(function () {
 Route::prefix('motivobaja')->group(function () {
     Route::get('show', [ControllerMotivosBaja::class, 'show']);
 });
+/*
+TODO PAGINA 11 Vehiculos 
+*/
+
+Route::prefix('tipovehiculos')->group(function () {
+    Route::get('show', [ControllerVehiculos::class, 'show']);
+});
+
 
 /*
 ! PAGINA 1
