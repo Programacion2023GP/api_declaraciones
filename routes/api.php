@@ -31,6 +31,7 @@ use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerTitular;
+use App\Http\Controllers\ControllerTitularVehiculos;
 use App\Http\Controllers\ControllerUsers;
 use App\Http\Controllers\ControllerValorConforme;
 use App\Http\Controllers\ControllerVehiculos;
@@ -150,6 +151,9 @@ Route::prefix('tipovehiculos')->group(function () {
     Route::get('show', [ControllerVehiculos::class, 'show']);
 });
 
+Route::prefix('titularvehiculos')->group(function () {
+    Route::get('show', [ControllerTitularVehiculos::class, 'show']);
+});
 
 /*
 ! PAGINA 1
