@@ -30,6 +30,7 @@ use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTiposInstrumentos;
+use App\Http\Controllers\ControllerTiposVehiculos;
 use App\Http\Controllers\ControllerTitular;
 use App\Http\Controllers\ControllerTitularVehiculos;
 use App\Http\Controllers\ControllerUsers;
@@ -215,4 +216,10 @@ Route::prefix('servidorpublico')->group(function () {
 */
 Route::prefix('bienesinmuebles')->group(function () {
     Route::post("create", [ControllerBienesInmuebles::class, 'create']);
+});
+/*
+! PAGINA 10
+*/
+Route::prefix('vehiculos')->group(function () {
+    Route::post("create", [ControllerTiposVehiculos::class, 'create']);
 });
