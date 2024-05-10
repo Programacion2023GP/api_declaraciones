@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerBienesInmuebles;
+use App\Http\Controllers\ControllerBienesMuebles;
 use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
 use App\Http\Controllers\ControllerDatosGenerales;
@@ -27,8 +28,11 @@ use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerServidorPublico;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
+use App\Http\Controllers\ControllerSubTipoInversion;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
+use App\Http\Controllers\ControllerTipoBienesMuebles;
 use App\Http\Controllers\ControllerTipoInmueble;
+use App\Http\Controllers\ControllerTipoInversion;
 use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerTiposVehiculos;
 use App\Http\Controllers\ControllerTitular;
@@ -155,7 +159,21 @@ Route::prefix('tipovehiculos')->group(function () {
 Route::prefix('titularvehiculos')->group(function () {
     Route::get('show', [ControllerTitularVehiculos::class, 'show']);
 });
-
+/*
+TODO PAGINA 12 Vehiculos 
+*/
+Route::prefix('tiposbienesmuebles')->group(function () {
+    Route::get('show', [ControllerTipoBienesMuebles::class, 'show']);
+});
+/*
+TODO PAGINA 13 CuentasValoresInversion 
+*/
+Route::prefix('tipoinversion')->group(function () {
+    Route::get('show', [ControllerTipoInversion::class, 'show']);
+});
+Route::prefix('subtiposinversion')->group(function () {
+    Route::get('show/{code}', [ControllerSubTipoInversion::class, 'show']);
+});
 /*
 ! PAGINA 1
 */
@@ -218,8 +236,15 @@ Route::prefix('bienesinmuebles')->group(function () {
     Route::post("create", [ControllerBienesInmuebles::class, 'create']);
 });
 /*
-! PAGINA 10
+! PAGINA 11
 */
 Route::prefix('vehiculos')->group(function () {
     Route::post("create", [ControllerTiposVehiculos::class, 'create']);
+});
+
+/*
+! PAGINA 12
+*/
+Route::prefix('bienesmuebles')->group(function () {
+    Route::post("create", [ControllerBienesMuebles::class, 'create']);
 });

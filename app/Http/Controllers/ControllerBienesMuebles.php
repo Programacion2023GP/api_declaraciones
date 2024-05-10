@@ -2,31 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ObjResponse;
 use Illuminate\Http\Request;
+use App\Models\ObjResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerErrors;
 
-class ControllerTiposVehiculos extends Controller
+class ControllerBienesMuebles extends Controller
 {
+
     public function create(Response $response, Request $request)
     {
 
         $response->data = ObjResponse::DefaultResponse();
-        
+
         try {
-            $datos = $request->all();
-            unset($datos['identificador']);
-            DB::table('DECL_Vehiculos')->insert($datos);
+
+            // Eliminar el campo 'identificador' de los datos
+            $datos = $request->except('identificador');
+
+            DB::table('DECL_BienesMuebles')->insert($datos);
+
+
+
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Se inserto correctamente sus datos de sus vehiculos.';
-            $response->data["alert_tex  t"] = "regimenes encontrados";
+            $response->data["message"] = 'Se insertaron los bienes muebles.';
+            $response->data["alert_text"] = "regimenes encontrados";
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
-            $erros->handleException('Vehiculos', $ex);
+            $erros->handleException('BienesMuebles', $ex);
             $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede registrar");
         }
 
