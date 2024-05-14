@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ControllerAdeudosPasivos;
 use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerBienesInmuebles;
 use App\Http\Controllers\ControllerBienesMuebles;
@@ -16,6 +17,7 @@ use App\Http\Controllers\ControllerExperienciaLaboral;
 use App\Http\Controllers\ControllerFormaAdquisicion;
 use App\Http\Controllers\ControllerFormaPago;
 use App\Http\Controllers\ControllerIngresosNetos;
+use App\Http\Controllers\ControllerInversionesCuentasValores;
 use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMotivosBaja;
 use App\Http\Controllers\ControllerMunicipios;
@@ -23,6 +25,7 @@ use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
 use App\Http\Controllers\ControllerNombreEntePublico;
 use App\Http\Controllers\ControllerPaises;
+use App\Http\Controllers\ControllerPrestamosComodatos;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerSectores;
@@ -33,6 +36,7 @@ use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoBienesMuebles;
 use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTipoInversion;
+use App\Http\Controllers\ControllerTiposAdeudos;
 use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerTiposVehiculos;
 use App\Http\Controllers\ControllerTitular;
@@ -175,6 +179,14 @@ Route::prefix('subtiposinversion')->group(function () {
     Route::get('show/{code}', [ControllerSubTipoInversion::class, 'show']);
 });
 /*
+/*
+TODO PAGINA 14 AdeudosPasivos
+*/
+Route::prefix('tiposadeudos')->group(function () {
+    Route::get('show', [ControllerTiposAdeudos::class, 'show']);
+});
+
+/*
 ! PAGINA 1
 */
 Route::prefix('datosgenerales')->group(function () {
@@ -247,4 +259,22 @@ Route::prefix('vehiculos')->group(function () {
 */
 Route::prefix('bienesmuebles')->group(function () {
     Route::post("create", [ControllerBienesMuebles::class, 'create']);
+});
+/*
+! PAGINA 13
+*/
+Route::prefix('inversionescuentas')->group(function () {
+    Route::post("create", [ControllerInversionesCuentasValores::class, 'create']);
+});
+/*
+! PAGINA 14
+*/
+Route::prefix('adeudospasivos')->group(function () {
+    Route::post("create", [ControllerAdeudosPasivos::class, 'create']);
+});
+/*
+! PAGINA 15
+*/
+Route::prefix('prestamoscomodatos')->group(function () {
+    Route::post("create", [ControllerPrestamosComodatos::class, 'create']);
 });
