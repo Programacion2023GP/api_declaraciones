@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ControllerAdeudosPasivos;
 use App\Http\Controllers\ControllerAmbitoPublico;
+use App\Http\Controllers\ControllerApartados;
 use App\Http\Controllers\ControllerBienesInmuebles;
 use App\Http\Controllers\ControllerBienesMuebles;
 use App\Http\Controllers\ControllerDatosCurriculares;
@@ -277,4 +278,18 @@ Route::prefix('adeudospasivos')->group(function () {
 */
 Route::prefix('prestamoscomodatos')->group(function () {
     Route::post("create", [ControllerPrestamosComodatos::class, 'create']);
+});
+
+
+
+
+
+
+
+/*
+! INSERCCION DE CADA HOJA ES DECIR EN LA SITUACION 1 SE INSERTO LA HOJA 1 Y ASI
+*/
+Route::prefix('apartados')->group(function () {
+    Route::post("create", [ControllerApartados::class, 'create']);
+    Route::get('show/{id}', [ControllerApartados::class, 'show']);
 });

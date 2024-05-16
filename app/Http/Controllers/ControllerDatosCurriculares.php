@@ -40,6 +40,8 @@ class ControllerDatosCurriculares extends Controller
             $response->data["message"] = 'peticion satisfactoria | Datos generales guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $DatosCurriculares;
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial,3);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DatosCurriculares', $ex);

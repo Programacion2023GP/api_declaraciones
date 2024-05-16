@@ -6,6 +6,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerDomicilioDeclarante extends Controller
 {
@@ -15,7 +16,6 @@ class ControllerDomicilioDeclarante extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-
             $datosInsercion = [
                 'Id_SituacionPatrimonial' => $request->Id_SituacionPatrimonial,
                 'EsEnMexico' => $request->EsEnMexico,
@@ -29,17 +29,20 @@ class ControllerDomicilioDeclarante extends Controller
                 'Id_Pais' => $request->Id_Pais,
                 'Id_EntidadFederativa' => $request->Id_EntidadFederativa,
                 'Id_MunicipioAlcaldia' => $request->Id_MunicipioAlcaldia,
-
+                
             ];
             $datosDomicilio = DB::table('DECL_DomicilioDeclarante')->insert($datosInsercion);
 
 
+            
 
-
+            // return "fff";
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'peticion satisfactoria | Datos generales guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $datosDomicilio;
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial,2);
         } catch (\Exception $ex) {
             $response->data = ObjResponse::CatchResponse($ex->getMessage());
         }
