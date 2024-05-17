@@ -6,6 +6,8 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
+
 class ControllerDependientesEconomicos extends Controller
 {
     public function create(Response $response, Request $request)
@@ -14,14 +16,16 @@ class ControllerDependientesEconomicos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            foreach ($request->all() as $datos) {
-                DB::table('DECL_DatosDependienteEconomico')->insert($datos);
-            }
+
+            $datos = $request->except('id');
+
+            DB::table('DECL_DatosDependienteEconomico')->insert($datos);
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron los dependientes economicos.';
             $response->data["alert_text"] = "regimenes encontrados";
-            // $response->data["result"] = $DatosCurriculares;
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial, 7);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DependientesEconomicos', $ex);

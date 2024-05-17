@@ -16,14 +16,21 @@ class ControllerExperienciaLaboral extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            foreach ($request->all() as $datos) {
-                DB::table('DECL_ExperienciaLaboral')->insert($datos);
-            }
+        
+            // $response->data["result"] = $DatosCurriculares;
+
+            $datos = $request->except('identificador');
+
+            DB::table('DECL_ExperienciaLaboral')->insert($datos);
+
+
+
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron las experiencias laborales.';
             $response->data["alert_text"] = "regimenes encontrados";
-            // $response->data["result"] = $DatosCurriculares;
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial,5);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('ExperienciaLaboral', $ex);

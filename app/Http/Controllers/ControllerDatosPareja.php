@@ -6,6 +6,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerDatosPareja extends Controller
 {
@@ -64,6 +65,8 @@ class ControllerDatosPareja extends Controller
             $response->data["message"] = 'peticion satisfactoria | Datos de pareja guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $datosPareja;
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial,6);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DatosPareja', $ex);

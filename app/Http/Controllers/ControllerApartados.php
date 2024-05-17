@@ -25,7 +25,7 @@ class ControllerApartados extends Controller
             DB::table('DECL_SPApartados')->insert($datos);
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Se inserto la hoja correctamente.';
+            $response->data["message"] = 'Continuemos llenando la declaración.';
             $response->data["alert_text"] = "regimenes encontrados";
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
@@ -42,26 +42,29 @@ class ControllerApartados extends Controller
         try {
             $apartado = DB::select("
             select max(DECL_SituacionPatrimonial.Id_SituacionPatrimonial) as folio,
-   MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno,
-   DECL_SPApartados.Id_SituacionPatrimonial as Declaracion,
-    CASE
-        WHEN  max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 THEN 'Terminada'
-		ELSE 'En proceso'
-    END AS Status,
-   max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
-   DECL_SituacionPatrimonial.FechaRegistro,
- CASE
-        WHEN DECL_SituacionPatrimonial.Id_Plazo = 1 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Inicial'
-        WHEN DECL_SituacionPatrimonial.Id_Plazo = 2 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Modificación'
-        WHEN DECL_SituacionPatrimonial.Id_Plazo = 3 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Conclusión'
-    END AS Tipo_declaracion
-   from DECL_SPApartados
-   INNER JOIN DECL_SituacionPatrimonial ON DECL_SituacionPatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
-   INNER JOIN USR_User on USR_User.Id_User = DECL_SituacionPatrimonial.Id_User
-   INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
-   WHERE DECL_SituacionPatrimonial.Id_User =?
-   group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
-   DECL_SituacionPatrimonial.Id_Plazo,DECL_SituacionPatrimonial.EsSimplificada,DECL_SituacionPatrimonial.FechaRegistro
+            MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno,
+            CASE
+                 WHEN  DECL_SituacionPatrimonial.EsSimplificada = 1 THEN 'Completa'
+                 WHEN  DECL_SituacionPatrimonial.EsSimplificada = 0 THEN 'Simplificada'
+                END AS Declaracion,
+             CASE
+                 WHEN  max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 THEN 'Terminada'
+                 ELSE 'En proceso'
+             END AS Status,
+            max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
+            FORMAT(DECL_SituacionPatrimonial.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
+          CASE
+                 WHEN DECL_SituacionPatrimonial.Id_Plazo = 1 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Inicial'
+                 WHEN DECL_SituacionPatrimonial.Id_Plazo = 2 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Modificación'
+                 WHEN DECL_SituacionPatrimonial.Id_Plazo = 3 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Conclusión'
+             END AS Tipo_declaracion
+            from DECL_SPApartados
+            INNER JOIN DECL_SituacionPatrimonial ON DECL_SituacionPatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
+            INNER JOIN USR_User on USR_User.Id_User = DECL_SituacionPatrimonial.Id_User
+            INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
+            WHERE DECL_SituacionPatrimonial.Id_User =?
+            group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
+            DECL_SituacionPatrimonial.Id_Plazo,DECL_SituacionPatrimonial.EsSimplificada,DECL_SituacionPatrimonial.FechaRegistro
             ", [$id]);
 
             $response->data = ObjResponse::CorrectResponse();
