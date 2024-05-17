@@ -7,6 +7,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerIngresosNetos extends Controller
 {
@@ -22,6 +23,8 @@ class ControllerIngresosNetos extends Controller
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se inserto correctamente los ingresos.';
             $response->data["alert_text"] = "regimenes encontrados";
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial,8);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
