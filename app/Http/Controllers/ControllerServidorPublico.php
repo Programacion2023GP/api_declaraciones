@@ -6,6 +6,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerServidorPublico extends Controller
 {
@@ -21,7 +22,8 @@ class ControllerServidorPublico extends Controller
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se inserto correctamente sus datos de servidor publico.';
             $response->data["alert_text"] = "regimenes encontrados";
-            // $response->data["result"] = $DatosCurriculares;
+            $apartado = new ControllerApartados();
+            $apartado->create($request->Id_SituacionPatrimonial,9);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('ServidorPublico', $ex);

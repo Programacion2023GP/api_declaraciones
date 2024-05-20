@@ -16,16 +16,19 @@ class ControllerDependientesEconomicos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
+            foreach ($request->all() as $datos) {
+                // Eliminar el campo 'identificador' de los datos
+                unset($datos['id']);
+                // Insertar los datos en la tabla 'DECL_BienesInmuebles'
+                DB::table('DECL_DatosDependienteEconomico')->insert($datos);
+            }
 
-            $datos = $request->except('id');
-
-            DB::table('DECL_DatosDependienteEconomico')->insert($datos);
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron los dependientes economicos.';
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
-            $apartado->create($request->Id_SituacionPatrimonial, 7);
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 7);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DependientesEconomicos', $ex);

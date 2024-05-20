@@ -7,6 +7,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerExperienciaLaboral extends Controller
 {
@@ -16,21 +17,24 @@ class ControllerExperienciaLaboral extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-        
+
             // $response->data["result"] = $DatosCurriculares;
 
-            $datos = $request->except('identificador');
-
-            DB::table('DECL_ExperienciaLaboral')->insert($datos);
 
 
+            foreach ($request->all() as $datos) {
+                // Eliminar el campo 'identificador' de los datos
+                unset($datos['identificador']);
+                // Insertar los datos en la tabla 'DECL_BienesInmuebles'
+                DB::table('DECL_ExperienciaLaboral')->insert($datos);
+            }
 
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron las experiencias laborales.';
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
-            $apartado->create($request->Id_SituacionPatrimonial,5);
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 5);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('ExperienciaLaboral', $ex);

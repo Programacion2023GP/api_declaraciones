@@ -6,6 +6,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerTiposVehiculos extends Controller
 {
@@ -16,13 +17,21 @@ class ControllerTiposVehiculos extends Controller
         
         try {
             $datos = $request->all();
-            unset($datos['identificador']);
-            DB::table('DECL_Vehiculos')->insert($datos);
+   
+
+            foreach ($request->all() as $datos) {
+                // Eliminar el campo 'identificador' de los datos
+                unset($datos['identificador']);
+                // Insertar los datos en la tabla 'DECL_Vehiculos'
+                DB::table('DECL_Vehiculos')->insert($datos);
+            }
 
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se inserto correctamente sus datos de sus vehiculos.';
             $response->data["alert_tex  t"] = "regimenes encontrados";
+            $apartado = new ControllerApartados();
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 11);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();

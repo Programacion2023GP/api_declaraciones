@@ -7,6 +7,7 @@ use App\Models\ObjResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use App\Http\Controllers\ControllerErrors;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerBienesInmuebles extends Controller
 {
@@ -27,6 +28,8 @@ class ControllerBienesInmuebles extends Controller
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron los bienes inmuebles.';
             $response->data["alert_text"] = "regimenes encontrados";
+            $apartado = new ControllerApartados();
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'],10);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();

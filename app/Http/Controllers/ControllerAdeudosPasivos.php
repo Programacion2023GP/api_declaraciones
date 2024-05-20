@@ -7,6 +7,7 @@ use App\Models\ObjResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use App\Http\Controllers\ControllerErrors;
+use App\Http\Controllers\ControllerApartados;
 
 class ControllerAdeudosPasivos extends Controller
 {
@@ -17,18 +18,22 @@ class ControllerAdeudosPasivos extends Controller
 
         try {
 
-            // Eliminar el campo 'identificador' de los datos
-            $datos = $request->except('indentificador');
-
-            DB::table('DECL_AdeudosPasivos')->insert($datos);
 
 
+            foreach ($request->all() as $datos) {
+                // Eliminar el campo 'identificador' de los datos
+                unset($datos['indentificador']);
+                // Insertar los datos en la tabla 'DECL_Vehiculos'
+                DB::table('DECL_AdeudosPasivos')->insert($datos);
+            }
 
 
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron las inversiones de cuenta.';
             $response->data["alert_text"] = "regimenes encontrados";
+            $apartado = new ControllerApartados();
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'],14);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();

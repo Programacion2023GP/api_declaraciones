@@ -18,11 +18,13 @@ class ControllerBienesMuebles extends Controller
 
         try {
 
-            // Eliminar el campo 'identificador' de los datos
-            $datos = $request->except('identificador');
-
-            DB::table('DECL_BienesMuebles')->insert($datos);
-
+         
+            foreach ($request->all() as $datos) {
+                // Eliminar el campo 'identificador' de los datos
+                unset($datos['identificador']);
+                // Insertar los datos en la tabla 'DECL_Vehiculos'
+                DB::table('DECL_BienesMuebles')->insert($datos);
+            }
 
 
 
@@ -30,6 +32,8 @@ class ControllerBienesMuebles extends Controller
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron los bienes muebles.';
             $response->data["alert_text"] = "regimenes encontrados";
+            $apartado = new ControllerApartados();
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 12);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();

@@ -48,7 +48,8 @@ class ControllerApartados extends Controller
                  WHEN  DECL_SituacionPatrimonial.EsSimplificada = 0 THEN 'Simplificada'
                 END AS Declaracion,
              CASE
-                 WHEN  max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 THEN 'Terminada'
+                 WHEN  (max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 and DECL_SituacionPatrimonial.EsSimplificada = 1 OR 
+				 max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =8 and DECL_SituacionPatrimonial.EsSimplificada = 0 ) THEN 'Terminada'
                  ELSE 'En proceso'
              END AS Status,
             max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
@@ -65,6 +66,8 @@ class ControllerApartados extends Controller
             WHERE DECL_SituacionPatrimonial.Id_User =?
             group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
             DECL_SituacionPatrimonial.Id_Plazo,DECL_SituacionPatrimonial.EsSimplificada,DECL_SituacionPatrimonial.FechaRegistro
+
+
             ", [$id]);
 
             $response->data = ObjResponse::CorrectResponse();
