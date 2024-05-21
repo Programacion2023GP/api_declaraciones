@@ -5,6 +5,7 @@ use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerApartados;
 use App\Http\Controllers\ControllerBienesInmuebles;
 use App\Http\Controllers\ControllerBienesMuebles;
+use App\Http\Controllers\ControllerCompaq;
 use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
 use App\Http\Controllers\ControllerDatosGenerales;
@@ -292,4 +293,11 @@ Route::prefix('prestamoscomodatos')->group(function () {
 Route::prefix('apartados')->group(function () {
     Route::post("create/{situacionPatrimonial}/{hoja}", [ControllerApartados::class, 'create']);
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
+});
+/*
+! COMPAQ
+*/
+
+Route::prefix('compaq')->group(function () {
+    Route::get('show/{nomina}', [ControllerCompaq::class, 'show']);
 });

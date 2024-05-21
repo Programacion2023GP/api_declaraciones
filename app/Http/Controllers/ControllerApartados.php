@@ -52,7 +52,7 @@ class ControllerApartados extends Controller
 				 max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =8 and DECL_SituacionPatrimonial.EsSimplificada = 0 ) THEN 'Terminada'
                  ELSE 'En proceso'
              END AS Status,
-            max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
+        
             FORMAT(DECL_SituacionPatrimonial.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
           CASE
                  WHEN DECL_SituacionPatrimonial.Id_Plazo = 1 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Inicial'
@@ -66,7 +66,7 @@ class ControllerApartados extends Controller
             WHERE DECL_SituacionPatrimonial.Id_User =?
             group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
             DECL_SituacionPatrimonial.Id_Plazo,DECL_SituacionPatrimonial.EsSimplificada,DECL_SituacionPatrimonial.FechaRegistro
-
+            ORDER BY folio DESC
 
             ", [$id]);
 

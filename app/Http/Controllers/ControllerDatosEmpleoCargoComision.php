@@ -49,7 +49,7 @@ class ControllerDatosEmpleoCargoComision extends Controller
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | Datos generales guardados correctamente.';
+            $response->data["message"] = 'peticion satisfactoria | Datos DEL EMPLEO guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $DatosCurriculares;
             $apartado = new ControllerApartados();

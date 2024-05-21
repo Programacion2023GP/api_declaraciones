@@ -16,7 +16,7 @@ class ControllerDatosCurriculares extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-
+            
             $datosInsercion = [
                 'Id_SituacionPatrimonial' => $request->Id_SituacionPatrimonial,
                 'Id_Nivel' => $request->Id_Nivel,
@@ -37,7 +37,7 @@ class ControllerDatosCurriculares extends Controller
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | Datos generales guardados correctamente.';
+            $response->data["message"] = 'peticion satisfactoria | Datos CURRICULARES guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $DatosCurriculares;
             $apartado = new ControllerApartados();

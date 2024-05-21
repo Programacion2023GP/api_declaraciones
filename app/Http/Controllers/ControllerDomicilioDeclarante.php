@@ -38,7 +38,7 @@ class ControllerDomicilioDeclarante extends Controller
 
             // return "fff";
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | Datos generales guardados correctamente.';
+            $response->data["message"] = 'peticion satisfactoria | Datos del DOMICILIO DEL DECLARANTE guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $datosDomicilio;
             $apartado = new ControllerApartados();

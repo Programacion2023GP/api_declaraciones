@@ -31,7 +31,7 @@ class ControllerExperienciaLaboral extends Controller
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Se insertaron las experiencias laborales.';
+            $response->data["message"] = 'Se insertaron las EXPERIENCIAS LABORALES.';
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
             $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 5);

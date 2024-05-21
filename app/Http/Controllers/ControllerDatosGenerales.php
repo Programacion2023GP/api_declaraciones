@@ -56,11 +56,11 @@ class ControllerDatosGenerales extends Controller
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | Datos domicilarios del declarante guardados correctamente.';
+            $response->data["message"] = 'peticion satisfactoria | Datos GENERALES del declarante guardados correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $SituacionPatrimonialId;
             $apartado = new ControllerApartados();
-            $apartado->create($SituacionPatrimonialId,1);
+            $apartado->create($SituacionPatrimonialId,2);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DatosGenerales', $ex);
