@@ -60,7 +60,7 @@ class ControllerDatosGenerales extends Controller
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $SituacionPatrimonialId;
             $apartado = new ControllerApartados();
-            $apartado->create($SituacionPatrimonialId,2);
+            $apartado->create($SituacionPatrimonialId,1);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DatosGenerales', $ex);

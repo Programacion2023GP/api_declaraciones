@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ControllerAdeudosPasivos;
+use App\Http\Controllers\ControllerAdscripcion;
 use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerApartados;
 use App\Http\Controllers\ControllerBienesInmuebles;
@@ -30,6 +31,7 @@ use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerPrestamosComodatos;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
+use App\Http\Controllers\ControllerRoles;
 use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerServidorPublico;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
@@ -37,6 +39,7 @@ use App\Http\Controllers\ControllerSubTipoInversion;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoBienesMuebles;
 use App\Http\Controllers\ControllerTipoInmueble;
+use App\Http\Controllers\ControllerTipoIntegrante;
 use App\Http\Controllers\ControllerTipoInversion;
 use App\Http\Controllers\ControllerTiposAdeudos;
 use App\Http\Controllers\ControllerTiposInstrumentos;
@@ -63,12 +66,24 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::post("login", [ControllerUsers::class, 'login']);
-/*
-TODO DATOS GENERALES
-*/
+Route::prefix('usuarios')->group(function () {
+    Route::post("login", [ControllerUsers::class, 'login']);
+    Route::post("create", [ControllerUsers::class, 'create']);
+    Route::get("show", [ControllerUsers::class, 'show']);
+});
+Route::prefix('intengrantes')->group(function () {
+
+    Route::get("show", [ControllerTipoIntegrante::class, 'show']);
+});
+Route::prefix('adscripcion')->group(function () {
+
+    Route::get("show", [ControllerAdscripcion::class, 'show']);
+});
 Route::prefix('estadoCivil')->group(function () {
     Route::get('show', [ControllerSituacionPersonalEstadoCivil::class, 'show']);
+    Route::post('create', [ControllerSituacionPersonalEstadoCivil::class, 'create']);
+    Route::put('update/{id}', [ControllerSituacionPersonalEstadoCivil::class, 'update']);
+    Route::delete('delete/{id}', [ControllerSituacionPersonalEstadoCivil::class, 'delete']);
 });
 Route::prefix('regimenes')->group(function () {
     Route::get('show', [ControllerRegimemMatrimonial::class, 'show']);
@@ -295,9 +310,31 @@ Route::prefix('apartados')->group(function () {
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
 });
 /*
+! CREACION DE USUARIOS
+*/
+
+/*
 ! COMPAQ
 */
 
 Route::prefix('compaq')->group(function () {
     Route::get('show/{nomina}', [ControllerCompaq::class, 'show']);
+});
+
+
+
+
+
+
+
+/*
+TODO PETICIONES PARA EL FORM DE USUARIOS
+*/
+Route::prefix('roles')->group(function () {
+    Route::get("show", [ControllerRoles::class, 'show']);
+});
+
+
+Route::prefix('usuarios')->group(function () {
+    Route::post("create", [ControllerRoles::class, 'create']);
 });
