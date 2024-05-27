@@ -1,0 +1,1 @@
+[2024-05-27 16:13:15] SQLSTATE[23000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'valor', table 'declaraciones.dbo.DocumentoObtenido'; column does not allow nulls. INSERT fails. (Connection: sqlsrv, SQL: insert into [DocumentoObtenido] ([clave], [valor]) values (5, ?))

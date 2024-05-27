@@ -90,7 +90,7 @@ class ControllerUsers extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
-    public function show(Response $response)
+    public function index(Response $response)
     {
         $response->data = ObjResponse::DefaultResponse();
 

@@ -1,0 +1,1 @@
+[2024-05-27 16:45:58] SQLSTATE[23000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert explicit value for identity column in table 'Adscripcion' when IDENTITY_INSERT is set to OFF. (Connection: sqlsrv, SQL: insert into [Adscripcion] ([id], [nombre]) values (51, DAS))

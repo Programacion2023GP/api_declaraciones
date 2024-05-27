@@ -37,6 +37,35 @@ class ControllerSituacionPersonalEstadoCivil extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+
+    public function index(Response $response)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $estado_civil = DB::table('Estadocivil')
+                ->select('val as text', 'id')
+                ->where('active', 1)
+                ->orderBy('id', 'desc') // Ordenar por ID en orden descendente (mayor a menor)
+                ->get();
+
+            // Convertir el ID a número
+            $estado_civil = $estado_civil->map(function ($item) {
+                $item->id = (int)$item->id;
+                return $item;
+            });
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria | lista de adscripcion.';
+            $response->data["alert_text"] = "usuarios adscripcion";
+            $response->data["result"] = $estado_civil;
+        } catch (\Exception $ex) {
+            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+
     public function create(Response $response, Request $request)
     {
 

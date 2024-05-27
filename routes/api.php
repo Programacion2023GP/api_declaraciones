@@ -69,7 +69,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('usuarios')->group(function () {
     Route::post("login", [ControllerUsers::class, 'login']);
     Route::post("create", [ControllerUsers::class, 'create']);
-    Route::get("show", [ControllerUsers::class, 'show']);
+    Route::get("index", [ControllerUsers::class, 'index']);
 });
 Route::prefix('intengrantes')->group(function () {
 
@@ -77,16 +77,25 @@ Route::prefix('intengrantes')->group(function () {
 });
 Route::prefix('adscripcion')->group(function () {
 
-    Route::get("show", [ControllerAdscripcion::class, 'show']);
+    Route::get('index', [ControllerAdscripcion::class, 'index']);
+    Route::get('show', [ControllerAdscripcion::class, 'show']);
+    Route::post('create', [ControllerAdscripcion::class, 'create']);
+    Route::put('update/{id}', [ControllerAdscripcion::class, 'update']);
+    Route::delete('delete/{id}', [ControllerAdscripcion::class, 'delete']);
 });
 Route::prefix('estadoCivil')->group(function () {
+    Route::get('index', [ControllerSituacionPersonalEstadoCivil::class, 'index']);
     Route::get('show', [ControllerSituacionPersonalEstadoCivil::class, 'show']);
     Route::post('create', [ControllerSituacionPersonalEstadoCivil::class, 'create']);
     Route::put('update/{id}', [ControllerSituacionPersonalEstadoCivil::class, 'update']);
     Route::delete('delete/{id}', [ControllerSituacionPersonalEstadoCivil::class, 'delete']);
 });
 Route::prefix('regimenes')->group(function () {
+    Route::get('index', [ControllerRegimemMatrimonial::class, 'index']);
     Route::get('show', [ControllerRegimemMatrimonial::class, 'show']);
+    Route::post('create', [ControllerRegimemMatrimonial::class, 'create']);
+    Route::put('update/{id}', [ControllerRegimemMatrimonial::class, 'update']);
+    Route::delete('delete/{id}', [ControllerRegimemMatrimonial::class, 'delete']);
 });
 
 /*
@@ -100,9 +109,9 @@ Route::prefix('paises')->group(function () {
 Route::prefix('entidades')->group(function () {
     Route::get('show', [ControllerEntidadFederativa::class, 'show']);
 });
-Route::prefix('entidades')->group(function () {
-    Route::get('show', [ControllerEntidadFederativa::class, 'show']);
-});
+// Route::prefix('entidades')->group(function () {
+//     Route::get('show', [ControllerEntidadFederativa::class, 'show']);
+// });
 Route::prefix('municipios')->group(function () {
     Route::get('show/{code}', [ControllerMunicipios::class, 'show']);
 });
@@ -111,12 +120,25 @@ TODO DATOS CURRICULARES
 */
 Route::prefix('nivelestudios')->group(function () {
     Route::get('show', [ControllerNivelEsudios::class, 'show']);
+    Route::get('index', [ControllerNivelEsudios::class, 'index']);
+    Route::post('create', [ControllerNivelEsudios::class, 'create']);
+    Route::put('update/{id}', [ControllerNivelEsudios::class, 'update']);
+    Route::delete('delete/{id}', [ControllerNivelEsudios::class, 'delete']);
 });
 Route::prefix('documentosbtenidos')->group(function () {
     Route::get('show', [ControllerDocumentoObtenido::class, 'show']);
+    Route::get('index', [ControllerDocumentoObtenido::class, 'index']);
+    Route::post('create', [ControllerDocumentoObtenido::class, 'create']);
+    Route::put('update/{id}', [ControllerDocumentoObtenido::class, 'update']);
+    Route::delete('delete/{id}', [ControllerDocumentoObtenido::class, 'delete']);
 });
 Route::prefix('estatus')->group(function () {
     Route::get('show', [ControllerEstatus::class, 'show']);
+    Route::get('index', [ControllerEstatus::class, 'index']);
+    Route::get('show', [ControllerEstatus::class, 'show']);
+    Route::post('create', [ControllerEstatus::class, 'create']);
+    Route::put('update/{id}', [ControllerEstatus::class, 'update']);
+    Route::delete('delete/{id}', [ControllerEstatus::class, 'delete']);
 });
 /*
 TODO DATOS DEL EMPLEO CARGO O COMISION QUE INICIA 
@@ -129,45 +151,94 @@ TODO PAGINA 6 DATOSPAREJA
 */
 Route::prefix('sectores')->group(function () {
     Route::get('show', [ControllerSectores::class, 'show']);
+    Route::get('index', [ControllerSectores::class, 'index']);
+    Route::post('create', [ControllerSectores::class, 'create']);
+    Route::put('update/{id}', [ControllerSectores::class, 'update']);
+    Route::delete('delete/{id}', [ControllerSectores::class, 'delete']);
 });
 Route::prefix('monedas')->group(function () {
     Route::get('show', [ControllerMonedas::class, 'show']);
+    Route::get('index', [ControllerMonedas::class, 'index']);
+    Route::post('create', [ControllerMonedas::class, 'create']);
+    Route::put('update/{id}', [ControllerMonedas::class, 'update']);
+    Route::delete('delete/{id}', [ControllerMonedas::class, 'delete']);
 });
 Route::prefix('tipoinstrumento')->group(function () {
-    Route::get("show", [ControllerTiposInstrumentos::class, 'show']);
+    Route::get('show', [ControllerTiposInstrumentos::class, 'show']);
+    Route::get('index', [ControllerTiposInstrumentos::class, 'index']);
+    Route::post('create', [ControllerTiposInstrumentos::class, 'create']);
+    Route::put('update/{id}', [ControllerTiposInstrumentos::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTiposInstrumentos::class, 'delete']);
 });
 Route::prefix('bienenajenacion')->group(function () {
     Route::get('show', [ControllerTipoBienEnajenacionBienes::class, 'show']);
+    Route::get('index', [ControllerTipoBienEnajenacionBienes::class, 'index']);
+    Route::post('create', [ControllerTipoBienEnajenacionBienes::class, 'create']);
+    Route::put('update/{id}', [ControllerTipoBienEnajenacionBienes::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTipoBienEnajenacionBienes::class, 'delete']);
 });
 Route::prefix('relacioncondeclarante')->group(function () {
     Route::get('show', [ControllerRelacionDeclarante::class, 'show']);
+    Route::get('index', [ControllerRelacionDeclarante::class, 'index']);
+    Route::post('create', [ControllerRelacionDeclarante::class, 'create']);
+    Route::put('update/{id}', [ControllerRelacionDeclarante::class, 'update']);
+    Route::delete('delete/{id}', [ControllerRelacionDeclarante::class, 'delete']);
 });
 Route::prefix('ambitospublicos')->group(function () {
     Route::get('show', [ControllerAmbitoPublico::class, 'show']);
+    Route::get('index', [ControllerAmbitoPublico::class, 'index']);
+    Route::post('create', [ControllerAmbitoPublico::class, 'create']);
+    Route::put('update/{id}', [ControllerAmbitoPublico::class, 'update']);
+    Route::delete('delete/{id}', [ControllerAmbitoPublico::class, 'delete']);
 });
 Route::prefix('nivelordengobierno')->group(function () {
     Route::get('show', [ControllerNivelOrdenGobierno::class, 'show']);
+    Route::get('index', [ControllerNivelOrdenGobierno::class, 'index']);
+    Route::post('create', [ControllerNivelOrdenGobierno::class, 'create']);
+    Route::put('update/{id}', [ControllerNivelOrdenGobierno::class, 'update']);
+    Route::delete('delete/{id}', [ControllerNivelOrdenGobierno::class, 'delete']);
 });
+
 Route::prefix('titularbien')->group(function () {
     Route::get('show', [ControllerTitular::class, 'show']);
+    Route::get('index', [ControllerTitular::class, 'index']);
+    Route::post('create', [ControllerTitular::class, 'create']);
+    Route::put('update/{id}', [ControllerTitular::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTitular::class, 'delete']);
 });
 /*
 TODO PAGINA 10 Bienes Inmuebles (Situación Actual)
 */
 Route::prefix('tipoinmueble')->group(function () {
     Route::get('show', [ControllerTipoInmueble::class, 'show']);
+    Route::get('index', [ControllerTipoInmueble::class, 'index']);
+    Route::post('create', [ControllerTipoInmueble::class, 'create']);
+    Route::put('update/{id}', [ControllerTipoInmueble::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTipoInmueble::class, 'delete']);
 });
 Route::prefix('formadquisicion')->group(function () {
     Route::get('show', [ControllerFormaAdquisicion::class, 'show']);
+    Route::get('index', [ControllerFormaAdquisicion::class, 'index']);
+    Route::post('create', [ControllerFormaAdquisicion::class, 'create']);
+    Route::put('update/{id}', [ControllerFormaAdquisicion::class, 'update']);
+    Route::delete('delete/{id}', [ControllerFormaAdquisicion::class, 'delete']);
 });
 Route::prefix('formapago')->group(function () {
     Route::get('show', [ControllerFormaPago::class, 'show']);
+    Route::get('index', [ControllerFormaPago::class, 'index']);
+    Route::post('create', [ControllerFormaPago::class, 'create']);
+    Route::put('update/{id}', [ControllerFormaPago::class, 'update']);
+    Route::delete('delete/{id}', [ControllerFormaPago::class, 'delete']);
 });
 Route::prefix('valorconforme')->group(function () {
     Route::get('show', [ControllerValorConforme::class, 'show']);
 });
 Route::prefix('motivobaja')->group(function () {
     Route::get('show', [ControllerMotivosBaja::class, 'show']);
+    Route::get('index', [ControllerMotivosBaja::class, 'index']);
+    Route::post('create', [ControllerMotivosBaja::class, 'create']);
+    Route::put('update/{id}', [ControllerMotivosBaja::class, 'update']);
+    Route::delete('delete/{id}', [ControllerMotivosBaja::class, 'delete']);
 });
 /*
 TODO PAGINA 11 Vehiculos 
@@ -175,6 +246,10 @@ TODO PAGINA 11 Vehiculos
 
 Route::prefix('tipovehiculos')->group(function () {
     Route::get('show', [ControllerVehiculos::class, 'show']);
+    Route::get('index', [ControllerVehiculos::class, 'index']);
+    Route::post('create', [ControllerVehiculos::class, 'create']);
+    Route::put('update/{id}', [ControllerVehiculos::class, 'update']);
+    Route::delete('delete/{id}', [ControllerVehiculos::class, 'delete']);
 });
 
 Route::prefix('titularvehiculos')->group(function () {

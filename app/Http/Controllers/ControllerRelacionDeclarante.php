@@ -14,7 +14,7 @@ class ControllerRelacionDeclarante extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $nivel = DB::table('ParentescoRelacion')->select('valor as text', 'clave as id')->get();
+            $nivel = DB::table('ParentescoRelacion')->select('valor as text', 'clave as id')->where('active', 1)->get();
 
             // Convertir el ID a número
             $nivel = $nivel->map(function ($item) {
@@ -31,5 +31,112 @@ class ControllerRelacionDeclarante extends Controller
         }
 
         return response()->json($response, $response->data["status_code"]);
-    }//
+    }
+    public function index(Response $response)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $regimen = DB::table('ParentescoRelacion')->select('valor as text', 'clave as id')->where('active', 1)->orderBy('clave', 'desc')
+                ->get();
+
+            // Convertir el ID a número
+            $regimen = $regimen->map(function ($item) {
+                $item->id = (int)$item->id;
+                return $item;
+            });
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria | lista de regimenes.';
+            $response->data["alert_text"] = "regimenes encontrados";
+            $response->data["result"] = $regimen;
+        } catch (\Exception $ex) {
+            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function create(Response $response, Request $request)
+    {
+
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $maximo_id = DB::table('ParentescoRelacion')->max('clave');
+
+            $regimen_matrimonial = DB::table('ParentescoRelacion')->insertGetId([
+                'clave' => $maximo_id + 1,
+                'valor' => $request->valor,
+            ]);
+
+
+
+            // return "fff";
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria |  RELACION CON DECLARANTE guardado correctamente.';
+            $response->data["alert_text"] = "regimenes encontrados";
+            $response->data["result"] = $regimen_matrimonial;
+        } catch (\Exception $ex) {
+            // $response->data = ObjResponse::CatchResponse($ex->getMessage());
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_relaciondeclarante', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function update(Response $response, Request $request, $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+
+
+            // Actualizar el registro
+            DB::table('ParentescoRelacion')
+                ->where('clave', $id)
+                ->update([
+                    'valor' => $request->valor,
+                ]);
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria |  RELACION CON DECLARANTE actualizado correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del   RELACION CON DECLARANTE actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_relaciondeclarante', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function delete(Response $response, Request $request, $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+
+
+            // Actualizar el registro
+            DB::table('ParentescoRelacion')
+                ->where('clave', $id)
+                ->update([
+                    'active' => 0,
+                ]);
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria |  RELACION CON DECLARANTE eliminado correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del   RELACION CON DECLARANTE actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_relaciondeclarante', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
 }
