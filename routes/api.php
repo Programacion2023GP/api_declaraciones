@@ -260,15 +260,27 @@ TODO PAGINA 12 Vehiculos
 */
 Route::prefix('tiposbienesmuebles')->group(function () {
     Route::get('show', [ControllerTipoBienesMuebles::class, 'show']);
+    Route::get('index', [ControllerTipoBienesMuebles::class, 'index']);
+    Route::post('create', [ControllerTipoBienesMuebles::class, 'create']);
+    Route::put('update/{id}', [ControllerTipoBienesMuebles::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTipoBienesMuebles::class, 'delete']);
 });
 /*
 TODO PAGINA 13 CuentasValoresInversion 
 */
 Route::prefix('tipoinversion')->group(function () {
     Route::get('show', [ControllerTipoInversion::class, 'show']);
+    Route::get('index', [ControllerTipoInversion::class, 'index']);
+    Route::post('create', [ControllerTipoInversion::class, 'create']);
+    Route::put('update/{id}', [ControllerTipoInversion::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTipoInversion::class, 'delete']);
 });
 Route::prefix('subtiposinversion')->group(function () {
     Route::get('show/{code}', [ControllerSubTipoInversion::class, 'show']);
+    Route::get('index', [ControllerSubTipoInversion::class, 'index']);
+    Route::post('create', [ControllerSubTipoInversion::class, 'create']);
+    Route::put('update/{id}', [ControllerSubTipoInversion::class, 'update']);
+    Route::delete('delete/{id}', [ControllerSubTipoInversion::class, 'delete']);
 });
 /*
 /*
@@ -276,6 +288,10 @@ TODO PAGINA 14 AdeudosPasivos
 */
 Route::prefix('tiposadeudos')->group(function () {
     Route::get('show', [ControllerTiposAdeudos::class, 'show']);
+    Route::get('index', [ControllerTiposAdeudos::class, 'index']);
+    Route::post('create', [ControllerTiposAdeudos::class, 'create']);
+    Route::put('update/{id}', [ControllerTiposAdeudos::class, 'update']);
+    Route::delete('delete/{id}', [ControllerTiposAdeudos::class, 'delete']);
 });
 
 /*
@@ -410,6 +426,6 @@ Route::prefix('roles')->group(function () {
 });
 
 
-Route::prefix('usuarios')->group(function () {
-    Route::post("create", [ControllerRoles::class, 'create']);
-});
+// Route::prefix('usuarios')->group(function () {
+//     Route::post("create", [ControllerRoles::class, 'create']);
+// });

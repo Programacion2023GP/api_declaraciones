@@ -50,16 +50,10 @@ class ControllerUsers extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $user = DB::table('USR_User')->insertGetId([
-                'Email' => $request->Email,
-                'password' => Hash::make($request->password),
-            ]);
-
-            // Recuperar todos los datos del usuario recién creado
-            $user = DB::table('USR_User')->where('id', $user)->first();
+            $maxIdUser = DB::table('USR_User')->max('Id_User');
 
             $person = DB::table('MD_Person')->insertGetId([
-                'Id_Person' => $user->Id_Person,
+                // 'Id_Person' => $maxPerson + 1,
                 'Name' => $request->Name,
                 'PaternalSurname' => $request->PaternalSurname,
                 'MaternalSurname' => $request->MaternalSurname,
@@ -69,18 +63,27 @@ class ControllerUsers extends Controller
                 'DenominacionCargo' => $request->DenominacionCargo,
                 'AreaAdscripcion' => $request->AreaAdscripcion,
                 'Nomina' => $request->Nomina,
-            ]);
+            ], 'Id_Person');
+            $user = DB::table('USR_User')->insertGetId([
+                'Email' => $request->Email,
+                'password' => Hash::make($request->password),
+                'Id_Person' => $person,
+
+            ], 'Id_User');
+
+            // Recuperar todos los datos del usuario recién creado
+            // $user = DB::table('USR_User')->where('id', $user)->first();
+
             $role = DB::table('USR_UserRole')->insertGetId([
-                'Id_User' => $user->Id_User,
+                'Id_User' => $user,
                 'Id_Role' => $request->Id_Role,
             ]);
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Se insertaron los prestamos comodatos.';
+            $response->data["message"] = $role;
             $response->data["alert_text"] = "regimenes encontrados";
-            $apartado = new ControllerApartados();
-            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 15);
+
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
@@ -96,7 +99,7 @@ class ControllerUsers extends Controller
 
         try {
             $usuarios = DB::table('MD_Person')
-                ->select('MD_Person.Id_Person','Nomina','PaternalSurname','MaternalSurname','USR_Role.Name','DenominacionPuesto')
+                ->select('MD_Person.Id_Person', 'Nomina', 'PaternalSurname', 'MaternalSurname', 'USR_Role.Name', 'DenominacionPuesto')
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
                 ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role')
