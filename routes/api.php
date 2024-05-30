@@ -70,6 +70,8 @@ Route::prefix('usuarios')->group(function () {
     Route::post("login", [ControllerUsers::class, 'login']);
     Route::post("create", [ControllerUsers::class, 'create']);
     Route::get("index", [ControllerUsers::class, 'index']);
+    Route::delete('delete/{id}', [ControllerUsers::class, 'delete']);
+    Route::put('update/{id}', [ControllerUsers::class, 'update']);
 });
 Route::prefix('intengrantes')->group(function () {
 

@@ -51,7 +51,13 @@ class ControllerUsers extends Controller
 
         try {
             $maxIdUser = DB::table('USR_User')->max('Id_User');
+            $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
 
+            if ($existingUser) {
+                // Si el correo electrónico ya existe, retornar un error
+                $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+                return response()->json($response, $response->data["status_code"]);
+            }
             $person = DB::table('MD_Person')->insertGetId([
                 // 'Id_Person' => $maxPerson + 1,
                 'Name' => $request->Name,
@@ -81,7 +87,7 @@ class ControllerUsers extends Controller
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = $role;
+            $response->data["message"] = 'Petición satisfactoria | USUARIO guardado correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
 
             // $response->data["result"] = $DatosCurriculares;
@@ -93,18 +99,91 @@ class ControllerUsers extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    public function update(Response $response, Request $request, $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+
+            $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
+
+            if ($existingUser) {
+                // Si el correo electrónico ya existe, retornar un error
+                $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+                return response()->json($response, $response->data["status_code"]);
+            }
+            // Actualizar el registro
+            DB::table('USR_User')
+                ->where('Id_User', $id)
+                ->update([
+                    'Email' => $request->Email,
+                ]);
+
+            // Obtiene el Id_Person del registro actualizado
+            $idPerson = DB::table('USR_User')
+                ->where('Id_User', $id)
+                ->value('Id_Person');
+
+            DB::table('MD_Person')
+                ->where('Id_Person', $idPerson)
+                ->update([
+                    'Name' => $request->Name,
+                    'PaternalSurname' => $request->PaternalSurname,
+                    'MaternalSurname' => $request->MaternalSurname,
+                    'Id_TipoIntegrante' => $request->Id_TipoIntegrante,
+                    'ClaseNivelPuesto' => $request->ClaseNivelPuesto,
+                    'DenominacionPuesto' => $request->DenominacionPuesto,
+                    'DenominacionCargo' => $request->DenominacionCargo,
+                    'AreaAdscripcion' => $request->AreaAdscripcion,
+                    'Nomina' => $request->Nomina,
+                ]);
+            DB::table('USR_UserRole')
+                ->where('Id_User', $id)
+                ->update([
+                    'Id_Role' => $request->Id_Role,
+                ]);
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | USUARIO actualizado correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del  USUARIO actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_tipoinmueble', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+
     public function index(Response $response)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
             $usuarios = DB::table('MD_Person')
-                ->select('MD_Person.Id_Person', 'Nomina', 'PaternalSurname', 'MaternalSurname', 'USR_Role.Name', 'DenominacionPuesto')
+                ->select(
+                    'USR_User.Id_User',
+                    'Nomina',
+                    'MD_Person.Name',
+                    'PaternalSurname',
+                    'MaternalSurname',
+                    'USR_Role.Name as Rol',
+                    'DenominacionPuesto',
+                    'USR_User.Email',
+                    'MD_Person.DenominacionCargo',
+                    'USR_Role.Id_Role',
+                    'MD_Person.Id_TipoIntegrante',
+                    'MD_Person.ClaseNivelPuesto',
+                    'MD_Person.AreaAdscripcion'
+
+                )
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
                 ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role')
 
-                ->where('MD_Person.active', 1)
+                ->where('USR_User.Active', 1)
                 ->orderBy('MD_Person.Id_Person', 'desc') // Ordenar por ID en orden descendente (mayor a menor)
                 ->get();
 
@@ -116,6 +195,33 @@ class ControllerUsers extends Controller
             $response->data["result"] = $usuarios;
         } catch (\Exception $ex) {
             $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function delete(Response $response, Request $request, $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+
+
+            // Actualizar el registro
+            DB::table('USR_User')
+                ->where('Id_User', $id)
+                ->update([
+                    'Active' => 0,
+                ]);
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | USUARIO eliminado correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del  USUARIO actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_tipoinmueble', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
         }
 
         return response()->json($response, $response->data["status_code"]);
