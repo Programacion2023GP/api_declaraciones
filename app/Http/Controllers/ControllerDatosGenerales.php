@@ -60,11 +60,77 @@ class ControllerDatosGenerales extends Controller
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $SituacionPatrimonialId;
             $apartado = new ControllerApartados();
-            $apartado->create($SituacionPatrimonialId,1);
+            $apartado->create($SituacionPatrimonialId, 1);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DatosGenerales', $ex);
             $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede registrar");
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+
+
+    public function index(Response $response, int $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $data = DB::table('DECL_DatosGenerales') // Selecciona la tabla DECL_DatosGenerales
+                ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
+                ->select('*') // Selecciona todas las columnas
+                ->get();
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria | lista de tipo de adeudos.';
+            $response->data["alert_text"] = "lista de inversion";
+            $response->data["result"] = $data;
+        } catch (\Exception $ex) {
+            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function update(Response $response, Request $request, $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+
+
+            // Actualizar el registro
+            DB::table('DECL_DatosGenerales')
+                ->where('Id_DatosGenerales', $id)
+                ->update([
+                    'Nombre' => $request->Nombre,
+                    'PrimerApellido' => $request->PrimerApellido,
+                    'SegundoApellido' => $request->SegundoApellido ?? null,
+                    'CorreoPersonal' => $request->CorreoPersonal ?? null,
+                    'Curp' => $request->Curp,
+                    'Rfc' => $request->Rfc,
+                    'Homoclave' => $request->Homoclave,
+                    'CorreoInstitucional' => $request->CorreoInstitucional,
+                    'TelefonoCasa' => $request->TelefonoCasa ?? null,
+                    'TelefonoCelularPersonal' => $request->TelefonoCelularPersonal ?? null,
+                    'Id_EstadoCivil' => $request->Id_EstadoCivil,
+                    'Id_RegimenMatrimonial' => $request->Id_RegimenMatrimonial ?? null,
+                    'Id_PaisNacimiento' => $request->Id_PaisNacimiento,
+                    'Id_Nacionalidad' => $request->Id_Nacionalidad,
+                    'Aclaraciones' => $request->Aclaraciones,
+                    'FueServidorPublicoAnioAnterior' => $request->FueServidorPublicoAnioAnterior ?? null,
+                    'FechaRegistro' => now()->format('Y-m-d H:i:s'),
+                    'EsActivo' => 1,
+                ]);
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | DATOS GENERALES actualizado correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del  TIPO DE ADEUDOS actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_tipobienesmuebles', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
         }
 
         return response()->json($response, $response->data["status_code"]);

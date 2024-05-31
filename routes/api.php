@@ -301,18 +301,29 @@ Route::prefix('tiposadeudos')->group(function () {
 */
 Route::prefix('datosgenerales')->group(function () {
     Route::post('create', [ControllerDatosGenerales::class, 'create']);
+    Route::get('index/{id}', [ControllerDatosGenerales::class, 'index']);
+    Route::post("update/{id}", [ControllerDatosGenerales::class, 'update']); //put 
+
 });
 /*
 ! PAGINA 2
 */
 Route::prefix('domiciliodeclarante')->group(function () {
     Route::post("create", [ControllerDomicilioDeclarante::class, 'create']);
+    Route::get("index/{id}", [ControllerDomicilioDeclarante::class, 'index']);
+    Route::post("update/{id}", [ControllerDomicilioDeclarante::class, 'update']); //put 
+
+    
 });
 /*
 ! PAGINA 3
 */
 Route::prefix('datoscurriculares')->group(function () {
     Route::post("create", [ControllerDatosCurriculares::class, 'create']);
+    Route::get("index/{id}", [ControllerDatosCurriculares::class, 'index']);
+    Route::post("update/{id}", [ControllerDatosCurriculares::class, 'update']); //put 
+
+
 });
 /*
 ! PAGINA 4
