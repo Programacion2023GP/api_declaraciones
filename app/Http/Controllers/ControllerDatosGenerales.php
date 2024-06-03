@@ -129,7 +129,7 @@ class ControllerDatosGenerales extends Controller
             $response->data["result"] = $id; // Puedes devolver el ID del  TIPO DE ADEUDOS actualizado si lo necesitas
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
-            $erros->handleException('catalogo_tipobienesmuebles', $ex);
+            $erros->handleException('DatosGenerales', $ex);
             $response->data = ObjResponse::CatchResponse($ex);
         }
 

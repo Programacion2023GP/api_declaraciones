@@ -313,7 +313,7 @@ Route::prefix('domiciliodeclarante')->group(function () {
     Route::get("index/{id}", [ControllerDomicilioDeclarante::class, 'index']);
     Route::post("update/{id}", [ControllerDomicilioDeclarante::class, 'update']); //put 
 
-    
+
 });
 /*
 ! PAGINA 3
@@ -330,18 +330,28 @@ Route::prefix('datoscurriculares')->group(function () {
 */
 Route::prefix('datoscargoscomision')->group(function () {
     Route::post("create", [ControllerDatosEmpleoCargoComision::class, 'create']);
+    Route::get("index/{id}", [ControllerDatosEmpleoCargoComision::class, 'index']);
+    Route::post("update/{id}", [ControllerDatosEmpleoCargoComision::class, 'update']); //put 
 });
 /*
 ! PAGINA 5
 */
 Route::prefix('experiencialaboral')->group(function () {
     Route::post("create", [ControllerExperienciaLaboral::class, 'create']);
+    Route::get("index/{id}", [ControllerExperienciaLaboral::class, 'index']);
+    Route::post("update/{id}", [ControllerExperienciaLaboral::class, 'update']); //put 
+
+
 });
 /*
 ! PAGINA 6
 */
 Route::prefix('datospareja')->group(function () {
     Route::post("create", [ControllerDatosPareja::class, 'create']);
+    Route::get("index/{id}", [ControllerDatosPareja::class, 'index']);
+    Route::post("update/{id}", [ControllerDatosPareja::class, 'update']); //put 
+
+
 });
 /*
 ! PAGINA 7

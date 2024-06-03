@@ -17,13 +17,36 @@ class ControllerApartados extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
+            switch ($hoja) {
+                case 5:
+
+                    DB::table('DECL_ExperienciaLaboral')
+                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                        ->delete();
+                    break;
+                case 6:
+
+                    DB::table('DECL_DatosPareja')
+                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                        ->delete();
+                    break;
+                case 7:
+
+                    DB::table('DECL_DatosDependienteEconomico')
+                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                        ->delete();
+                    break;
+
+                default:
+
+                    break;
+            }
             $datos = [
                 'Id_SituacionPatrimonial' => $situacionPatrimonial,
                 'Id_SituacionPatrimonialApartado' => $hoja
             ];
 
             DB::table('DECL_SPApartados')->insert($datos);
-
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Continuemos llenando la declaración.';
             $response->data["alert_text"] = "regimenes encontrados";
