@@ -358,18 +358,25 @@ Route::prefix('datospareja')->group(function () {
 */
 Route::prefix('dependienteseconomicos')->group(function () {
     Route::post("create", [ControllerDependientesEconomicos::class, 'create']);
+    Route::get("index/{id}", [ControllerDependientesEconomicos::class, 'index']);
+    Route::post("update/{id}", [ControllerDependientesEconomicos::class, 'update']); //put 
+
 });
 /*
 ! PAGINA 8
 */
 Route::prefix('ingresos')->group(function () {
     Route::post("create", [ControllerIngresosNetos::class, 'create']);
+    Route::get("index/{id}", [ControllerIngresosNetos::class, 'index']);
+    Route::post("update/{id}", [ControllerIngresosNetos::class, 'update']);
 });
 /*
 ! PAGINA 9
 */
 Route::prefix('servidorpublico')->group(function () {
     Route::post("create", [ControllerServidorPublico::class, 'create']);
+    Route::get("index/{id}", [ControllerServidorPublico::class, 'index']);
+    Route::post("update/{id}", [ControllerServidorPublico::class, 'update']);
 });
 
 /*
@@ -377,12 +384,19 @@ Route::prefix('servidorpublico')->group(function () {
 */
 Route::prefix('bienesinmuebles')->group(function () {
     Route::post("create", [ControllerBienesInmuebles::class, 'create']);
+    Route::get("index/{id}", [ControllerBienesInmuebles::class, 'index']);
+    Route::post("update/{id}", [ControllerBienesInmuebles::class, 'update']);
+
 });
 /*
 ! PAGINA 11
 */
 Route::prefix('vehiculos')->group(function () {
     Route::post("create", [ControllerTiposVehiculos::class, 'create']);
+    Route::get("index/{id}", [ControllerTiposVehiculos::class, 'index']);
+    Route::post("update/{id}", [ControllerTiposVehiculos::class, 'update']);
+
+
 });
 
 /*

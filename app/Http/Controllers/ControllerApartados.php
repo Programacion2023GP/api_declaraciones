@@ -36,7 +36,24 @@ class ControllerApartados extends Controller
                         ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
                         ->delete();
                     break;
+                case 9:
 
+                    DB::table('DECL_ActividadAnualAnterior')
+                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                        ->delete();
+                    break;
+                case 10:
+
+                    DB::table('DECL_BienesInmuebles')
+                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                        ->delete();
+                    break;
+                    case 11:
+
+                        DB::table('DECL_Vehiculos')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
                 default:
 
                     break;
@@ -64,7 +81,8 @@ class ControllerApartados extends Controller
 
         try {
             $apartado = DB::select("
-            select max(DECL_SituacionPatrimonial.Id_SituacionPatrimonial) as folio,
+            select max(DECL_SituacionPatrimonial.Id_SituacionPatrimonial) as Folio,
+            max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
             MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno,
             CASE
                  WHEN  DECL_SituacionPatrimonial.EsSimplificada = 1 THEN 'Completa'

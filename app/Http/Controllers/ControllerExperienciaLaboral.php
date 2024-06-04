@@ -97,4 +97,5 @@ class ControllerExperienciaLaboral extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    
 }

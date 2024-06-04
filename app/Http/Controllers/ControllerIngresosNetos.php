@@ -24,12 +24,60 @@ class ControllerIngresosNetos extends Controller
             $response->data["message"] = 'Se inserto correctamente los ingresos.';
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
-            $apartado->create($request->Id_SituacionPatrimonial,8);
+            $apartado->create($request->Id_SituacionPatrimonial, 8);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('IngresosNetos', $ex);
             $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede registrar");
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function index(Response $response, int $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $data = DB::table('DECL_Ingresos') // Selecciona la tabla DECL_DatosGenerales
+                ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
+                ->select('*') // Selecciona todas las columnas
+                ->get();
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria | lista de tipo de adeudos.';
+            $response->data["alert_text"] = "lista de inversion";
+            $response->data["result"] = $data;
+        } catch (\Exception $ex) {
+            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function update(Response $response, Request $request, $id)
+
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+
+            DB::table('DECL_Ingresos')
+                ->where('Id_Ingresos', $id)
+                ->delete();
+
+            DB::table('DECL_Ingresos')->insert($request->all());
+
+
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | DEPENDIENTES ECONOMICOS actualizados correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del   REGIMEN MATRIMONIAL actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('DependientesEconomicos', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
         }
 
         return response()->json($response, $response->data["status_code"]);
