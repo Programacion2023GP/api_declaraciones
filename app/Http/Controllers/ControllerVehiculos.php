@@ -6,6 +6,7 @@ use App\Models\ObjResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
+
 class ControllerVehiculos extends Controller
 {
     public function show(Response $response)
@@ -13,7 +14,7 @@ class ControllerVehiculos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $estado_civil = DB::table('TipoVehiculo')->select('valor as text', 'clave as id')->get();
+            $estado_civil = DB::table('TipoVehiculo')->select('valor as text', 'clave as id')->where('active', 1)->get();
 
             // Convertir el ID a número
             $estado_civil = $estado_civil->map(function ($item) {

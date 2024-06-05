@@ -95,7 +95,7 @@ class ControllerDomicilioDeclarante extends Controller
                 ]);
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Petición satisfactoria |  REGIMEN MATRIMONIAL actualizado correctamente.';
+            $response->data["message"] = 'Petición satisfactoria |  DOMICILIO DEL DECLARANTE actualizado correctamente.';
             $response->data["alert_text"] = "Regímenes encontrados";
             $response->data["result"] = $id; // Puedes devolver el ID del   REGIMEN MATRIMONIAL actualizado si lo necesitas
         } catch (\Exception $ex) {

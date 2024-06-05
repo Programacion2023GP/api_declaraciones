@@ -89,8 +89,8 @@ class ControllerBienesInmuebles extends Controller
             $response->data["result"] = $id; // Puedes devolver el ID del   REGIMEN MATRIMONIAL actualizado si lo necesitas
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
-            $erros->handleException('DependientesEconomicos', $ex);
-            $response->data = ObjResponse::CatchResponse($ex);
+            $erros->handleException('BienesInmuebles', $ex);
+            $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede actualizar");
         }
 
         return response()->json($response, $response->data["status_code"]);

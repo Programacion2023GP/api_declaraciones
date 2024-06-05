@@ -386,7 +386,6 @@ Route::prefix('bienesinmuebles')->group(function () {
     Route::post("create", [ControllerBienesInmuebles::class, 'create']);
     Route::get("index/{id}", [ControllerBienesInmuebles::class, 'index']);
     Route::post("update/{id}", [ControllerBienesInmuebles::class, 'update']);
-
 });
 /*
 ! PAGINA 11
@@ -395,8 +394,6 @@ Route::prefix('vehiculos')->group(function () {
     Route::post("create", [ControllerTiposVehiculos::class, 'create']);
     Route::get("index/{id}", [ControllerTiposVehiculos::class, 'index']);
     Route::post("update/{id}", [ControllerTiposVehiculos::class, 'update']);
-
-
 });
 
 /*
@@ -404,24 +401,32 @@ Route::prefix('vehiculos')->group(function () {
 */
 Route::prefix('bienesmuebles')->group(function () {
     Route::post("create", [ControllerBienesMuebles::class, 'create']);
+    Route::get("index/{id}", [ControllerBienesMuebles::class, 'index']);
+    Route::post("update/{id}", [ControllerBienesMuebles::class, 'update']);
 });
 /*
 ! PAGINA 13
 */
 Route::prefix('inversionescuentas')->group(function () {
     Route::post("create", [ControllerInversionesCuentasValores::class, 'create']);
+    Route::get("index/{id}", [ControllerInversionesCuentasValores::class, 'index']);
+    Route::post("update/{id}", [ControllerInversionesCuentasValores::class, 'update']);
 });
 /*
 ! PAGINA 14
 */
 Route::prefix('adeudospasivos')->group(function () {
     Route::post("create", [ControllerAdeudosPasivos::class, 'create']);
+    Route::get("index/{id}", [ControllerAdeudosPasivos::class, 'index']);
+    Route::post("update/{id}", [ControllerAdeudosPasivos::class, 'update']);
 });
 /*
 ! PAGINA 15
 */
 Route::prefix('prestamoscomodatos')->group(function () {
     Route::post("create", [ControllerPrestamosComodatos::class, 'create']);
+    Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
 });
 
 
@@ -434,8 +439,10 @@ Route::prefix('prestamoscomodatos')->group(function () {
 ! INSERCCION DE CADA HOJA ES DECIR EN LA SITUACION 1 SE INSERTO LA HOJA 1 Y ASI
 */
 Route::prefix('apartados')->group(function () {
-    Route::post("create/{situacionPatrimonial}/{hoja}", [ControllerApartados::class, 'create']);
+    Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
+    Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);
+
 });
 /*
 ! CREACION DE USUARIOS

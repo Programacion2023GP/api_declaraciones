@@ -10,54 +10,81 @@ use App\Http\Controllers\ControllerErrors;
 
 class ControllerApartados extends Controller
 {
-    public function create(int $situacionPatrimonial, int $hoja)
+    public function create(int $situacionPatrimonial, int $hoja, int $borrar = 0)
     {
         $response = new \stdClass();
 
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            switch ($hoja) {
-                case 5:
+            if ($borrar == 1) {
+                switch ($hoja) {
+                    case 5:
 
-                    DB::table('DECL_ExperienciaLaboral')
-                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
-                        ->delete();
-                    break;
-                case 6:
+                        DB::table('DECL_ExperienciaLaboral')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 6:
 
-                    DB::table('DECL_DatosPareja')
-                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
-                        ->delete();
-                    break;
-                case 7:
+                        DB::table('DECL_DatosPareja')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 7:
 
-                    DB::table('DECL_DatosDependienteEconomico')
-                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
-                        ->delete();
-                    break;
-                case 9:
+                        DB::table('DECL_DatosDependienteEconomico')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 9:
 
-                    DB::table('DECL_ActividadAnualAnterior')
-                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
-                        ->delete();
-                    break;
-                case 10:
+                        DB::table('DECL_ActividadAnualAnterior')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 10:
 
-                    DB::table('DECL_BienesInmuebles')
-                        ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
-                        ->delete();
-                    break;
+                        DB::table('DECL_BienesInmuebles')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
                     case 11:
 
                         DB::table('DECL_Vehiculos')
                             ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
                             ->delete();
                         break;
-                default:
+                    case 12:
 
-                    break;
+                        DB::table('DECL_BienesMuebles')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 13:
+
+                        DB::table('DECL_InversionesCuentasValores')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 14:
+
+                        DB::table('DECL_AdeudosPasivos')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    case 15:
+
+                        DB::table('DECL_PrestamoComodato')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
+                            ->delete();
+                        break;
+                    default:
+
+                        break;
+                }
             }
+
             $datos = [
                 'Id_SituacionPatrimonial' => $situacionPatrimonial,
                 'Id_SituacionPatrimonialApartado' => $hoja
@@ -120,6 +147,23 @@ class ControllerApartados extends Controller
             $response->data = ObjResponse::CatchResponse($ex);
         }
 
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function Hoja(Response $response, $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $hoja = DB::select('SELECT MAX(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja FROM DECL_SPApartados
+         WHERE DECL_SPApartados.Id_SituacionPatrimonial = ?', [$id]);
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
+            $response->data["alert_text"] = "AmbitoPublico encontrados";
+            $response->data["result"] = $hoja;
+        } catch (\Exception $ex) {
+
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
         return response()->json($response, $response->data["status_code"]);
     }
 }
