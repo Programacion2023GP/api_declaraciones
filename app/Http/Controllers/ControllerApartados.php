@@ -131,7 +131,7 @@ class ControllerApartados extends Controller
             INNER JOIN DECL_SituacionPatrimonial ON DECL_SituacionPatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
             INNER JOIN USR_User on USR_User.Id_User = DECL_SituacionPatrimonial.Id_User
             INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
-            WHERE DECL_SituacionPatrimonial.Id_User =?
+            WHERE DECL_SituacionPatrimonial.Id_User =? and  DECL_SituacionPatrimonial.EsActivo =1
             group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
             DECL_SituacionPatrimonial.Id_Plazo,DECL_SituacionPatrimonial.EsSimplificada,DECL_SituacionPatrimonial.FechaRegistro
             ORDER BY folio DESC
