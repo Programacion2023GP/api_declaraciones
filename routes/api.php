@@ -34,6 +34,7 @@ use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerRoles;
 use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerServidorPublico;
+use App\Http\Controllers\ControllerSituacionPatrimonial;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerSubTipoInversion;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
@@ -469,6 +470,9 @@ Route::prefix('roles')->group(function () {
     Route::get("show", [ControllerRoles::class, 'show']);
 });
 
+Route::prefix('situacionpatrimonial')->group(function () {
+    Route::get("index/{code}", [ControllerSituacionPatrimonial::class, 'index']);
+});
 
 // Route::prefix('usuarios')->group(function () {
 //     Route::post("create", [ControllerRoles::class, 'create']);
