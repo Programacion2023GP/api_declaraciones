@@ -443,6 +443,7 @@ Route::prefix('apartados')->group(function () {
     Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
     Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);
+    // Route::get('existeapartado/{id}/hoja', [ControllerApartados::class, 'hoja']);
 
 });
 /*
@@ -471,7 +472,9 @@ Route::prefix('roles')->group(function () {
 });
 
 Route::prefix('situacionpatrimonial')->group(function () {
-    Route::get("index/{code}", [ControllerSituacionPatrimonial::class, 'index']);
+    Route::get("index/{id}/{hoja}/{situacion?}", [ControllerSituacionPatrimonial::class, 'index']);
+    Route::delete("delete/{id}", [ControllerSituacionPatrimonial::class, 'delete']); //put 
+
 });
 
 // Route::prefix('usuarios')->group(function () {
