@@ -20,7 +20,9 @@ class ControllerUsers extends Controller
         // Buscar el usuario en la base de datos por su correo electrónico
         $user = DB::table('USR_User')
             ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
-            ->select('USR_User.*', 'USR_UserRole.Id_Role')
+            ->join('MD_Person', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
+
+            ->select('USR_User.*', 'MD_Person.*', 'USR_UserRole.Id_Role')
             ->where('USR_User.Email', $Email)
             ->where('USR_User.Active', 1)
             ->first();
@@ -31,6 +33,9 @@ class ControllerUsers extends Controller
                 'Id_User' => $user->Id_User,
                 'Id_Person' => $user->Id_Person,
                 'Id_Role' => $user->Id_Role,
+                'Name' => $user->Name,
+                'PaternalSurname' => $user->PaternalSurname,
+
             ];
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Usuario logeado.';

@@ -20,6 +20,8 @@ class ControllerBienesInmuebles extends Controller
             foreach ($request->all() as $datos) {
                 // Eliminar el campo 'identificador' de los datos
                 unset($datos['identificador']);
+                unset($datos['tercero']);
+
                 // Insertar los datos en la tabla 'DECL_BienesInmuebles'
                 DB::table('DECL_BienesInmuebles')->insert($datos);
             }
