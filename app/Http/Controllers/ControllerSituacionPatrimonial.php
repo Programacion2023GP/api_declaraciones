@@ -15,7 +15,7 @@ class ControllerSituacionPatrimonial extends Controller
 
         try {
             $data = DB::table('DECL_SituacionPatrimonial')
-                ->where('Id_User', $id)
+                ->where('Id_User', $id)->where('EsActivo', 1)
                 ->orderBy('Id_SituacionPatrimonial', 'desc');
 
             if ($situacion > 0) {

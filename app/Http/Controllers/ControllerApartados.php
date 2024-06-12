@@ -166,4 +166,26 @@ class ControllerApartados extends Controller
         }
         return response()->json($response, $response->data["status_code"]);
     }
+    public function exist(Response $response, $id, $hoja)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $count = DB::table('DECL_SPApartados')
+                ->where('Id_SituacionPatrimonial', $id)
+                ->where('Id_SituacionPatrimonialApartado', $hoja)
+                ->count();
+
+
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
+            $response->data["alert_text"] = "AmbitoPublico encontrados";
+            $response->data["result"] = $count > 0 ? true : false;
+        } catch (\Exception $ex) {
+
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+        return response()->json($response, $response->data["status_code"]);
+    }
 }

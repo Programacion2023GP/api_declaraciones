@@ -443,6 +443,8 @@ Route::prefix('apartados')->group(function () {
     Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
     Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);
+    Route::get('exist/{id}/{hoja}', [ControllerApartados::class, 'exist']);
+
     // Route::get('existeapartado/{id}/hoja', [ControllerApartados::class, 'hoja']);
 
 });

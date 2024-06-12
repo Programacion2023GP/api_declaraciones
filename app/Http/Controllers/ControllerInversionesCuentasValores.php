@@ -24,6 +24,8 @@ class ControllerInversionesCuentasValores extends Controller
             foreach ($request->all() as $datos) {
                 // Eliminar el campo 'identificador' de los datos
                 unset($datos['indentificador']);
+                unset($datos['identificador']);
+
                 // Insertar los datos en la tabla 'DECL_BienesInmuebles'
                 DB::table('DECL_InversionesCuentasValores')->insert($datos);
             }

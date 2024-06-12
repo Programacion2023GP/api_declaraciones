@@ -17,11 +17,12 @@ class ControllerIngresosNetos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            DB::table('DECL_Ingresos')->insert($request->all());
+            $data = $request->except('Id_DatosCurriculares');
+            DB::table('DECL_Ingresos')->insert($data);
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Se inserto correctamente los ingresos.';
+            $response->data["message"] = 'Se inserto correctamente los INGRESOS.';
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
             $apartado->create($request->Id_SituacionPatrimonial, 8);
@@ -71,7 +72,7 @@ class ControllerIngresosNetos extends Controller
 
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Petición satisfactoria | DEPENDIENTES ECONOMICOS actualizados correctamente.';
+            $response->data["message"] = 'Petición satisfactoria | INGRESOS actualizados correctamente.';
             $response->data["alert_text"] = "Regímenes encontrados";
             $response->data["result"] = $id; // Puedes devolver el ID del   REGIMEN MATRIMONIAL actualizado si lo necesitas
         } catch (\Exception $ex) {

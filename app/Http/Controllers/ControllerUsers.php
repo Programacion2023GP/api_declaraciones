@@ -77,7 +77,7 @@ class ControllerUsers extends Controller
             ], 'Id_Person');
             $user = DB::table('USR_User')->insertGetId([
                 'Email' => $request->Email,
-                'password' => Hash::make($request->password),
+                'password' => Hash::make("123456"),
                 'Id_Person' => $person,
 
             ], 'Id_User');
@@ -113,11 +113,11 @@ class ControllerUsers extends Controller
 
             $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
 
-            if ($existingUser) {
-                // Si el correo electrónico ya existe, retornar un error
-                $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
-                return response()->json($response, $response->data["status_code"]);
-            }
+            // if ($existingUser) {
+            //     // Si el correo electrónico ya existe, retornar un error
+            //     $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+            //     return response()->json($response, $response->data["status_code"]);
+            // }
             // Actualizar el registro
             DB::table('USR_User')
                 ->where('Id_User', $id)
