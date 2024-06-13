@@ -14,7 +14,7 @@ class ControllerSectores extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $nivel = DB::table('Sector')->select('valor as text', 'clave as id')->get();
+            $nivel = DB::table('Sector')->select('valor as text', 'clave as id')->where('active', 1)->get();
 
             // Convertir el ID a número
             $nivel = $nivel->map(function ($item) {

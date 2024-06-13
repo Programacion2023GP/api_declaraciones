@@ -15,7 +15,7 @@ class ControllerTipoBienEnajenacionBienes extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $estado_civil = DB::table('TipoBienEnajenacionBienes')->select('valor as text', 'clave as id')->get();
+            $estado_civil = DB::table('TipoBienEnajenacionBienes')->select('valor as text', 'clave as id')->where('active', 1)->get();
 
             // Convertir el ID a número
             $estado_civil = $estado_civil->map(function ($item) {

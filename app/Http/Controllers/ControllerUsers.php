@@ -63,6 +63,12 @@ class ControllerUsers extends Controller
                 $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
                 return response()->json($response, $response->data["status_code"]);
             }
+            $existingUser = DB::table('MD_Person')->where('Nomina', $request->Nomina)->first();
+            if ($existingUser) {
+                // Si el correo electrónico ya existe, retornar un error
+                $response->data = ObjResponse::CatchResponse("ya esta registrado el numero de nomina");
+                return response()->json($response, $response->data["status_code"]);
+            }
             $person = DB::table('MD_Person')->insertGetId([
                 // 'Id_Person' => $maxPerson + 1,
                 'Name' => $request->Name,

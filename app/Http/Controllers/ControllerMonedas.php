@@ -14,7 +14,13 @@ class ControllerMonedas extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $estado_civil = DB::table('Moneda')->select('Divisa as text', 'Clave as id')->get();
+
+            $estado_civil = DB::table('Moneda')
+                ->select('Divisa as text', DB::raw('MAX(Clave) as id'))
+                ->where('active', 1)
+                ->groupBy('Divisa')
+                ->get();
+            
 
             // Convertir el ID a número
             $estado_civil = $estado_civil->map(function ($item) {
