@@ -149,6 +149,27 @@ class ControllerApartados extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    public function all(Response $response)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $apartado = DB::select("
+            SELECT * FROM VistaDeclaraciones
+ORDER BY Folio DESC;
+");
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
+            $response->data["alert_text"] = "AmbitoPublico encontrados";
+            $response->data["result"] = $apartado;
+        } catch (\Exception $ex) {
+
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
     public function Hoja(Response $response, $id)
     {
         $response->data = ObjResponse::DefaultResponse();

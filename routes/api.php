@@ -440,6 +440,8 @@ Route::prefix('prestamoscomodatos')->group(function () {
 ! INSERCCION DE CADA HOJA ES DECIR EN LA SITUACION 1 SE INSERTO LA HOJA 1 Y ASI
 */
 Route::prefix('apartados')->group(function () {
+
+    Route::get('all', [ControllerApartados::class, 'all']);
     Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
     Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);
