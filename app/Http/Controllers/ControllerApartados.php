@@ -7,6 +7,7 @@ use App\Models\ObjResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use App\Http\Controllers\ControllerErrors;
+use App\Models\VistaDeclaracionesModel;
 
 class ControllerApartados extends Controller
 {
@@ -154,11 +155,19 @@ class ControllerApartados extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $apartado = DB::select("
-            SELECT * FROM VistaDeclaraciones
-ORDER BY Folio DESC;
-");
+                        $apartado = DB::select("
+            SELECT * 
+            FROM (
+                SELECT * 
+                FROM DeclaracionesSimplificadas 
+                UNION ALL
+                SELECT * 
+                FROM DeclaracionesCompletas
+            ) AS CombinedDeclarations
+            ORDER BY Folio desc;
+            ");
 
+            // $apartado = VistaDeclaracionesModel::orderBy('Folio', 'DESC')->get();
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
             $response->data["alert_text"] = "AmbitoPublico encontrados";

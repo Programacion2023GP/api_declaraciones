@@ -116,7 +116,7 @@ Route::prefix('entidades')->group(function () {
 //     Route::get('show', [ControllerEntidadFederativa::class, 'show']);
 // });
 Route::prefix('municipios')->group(function () {
-    Route::get('show/{code}', [ControllerMunicipios::class, 'show']);
+    Route::get('show/{code?}', [ControllerMunicipios::class, 'show']);
 });
 /*
 TODO DATOS CURRICULARES 
@@ -478,7 +478,6 @@ Route::prefix('roles')->group(function () {
 Route::prefix('situacionpatrimonial')->group(function () {
     Route::get("index/{id}/{hoja}/{situacion?}", [ControllerSituacionPatrimonial::class, 'index']);
     Route::delete("delete/{id}", [ControllerSituacionPatrimonial::class, 'delete']); //put 
-
 });
 
 // Route::prefix('usuarios')->group(function () {

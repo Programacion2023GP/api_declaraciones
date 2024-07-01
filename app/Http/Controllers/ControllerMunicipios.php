@@ -9,12 +9,16 @@ use Illuminate\Http\Response;
 
 class ControllerMunicipios extends Controller
 {
-    public function show(Response $response, int $code)
+    public function show(Response $response, int $code = 0)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $estado_civil = DB::table('Municipio')->select('Municipio as text', 'Clave as id')->where("CodeEstado", $code)->get();
+            $estado_civil = DB::table('Municipio')->select('Municipio as text', 'Clave as id');
+            if ($code > 0) {
+                $estado_civil = $estado_civil->where("CodeEstado", $code);
+            }
+            $estado_civil = $estado_civil->get();
 
             // Convertir el ID a número
             $estado_civil = $estado_civil->map(function ($item) {
