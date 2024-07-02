@@ -281,9 +281,12 @@ Route::prefix('tipoinversion')->group(function () {
 Route::prefix('subtiposinversion')->group(function () {
     Route::get('show/{code}', [ControllerSubTipoInversion::class, 'show']);
     Route::get('index', [ControllerSubTipoInversion::class, 'index']);
+    Route::get('showAll', [ControllerSubTipoInversion::class, 'showAll']);
+
     Route::post('create', [ControllerSubTipoInversion::class, 'create']);
     Route::put('update/{id}', [ControllerSubTipoInversion::class, 'update']);
     Route::delete('delete/{id}', [ControllerSubTipoInversion::class, 'delete']);
+    
 });
 /*
 /*
@@ -303,6 +306,7 @@ Route::prefix('tiposadeudos')->group(function () {
 Route::prefix('datosgenerales')->group(function () {
     Route::post('create', [ControllerDatosGenerales::class, 'create']);
     Route::get('index/{id}', [ControllerDatosGenerales::class, 'index']);
+    Route::get('acuse/{id}', [ControllerDatosGenerales::class, 'acuse']);
     Route::post("update/{id}", [ControllerDatosGenerales::class, 'update']); //put 
 
 });

@@ -156,15 +156,9 @@ class ControllerApartados extends Controller
 
         try {
                         $apartado = DB::select("
-            SELECT * 
-            FROM (
-                SELECT * 
-                FROM DeclaracionesSimplificadas 
-                UNION ALL
-                SELECT * 
-                FROM DeclaracionesCompletas
-            ) AS CombinedDeclarations
-            ORDER BY Folio desc;
+                        SELECT *
+                        FROM Declaraciones
+                        ORDER BY Folio DESC;
             ");
 
             // $apartado = VistaDeclaracionesModel::orderBy('Folio', 'DESC')->get();

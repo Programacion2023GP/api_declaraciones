@@ -91,6 +91,29 @@ class ControllerDatosGenerales extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    public function acuse(Response $response, int $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $data = DB::table('DECL_DatosGenerales') // Selecciona la tabla DECL_DatosGenerales
+                ->select('DECL_DatosGenerales.*', "MD_Person.DenominacionCargo", "MD_Person.AreaAdscripcion") // Selecciona todas las columnas
+                ->join('DECL_SituacionPatrimonial', 'DECL_SituacionPatrimonial.Id_SituacionPatrimonial', '=', 'DECL_DatosGenerales.Id_SituacionPatrimonial')
+                ->join('USR_User', 'USR_User.Id_User', '=', 'DECL_SituacionPatrimonial.Id_User')
+                ->join('MD_Person', 'MD_Person.Id_Person', '=', 'USR_User.Id_Person')
+                ->where('DECL_DatosGenerales.Id_SituacionPatrimonial', $id)
+                ->get();
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria | lista de tipo de adeudos.';
+            $response->data["alert_text"] = "lista de inversion";
+            $response->data["result"] = $data;
+        } catch (\Exception $ex) {
+            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
     public function update(Response $response, Request $request, $id)
     {
         $response->data = ObjResponse::DefaultResponse();
