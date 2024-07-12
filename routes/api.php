@@ -28,10 +28,12 @@ use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
 use App\Http\Controllers\ControllerNombreEntePublico;
 use App\Http\Controllers\ControllerPaises;
+use App\Http\Controllers\ControllerParticipacionEmpresas;
 use App\Http\Controllers\ControllerPrestamosComodatos;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
 use App\Http\Controllers\ControllerRoles;
+use App\Http\Controllers\ControllerSector;
 use App\Http\Controllers\ControllerSectores;
 use App\Http\Controllers\ControllerServidorPublico;
 use App\Http\Controllers\ControllerSituacionPatrimonial;
@@ -39,6 +41,7 @@ use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerSubTipoInversion;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoBienesMuebles;
+use App\Http\Controllers\ControllerTipodeParticipacion;
 use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTipoIntegrante;
 use App\Http\Controllers\ControllerTipoInversion;
@@ -301,6 +304,20 @@ Route::prefix('tiposadeudos')->group(function () {
 });
 
 /*
+TODO DECLARACION DE INTERES PARTICIPACION DE EMPRESAS E SOCIEDADES O ASOCION
+*/
+Route::prefix('tipoparticipacion')->group(function () {
+    Route::get("show", [ControllerTipodeParticipacion::class, 'show']);
+    // Route::get("index/{id}", [ControllerTipodeParticipacion::class, 'index']);
+    // Route::post("update/{id}", [ControllerTipodeParticipacion::class, 'update']);
+});
+
+Route::prefix('sector')->group(function () {
+    Route::get("show", [ControllerSector::class, 'show']);
+    // Route::get("index/{id}", [ControllerTipodeParticipacion::class, 'index']);
+    // Route::post("update/{id}", [ControllerTipodeParticipacion::class, 'update']);
+});
+/*
 ! PAGINA 1
 */
 Route::prefix('datosgenerales')->group(function () {
@@ -435,8 +452,11 @@ Route::prefix('prestamoscomodatos')->group(function () {
 });
 
 
-
-
+Route::prefix('participacionempresas')->group(function () {
+    Route::post("create", [ControllerParticipacionEmpresas::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
 
 
 
@@ -447,6 +467,8 @@ Route::prefix('apartados')->group(function () {
 
     Route::get('all', [ControllerApartados::class, 'all']);
     Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
+    Route::post("interes/{interes}/{hoja}/{borrar?}/{idUser?}", [ControllerApartados::class, 'interes']);
+
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
     Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);
     Route::get('exist/{id}/{hoja}', [ControllerApartados::class, 'exist']);

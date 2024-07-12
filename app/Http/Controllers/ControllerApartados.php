@@ -80,6 +80,7 @@ class ControllerApartados extends Controller
                             ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
                             ->delete();
                         break;
+
                     default:
 
                         break;
@@ -103,6 +104,80 @@ class ControllerApartados extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    public function interes(int $interes, int $hoja, int $borrar = 0, int $idUser = 0)
+    {
+        $InteresId = 0;
+        if ($idUser > 0) {
+            $InteresId = DB::table('DECL_Intereses')->insertGetId([
+                'Id_User' => $idUser,
+                'ID_Plazo' => 2,
+                'FechaInicioInforma' => now()->format('Y-m-d'),
+                'FechaFinInforma' => now()->format('Y-m-d'),
+                'FechaRegistro' => now()->format('Y-m-d H:i:s'),
+                'EstaCompleta' => 0,
+                'EsActivo' => 1,
+                // 'EsSimplificada' => ($request->Id_Plazo >= 1 && $request->Id_Plazo <= 3) ? 1 : 0,
+                // 'SeEnvioAcuse' => 0,
+            ]);
+        }
+        $datos = [
+            'Id_Intereses' => $InteresId > 0 ? $InteresId : $interes,
+            'Id_interesesApartado' => $hoja
+        ];
+        DB::table('DECL_IApartados')->insert($datos);
+        if ($borrar == 1) {
+            switch ($hoja) {
+                case 1:
+
+                    DB::table('DECL_Participacion')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+                case 2:
+
+                    DB::table('DECL_DatosPareja')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+                case 3:
+
+                    DB::table('DECL_DatosDependienteEconomico')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+                case 4:
+
+                    DB::table('DECL_ActividadAnualAnterior')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+                case 5:
+
+                    DB::table('DECL_BienesInmuebles')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+                case 6:
+
+                    DB::table('DECL_Vehiculos')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+                case 7:
+
+                    DB::table('DECL_BienesMuebles')
+                        ->where('Id_Intereses', $interes)
+                        ->delete();
+                    break;
+
+
+                default:
+
+                    break;
+            }
+        }
+    }
+
     public function show(Response $response, $id)
     {
         $response->data = ObjResponse::DefaultResponse();
@@ -155,7 +230,7 @@ class ControllerApartados extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-                        $apartado = DB::select("
+            $apartado = DB::select("
                         SELECT *
                         FROM Declaraciones
                         ORDER BY Folio DESC;
