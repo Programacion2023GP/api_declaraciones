@@ -20,6 +20,7 @@ use App\Http\Controllers\ControllerExperienciaLaboral;
 use App\Http\Controllers\ControllerFormaAdquisicion;
 use App\Http\Controllers\ControllerFormaPago;
 use App\Http\Controllers\ControllerIngresosNetos;
+use App\Http\Controllers\ControllerInstituciones;
 use App\Http\Controllers\ControllerInversionesCuentasValores;
 use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMotivosBaja;
@@ -50,6 +51,7 @@ use App\Http\Controllers\ControllerTiposInstrumentos;
 use App\Http\Controllers\ControllerTiposVehiculos;
 use App\Http\Controllers\ControllerTitular;
 use App\Http\Controllers\ControllerTitularVehiculos;
+use App\Http\Controllers\ControllerTomaDecisiones;
 use App\Http\Controllers\ControllerUsers;
 use App\Http\Controllers\ControllerValorConforme;
 use App\Http\Controllers\ControllerVehiculos;
@@ -457,7 +459,11 @@ Route::prefix('participacionempresas')->group(function () {
     // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
     // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
 });
-
+Route::prefix('tomadecisiones')->group(function () {
+    Route::post("create", [ControllerTomaDecisiones::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
 
 
 /*
@@ -506,6 +512,13 @@ Route::prefix('situacionpatrimonial')->group(function () {
     Route::delete("delete/{id}", [ControllerSituacionPatrimonial::class, 'delete']); //put 
 });
 
+
+/*
+TODO PETICIONES PARA EL FORM DE USUARIOS
+*/
+Route::prefix('tipoinstituciones')->group(function () {
+    Route::get("show", [ControllerInstituciones::class, 'show']);
+});
 // Route::prefix('usuarios')->group(function () {
 //     Route::post("create", [ControllerRoles::class, 'create']);
 // });
