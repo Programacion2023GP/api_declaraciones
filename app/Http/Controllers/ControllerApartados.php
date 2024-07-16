@@ -106,8 +106,12 @@ class ControllerApartados extends Controller
     }
     public function interes(int $interes, int $hoja, int $borrar = 0, int $idUser = 0)
     {
+        $response = new \stdClass();
+
+        $response->data = ObjResponse::DefaultResponse();
+
         $InteresId = 0;
-        if ($idUser > 0) {
+        if ($idUser > 0 && $hoja ==1) {
             $InteresId = DB::table('DECL_Intereses')->insertGetId([
                 'Id_User' => $idUser,
                 'ID_Plazo' => 2,
@@ -124,7 +128,6 @@ class ControllerApartados extends Controller
             'Id_Intereses' => $InteresId > 0 ? $InteresId : $interes,
             'Id_interesesApartado' => $hoja
         ];
-        DB::table('DECL_IApartados')->insert($datos);
         if ($borrar == 1) {
             switch ($hoja) {
                 case 1:
@@ -135,13 +138,13 @@ class ControllerApartados extends Controller
                     break;
                 case 2:
 
-                    DB::table('DECL_DatosPareja')
+                    DB::table('DECL_ParticipacionTomaDecisiones')
                         ->where('Id_Intereses', $interes)
                         ->delete();
                     break;
                 case 3:
 
-                    DB::table('DECL_DatosDependienteEconomico')
+                    DB::table('DECL_Apoyos')
                         ->where('Id_Intereses', $interes)
                         ->delete();
                     break;
@@ -176,6 +179,13 @@ class ControllerApartados extends Controller
                     break;
             }
         }
+        DB::table('DECL_IApartados')->insert($datos);
+
+        $response->data = ObjResponse::CorrectResponse();
+        $response->data["message"] = 'Continuemos llenando la declaración.';
+        $response->data["alert_text"] = "regimenes encontrados";
+        $response->data["result"] = $InteresId;
+        return response()->json($response, $response->data["status_code"]);
     }
 
     public function show(Response $response, $id)

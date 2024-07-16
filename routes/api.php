@@ -4,6 +4,7 @@ use App\Http\Controllers\ControllerAdeudosPasivos;
 use App\Http\Controllers\ControllerAdscripcion;
 use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerApartados;
+use App\Http\Controllers\ControllerApoyos;
 use App\Http\Controllers\ControllerBienesInmuebles;
 use App\Http\Controllers\ControllerBienesMuebles;
 use App\Http\Controllers\ControllerCompaq;
@@ -19,6 +20,7 @@ use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
 use App\Http\Controllers\ControllerFormaAdquisicion;
 use App\Http\Controllers\ControllerFormaPago;
+use App\Http\Controllers\ControllerFormaRecepcion;
 use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerInstituciones;
 use App\Http\Controllers\ControllerInversionesCuentasValores;
@@ -40,6 +42,7 @@ use App\Http\Controllers\ControllerServidorPublico;
 use App\Http\Controllers\ControllerSituacionPatrimonial;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerSubTipoInversion;
+use App\Http\Controllers\ControllerTipoApoyo;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoBienesMuebles;
 use App\Http\Controllers\ControllerTipodeParticipacion;
@@ -319,6 +322,19 @@ Route::prefix('sector')->group(function () {
     // Route::get("index/{id}", [ControllerTipodeParticipacion::class, 'index']);
     // Route::post("update/{id}", [ControllerTipodeParticipacion::class, 'update']);
 });
+
+/*
+TODO Apoyos o Beneficios Públicos (Hasta los 2 últimos años)
+
+*/
+
+
+Route::prefix('tipoapoyos')->group(function () {
+    Route::get("show", [ControllerTipoApoyo::class, 'show']);
+});
+Route::prefix('formarecepcion')->group(function () {
+    Route::get("show", [ControllerFormaRecepcion::class, 'show']);
+});
 /*
 ! PAGINA 1
 */
@@ -464,6 +480,11 @@ Route::prefix('tomadecisiones')->group(function () {
     // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
     // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
 });
+Route::prefix('apoyos')->group(function () {
+    Route::post("create", [ControllerApoyos::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
 
 
 /*
@@ -519,6 +540,9 @@ TODO PETICIONES PARA EL FORM DE USUARIOS
 Route::prefix('tipoinstituciones')->group(function () {
     Route::get("show", [ControllerInstituciones::class, 'show']);
 });
+
+
+
 // Route::prefix('usuarios')->group(function () {
 //     Route::post("create", [ControllerRoles::class, 'create']);
 // });
