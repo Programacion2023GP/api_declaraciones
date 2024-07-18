@@ -5,8 +5,10 @@ use App\Http\Controllers\ControllerAdscripcion;
 use App\Http\Controllers\ControllerAmbitoPublico;
 use App\Http\Controllers\ControllerApartados;
 use App\Http\Controllers\ControllerApoyos;
+use App\Http\Controllers\ControllerBeneficiosPrivados;
 use App\Http\Controllers\ControllerBienesInmuebles;
 use App\Http\Controllers\ControllerBienesMuebles;
+use App\Http\Controllers\ControllerClientes;
 use App\Http\Controllers\ControllerCompaq;
 use App\Http\Controllers\ControllerDatosCurriculares;
 use App\Http\Controllers\ControllerDatosEmpleoCargoComision;
@@ -18,6 +20,7 @@ use App\Http\Controllers\ControllerDomicilioDeclarante;
 use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
+use App\Http\Controllers\ControllerFideocomiso;
 use App\Http\Controllers\ControllerFormaAdquisicion;
 use App\Http\Controllers\ControllerFormaPago;
 use App\Http\Controllers\ControllerFormaRecepcion;
@@ -35,6 +38,7 @@ use App\Http\Controllers\ControllerParticipacionEmpresas;
 use App\Http\Controllers\ControllerPrestamosComodatos;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
+use App\Http\Controllers\ControllerRepresentaciones;
 use App\Http\Controllers\ControllerRoles;
 use App\Http\Controllers\ControllerSector;
 use App\Http\Controllers\ControllerSectores;
@@ -43,9 +47,13 @@ use App\Http\Controllers\ControllerSituacionPatrimonial;
 use App\Http\Controllers\ControllerSituacionPersonalEstadoCivil;
 use App\Http\Controllers\ControllerSubTipoInversion;
 use App\Http\Controllers\ControllerTipoApoyo;
+use App\Http\Controllers\ControllerTipoBeneficio;
 use App\Http\Controllers\ControllerTipoBienEnajenacionBienes;
 use App\Http\Controllers\ControllerTipoBienesMuebles;
 use App\Http\Controllers\ControllerTipodeParticipacion;
+use App\Http\Controllers\ControllerTipoDePersona;
+use App\Http\Controllers\ControllerTipoDeRepresentacion;
+use App\Http\Controllers\ControllerTipoFideocomiso;
 use App\Http\Controllers\ControllerTipoInmueble;
 use App\Http\Controllers\ControllerTipoIntegrante;
 use App\Http\Controllers\ControllerTipoInversion;
@@ -335,6 +343,29 @@ Route::prefix('tipoapoyos')->group(function () {
 Route::prefix('formarecepcion')->group(function () {
     Route::get("show", [ControllerFormaRecepcion::class, 'show']);
 });
+Route::prefix('tipobeneficios')->group(function () {
+    Route::get("show", [ControllerTipoBeneficio::class, 'show']);
+});
+/*
+/*
+TODO REPRESENTACION (Hasta los 2 últimos años)
+
+*/
+
+
+Route::prefix('representacion')->group(function () {
+    Route::get("show", [ControllerTipoDeRepresentacion::class, 'show']);
+});
+Route::prefix('tipopersona')->group(function () {
+    Route::get("show", [ControllerTipoDePersona::class, 'show']);
+});
+/*
+TODO FIDEOCOMISOS
+*/
+
+Route::prefix('tipofideocomisos')->group(function () {
+    Route::get("show", [ControllerTipoFideocomiso::class, 'show']);
+});
 /*
 ! PAGINA 1
 */
@@ -469,7 +500,9 @@ Route::prefix('prestamoscomodatos')->group(function () {
     Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
 });
 
-
+/*
+? DECLARACION DE INTERESES
+*/
 Route::prefix('participacionempresas')->group(function () {
     Route::post("create", [ControllerParticipacionEmpresas::class, 'create']);
     // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
@@ -485,8 +518,28 @@ Route::prefix('apoyos')->group(function () {
     // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
     // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
 });
+Route::prefix('representaciones')->group(function () {
+    Route::post("create", [ControllerRepresentaciones::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
 
+Route::prefix('clientesprincipales')->group(function () {
+    Route::post("create", [ControllerClientes::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
 
+Route::prefix('beneficiosprivados')->group(function () {
+    Route::post("create", [ControllerBeneficiosPrivados::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
+Route::prefix('fideocomisos')->group(function () {
+    Route::post("create", [ControllerFideocomiso::class, 'create']);
+    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
+    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+});
 /*
 ! INSERCCION DE CADA HOJA ES DECIR EN LA SITUACION 1 SE INSERTO LA HOJA 1 Y ASI
 */

@@ -150,25 +150,25 @@ class ControllerApartados extends Controller
                     break;
                 case 4:
 
-                    DB::table('DECL_ActividadAnualAnterior')
+                    DB::table('DECL_Representaciones')
                         ->where('Id_Intereses', $interes)
                         ->delete();
                     break;
                 case 5:
 
-                    DB::table('DECL_BienesInmuebles')
+                    DB::table('DECL_ClientesPrincipales')
                         ->where('Id_Intereses', $interes)
                         ->delete();
                     break;
                 case 6:
 
-                    DB::table('DECL_Vehiculos')
+                    DB::table('DECL_BeneficiosPrivados')
                         ->where('Id_Intereses', $interes)
                         ->delete();
                     break;
                 case 7:
 
-                    DB::table('DECL_BienesMuebles')
+                    DB::table('DECL_Fideicomisos')
                         ->where('Id_Intereses', $interes)
                         ->delete();
                     break;
