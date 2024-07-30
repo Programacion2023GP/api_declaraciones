@@ -104,14 +104,14 @@ class ControllerApartados extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
-    public function interes(int $interes, int $hoja, int $borrar = 0, int $idUser = 0)
+    public function interes(int $interes, int $hoja, int $borrar = 0, int $idUser = 0, int $crear = 1)
     {
         $response = new \stdClass();
 
         $response->data = ObjResponse::DefaultResponse();
 
         $InteresId = 0;
-        if ($idUser > 0 && $hoja ==1) {
+        if ($idUser > 0 && $hoja == 1 && $crear == 1) {
             $InteresId = DB::table('DECL_Intereses')->insertGetId([
                 'Id_User' => $idUser,
                 'ID_Plazo' => 2,
@@ -263,13 +263,20 @@ class ControllerApartados extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $hoja = DB::select('SELECT MAX(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja FROM DECL_SPApartados
-         WHERE DECL_SPApartados.Id_SituacionPatrimonial = ?', [$id]);
+            if ($id > 15) {
+                $hoja = DB::select('SELECT MAX(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja FROM DECL_SPApartados
+                WHERE DECL_SPApartados.Id_SituacionPatrimonial = ?', [$id]);
+            } else {
+                $hoja = DB::select('SELECT MAX(DECL_IApartados.Id_Intereses) as Hoja FROM DECL_Intereses
+         WHERE DECL_Intereses.Id_Intereses = ?', [$id]);
+            }
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
             $response->data["alert_text"] = "AmbitoPublico encontrados";
             $response->data["result"] = $hoja;
+            error_log('Ocurrió un error: ' . $response);
         } catch (\Exception $ex) {
+            error_log('Ocurrió un error: ' . $ex->getMessage());
 
             $response->data = ObjResponse::CatchResponse($ex);
         }
@@ -280,12 +287,15 @@ class ControllerApartados extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $count = DB::table('DECL_SPApartados')
-                ->where('Id_SituacionPatrimonial', $id)
-                ->where('Id_SituacionPatrimonialApartado', $hoja)
+
+            $count = DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
+                ->where($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $id)
+                ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja)
                 ->count();
 
-
+            // DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
+            // ->where($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $situacion)
+            // ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja);
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';

@@ -505,29 +505,29 @@ Route::prefix('prestamoscomodatos')->group(function () {
 */
 Route::prefix('participacionempresas')->group(function () {
     Route::post("create", [ControllerParticipacionEmpresas::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerParticipacionEmpresas::class, 'index']);
+    Route::post("update/{id}", [ControllerParticipacionEmpresas::class, 'update']);
 });
 Route::prefix('tomadecisiones')->group(function () {
     Route::post("create", [ControllerTomaDecisiones::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerTomaDecisiones::class, 'index']);
+    Route::post("update/{id}", [ControllerTomaDecisiones::class, 'update']);
 });
 Route::prefix('apoyos')->group(function () {
     Route::post("create", [ControllerApoyos::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerApoyos::class, 'index']);
+    Route::post("update/{id}", [ControllerApoyos::class, 'update']);
 });
 Route::prefix('representaciones')->group(function () {
     Route::post("create", [ControllerRepresentaciones::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerRepresentaciones::class, 'index']);
+    Route::post("update/{id}", [ControllerRepresentaciones::class, 'update']);
 });
 
 Route::prefix('clientesprincipales')->group(function () {
     Route::post("create", [ControllerClientes::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerClientes::class, 'index']);
+    Route::post("update/{id}", [ControllerClientes::class, 'update']);
 });
 
 Route::prefix('beneficiosprivados')->group(function () {
@@ -547,7 +547,7 @@ Route::prefix('apartados')->group(function () {
 
     Route::get('all', [ControllerApartados::class, 'all']);
     Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
-    Route::post("interes/{interes}/{hoja}/{borrar?}/{idUser?}", [ControllerApartados::class, 'interes']);
+    Route::post("interes/{interes}/{hoja}/{borrar?}/{idUser?}/{crear?}", [ControllerApartados::class, 'interes']);
 
     Route::get('show/{id}', [ControllerApartados::class, 'show']);
     Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);

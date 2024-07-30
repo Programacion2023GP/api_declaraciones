@@ -14,21 +14,35 @@ class ControllerSituacionPatrimonial extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_SituacionPatrimonial')
+            $data = DB::table($hoja < 15 ? 'DECL_SituacionPatrimonial' : 'DECL_Intereses')
                 ->where('Id_User', $id)->where('EsActivo', 1)
-                ->orderBy('Id_SituacionPatrimonial', 'desc');
+                ->orderBy($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', 'desc');
 
             if ($situacion > 0) {
                 $data->skip(1);
             }
-
             $data = $data->first();
 
             // Verificar si el registro existe en la tabla apartados
-            $existsInApartados = DB::table('DECL_SPApartados')
-                ->where('Id_SituacionPatrimonial', $situacion)
-                ->where("Id_SituacionPatrimonialApartado", $hoja)
-                ->exists();
+            $existsInApartadosQuery = DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
+                ->where($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $situacion)
+                ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja);
+
+            // Obtener la consulta SQL generada y los valores vinculados
+            $sql = $existsInApartadosQuery->toSql();
+            $bindings = $existsInApartadosQuery->getBindings();
+
+            // Interpolar los valores vinculados en la consulta SQL
+            $fullSql = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
+
+            // Imprimir la consulta completa
+            error_log('Full SQL: ' . $fullSql);
+
+            // Ejecutar la consulta y obtener el resultado
+            $existsInApartados = $existsInApartadosQuery->exists();
+            error_log('Record exists in apartados: ' . ($existsInApartados ? 'true' : 'false'));
+
+
 
             // Asignar el valor apropiado a result
             $response->data = ObjResponse::CorrectResponse();
