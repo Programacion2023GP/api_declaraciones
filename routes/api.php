@@ -532,13 +532,13 @@ Route::prefix('clientesprincipales')->group(function () {
 
 Route::prefix('beneficiosprivados')->group(function () {
     Route::post("create", [ControllerBeneficiosPrivados::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerBeneficiosPrivados::class, 'index']);
+    Route::post("update/{id}", [ControllerBeneficiosPrivados::class, 'update']);
 });
 Route::prefix('fideocomisos')->group(function () {
     Route::post("create", [ControllerFideocomiso::class, 'create']);
-    // Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
-    // Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::get("index/{id}", [ControllerFideocomiso::class, 'index']);
+    Route::post("update/{id}", [ControllerFideocomiso::class, 'update']);
 });
 /*
 ! INSERCCION DE CADA HOJA ES DECIR EN LA SITUACION 1 SE INSERTO LA HOJA 1 Y ASI

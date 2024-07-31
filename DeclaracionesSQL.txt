@@ -1,0 +1,220 @@
+ALTER TABLE Estadocivil
+DROP COLUMN clave;
+ALTER TABLE Estadocivil
+ADD active BIT NOT NULL DEFAULT 1;
+
+CREATE TABLE Tipo_Integrantes(
+id INT IDENTITY(1,1),
+nombre NVARCHAR(100)
+)
+
+INSERT INTO Tipo_Integrantes ( nombre) VALUES
+( 'Funcionario'),
+( 'Servidor(a) público(a)'),
+( 'Servidor[a] público[a] eventual'),
+( 'Integrante'),
+( 'Empleado'),
+('Representante popular'),
+( 'Miembro del poder judicial'),
+( 'Miembro de órgano autónomo'),
+( 'Personal de confianza'),
+( 'Prestador de servicios profesionales'),
+( 'Otro');
+
+select * from Tipo_Integrantes
+
+ALTER TABLE RegimenMatrimonial
+ADD active BIT NOT NULL DEFAULT 1;
+ALTER TABLE RegimenMatrimonial
+DROP COLUMN nombre;
+
+ALTER TABLE Estatus
+ADD active BIT NOT NULL DEFAULT 1;
+
+
+ALTER TABLE Nivel
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE Nivel
+DROP COLUMN nombre;
+
+
+ALTER TABLE DocumentoObtenido
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE NivelOrdenGobierno
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE AmbitoPublico
+ADD active BIT NOT NULL DEFAULT 1;
+
+
+ALTER TABLE ParentescoRelacion
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE ParentescoRelacion
+DROP COLUMN nombre;
+
+ALTER TABLE Moneda
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE Moneda
+DROP COLUMN CodeDivisa;
+ALTER TABLE Sector
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE Sector
+DROP COLUMN nombre;
+
+ALTER TABLE TipoInstrumento
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TipoInstrumento
+DROP COLUMN nombre;
+
+ALTER TABLE TipoBienEnajenacionBienes
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TipoInmueble
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TipoInmueble
+DROP COLUMN nombre;
+ALTER TABLE TitularBien
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TitularBien
+DROP COLUMN nombre;
+
+ALTER TABLE FormaPago
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE FormaAdquisicion
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE FormaAdquisicion
+DROP COLUMN nombre;
+
+ALTER TABLE MotivoBaja
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE MotivoBaja
+DROP COLUMN nombre;
+
+ALTER TABLE TipoInversion
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TipoInversion
+DROP COLUMN nombre;
+
+ALTER TABLE TipoBienBienesMuebles
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TipoBienBienesMuebles
+DROP COLUMN nombre;
+
+
+ALTER TABLE SubTipoInversion
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE SubTipoInversion
+DROP COLUMN nombre;
+ALTER TABLE SubTipoInversion
+DROP COLUMN tipoInversionNombre;
+
+ALTER TABLE SubTipoInversion
+DROP CONSTRAINT PK_SubTipoInversion;
+
+ALTER TABLE SubTipoInversion
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE SubTipoInversion
+DROP COLUMN nombre;
+ALTER TABLE SubTipoInversion
+DROP COLUMN tipoInversionNombre;
+
+ALTER TABLE TipoAdeudo
+ADD active BIT NOT NULL DEFAULT 1;
+
+ALTER TABLE TipoAdeudo
+DROP COLUMN nombre;
+
+  ALTER TABLE DECL_DatosPareja
+ADD EsMexico BIT   DEFAULT NULL
+
+
+  CREATE INDEX situacionPatrimonial_DECL_SPApartados ON DECL_SPApartados(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DatosGenerales ON DECL_DatosGenerales(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DomicilioDeclarante ON DECL_DomicilioDeclarante(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DECL_DatosCurriculares ON DECL_DatosCurriculares(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DatosEmpleoCargoComision ON DECL_DatosEmpleoCargoComision(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_ExperienciaLaboral ON DECL_ExperienciaLaboral(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DatosPareja ON DECL_DatosPareja(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DatosDependienteEconomico ON DECL_DatosDependienteEconomico(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_Ingresos ON DECL_Ingresos(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_ActividadAnualAnterior ON DECL_ActividadAnualAnterior(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_BienesInmuebles ON DECL_BienesInmuebles(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_Vehiculos ON DECL_Vehiculos(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_BienesMuebles ON DECL_BienesMuebles(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_InversionesCuentasValores ON  DECL_InversionesCuentasValores(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_AdeudosPasivos ON  DECL_AdeudosPasivos(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_PrestamoComodato ON  DECL_PrestamoComodato(Id_SituacionPatrimonial);
+
+
+
+			
+	CREATE VIEW Declaraciones AS
+SELECT 
+    DSP.Id_SituacionPatrimonial AS Folio,
+    MP.Name AS Nombre,
+    MP.PaternalSurname AS ApPaterno,
+    MP.MaternalSurname AS ApMaterno,
+    CASE
+        WHEN DSP.Id_Plazo = 1 THEN 'Inicial'
+        WHEN DSP.Id_Plazo = 2 THEN 'Modificación'
+        WHEN DSP.Id_Plazo = 3 THEN 'Conclusión'
+    END AS Tipo_declaracion,
+    CASE
+        WHEN DSP.EsSimplificada = 1 THEN 'Simplificada'
+        ELSE 'Completa'
+    END AS Declaracion,
+    CASE
+        WHEN EXISTS (
+            SELECT 1 
+            FROM DECL_SPApartados DSA
+            WHERE DSA.Id_SituacionPatrimonial = DSP.Id_SituacionPatrimonial 
+              AND (
+                  (DSP.EsSimplificada = 1 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 8)) OR
+                  (DSP.EsSimplificada = 0 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15))
+              )
+        ) THEN 'Terminada'
+        ELSE 'En proceso'
+    END AS Tstatus,
+    FORMAT(DSP.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada
+FROM DECL_SituacionPatrimonial DSP
+INNER JOIN USR_User UU ON UU.Id_User = DSP.Id_User
+INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
+WHERE DSP.EsActivo = 1;
+
+SELECT *
+FROM Declaraciones
+ORDER BY Folio DESC;
+
+
+
+  ALTER TABLE [TipoParticipacion]
+DROP COLUMN nombre;
+ALTER TABLE [TipoParticipacion]
+ADD active BIT NOT NULL DEFAULT 1;
+
+ ALTER TABLE [DECL_Participacion]
+    ADD EsEnMexico BIT NULL;	
+
+
+ ALTER TABLE [DECL_ParticipacionTomaDecisiones]
+    ADD EsEnMexico BIT NULL;	
+
+ ALTER TABLE [DECL_Representaciones]
+    ADD EsEnMexico BIT NULL;
+
+UPDATE USR_Role set Permision =1 where Name = 'Administrador' or Name = 'Enlace' or Name = 'Checador'

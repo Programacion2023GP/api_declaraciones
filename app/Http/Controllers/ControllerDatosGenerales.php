@@ -26,7 +26,7 @@ class ControllerDatosGenerales extends Controller
                 'FechaRegistro' => now()->format('Y-m-d H:i:s'),
                 'EstaCompleta' => 0,
                 'EsActivo' => 1,
-                'EsSimplificada' => ($request->Id_Plazo >= 1 && $request->Id_Plazo <= 3) ? 1 : 0,
+                'EsSimplificada' => ($request->Id_Plazo >= 1 && $request->Id_Plazo <= 3) ? 0 : 1,
                 'SeEnvioAcuse' => 0,
             ]);
             $datosInsercion = [
