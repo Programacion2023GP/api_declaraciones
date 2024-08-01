@@ -33,6 +33,7 @@ use App\Http\Controllers\ControllerMunicipios;
 use App\Http\Controllers\ControllerNivelEsudios;
 use App\Http\Controllers\ControllerNivelOrdenGobierno;
 use App\Http\Controllers\ControllerNombreEntePublico;
+use App\Http\Controllers\ControllerNotasAclaratorias;
 use App\Http\Controllers\ControllerPaises;
 use App\Http\Controllers\ControllerParticipacionEmpresas;
 use App\Http\Controllers\ControllerPrestamosComodatos;
@@ -89,6 +90,8 @@ Route::prefix('usuarios')->group(function () {
     Route::get("index", [ControllerUsers::class, 'index']);
     Route::delete('delete/{id}', [ControllerUsers::class, 'delete']);
     Route::put('update/{id}', [ControllerUsers::class, 'update']);
+    Route::post("pasupdate", [ControllerUsers::class, 'pasupdate']);
+
 });
 Route::prefix('intengrantes')->group(function () {
 
@@ -581,7 +584,16 @@ Route::prefix('roles')->group(function () {
     Route::get("show", [ControllerRoles::class, 'show']);
 });
 
+Route::prefix('notasaclaratorias')->group(function () {
+    Route::post("create", [ControllerNotasAclaratorias::class, 'create']);
+
+    Route::get("show/{id?}", [ControllerNotasAclaratorias::class, 'show']);
+    Route::delete("delete/{id}", [ControllerNotasAclaratorias::class, 'delete']); //put 
+
+});
+
 Route::prefix('situacionpatrimonial')->group(function () {
+    Route::get("user/{id}",[ControllerSituacionPatrimonial::class, 'user']);
     Route::get("index/{id}/{hoja}/{situacion?}", [ControllerSituacionPatrimonial::class, 'index']);
     Route::delete("delete/{id}", [ControllerSituacionPatrimonial::class, 'delete']); //put 
 });

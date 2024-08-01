@@ -237,4 +237,37 @@ class ControllerUsers extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+
+    public function pasupdate(Request $request, Response $response)
+    {
+        // Obtener las credenciales del usuario desde la solicitud
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Buscar el usuario en la base de datos por su Id_User
+            $user = DB::table('USR_User')
+                ->where('Id_User', $request->id_User)
+                ->first();
+
+            // Verificar si se encontró el usuario y si la contraseña coincide
+            if ($user && Hash::check($request->password, $user->Password)) {
+                $user->Password = bcrypt($request->newPassword); // Asegúrate de hashear la nueva contraseña
+                DB::table('USR_User')
+                    ->where('Id_User', $request->id_User)
+                    ->update(['Password' => $user->Password]); // Usar update en lugar de save para la tabla DB
+
+                $response->data = ObjResponse::CorrectResponse();
+                $response->data["message"] = 'Contraseña actualizada correctamente.';
+                return response()->json($response, $response->data["status_code"]);
+            } else {
+                $response->data = ObjResponse::CatchResponse('Credenciales incorrectas');
+                return response()->json($response, $response->data["status_code"]);
+            }
+        } catch (\Exception $e) {
+            $response->data = ObjResponse::CatchResponse('Ocurrió un error al actualizar la contraseña');
+            $response->data["error"] = $e->getMessage();
+            return response()->json($response, $response->data["status_code"]);
+        }
+    }
 }
+//pasupdate

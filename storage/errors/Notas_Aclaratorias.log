@@ -1,0 +1,4 @@
+
+
+[2024-08-01 18:18:41] SQLSTATE[23000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'Active', table 'declaraciones.dbo.Notas_Aclaratorias'; column does not allow nulls. INSERT fails. (Connection: sqlsrv, SQL: insert into [Notas_Aclaratorias] ([Id_user], [Description], [Title], [Date], [Created_at]) values (11321, SADSAD, CAS, 2024-08-21, 2024-08-01 18:18:41))
+[2024-08-01 20:45:32] SQLSTATE[42S22]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'Id'. (Connection: sqlsrv, SQL: update [Notas_Aclaratorias] set [Folio] = NA-2024-08-128 where [Id] = 128)

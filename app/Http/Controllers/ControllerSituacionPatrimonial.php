@@ -85,4 +85,29 @@ class ControllerSituacionPatrimonial extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    public function user(Response $response,int $id)
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $data = DB::table('DECL_SituacionPatrimonial')
+                // ->join('USR_UserRole', 'USR_UserRole.Id_User', '=', 'Notas_Aclaratorias.Id_User')
+                ->select(
+                    'DECL_SituacionPatrimonial.Id_SituacionPatrimonial as text',
+
+                    'DECL_SituacionPatrimonial.Id_SituacionPatrimonial as id',
+
+                )->where('Id_User',$id)
+                ->get();
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'peticion satisfactoria | lista de tipo de adeudos.';
+            $response->data["alert_text"] = "lista de inversion";
+            $response->data["result"] = $data;
+        } catch (\Exception $ex) {
+            $response->data = ObjResponse::CatchResponse($ex->getMessage());
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
 }
