@@ -35,6 +35,14 @@ class ControllerPrestamosComodatos extends Controller
             $apartado = new ControllerApartados();
 
             $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 15);
+
+            DB::table('DECL_SituacionPatrimonial')
+                ->where('Id_SituacionPatrimonial', $request->all()[0]['Id_SituacionPatrimonial'])
+                ->where('EsSimplificada', 0)
+                ->update([
+                    'EstaCompleta' => 1,
+                    'FechaTerminada' => now()
+                ]);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();

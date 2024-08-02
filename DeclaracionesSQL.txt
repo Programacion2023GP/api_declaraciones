@@ -218,3 +218,86 @@ ADD active BIT NOT NULL DEFAULT 1;
     ADD EsEnMexico BIT NULL;
 
 UPDATE USR_Role set Permision =1 where Name = 'Administrador' or Name = 'Enlace' or Name = 'Checador'
+
+
+
+UPDATE MD_Person
+SET MD_Person.Nomina = USR_Compaq.codigoEmpleado
+FROM MD_Person
+INNER JOIN USR_User ON USR_User.Id_Person = MD_Person.Id_Person
+INNER JOIN DECL_SituacionPatrimonial ON DECL_SituacionPatrimonial.Id_User = USR_User.Id_User
+INNER JOIN DECL_DatosGenerales ON DECL_DatosGenerales.Id_SituacionPatrimonial = DECL_SituacionPatrimonial.Id_SituacionPatrimonial
+INNER JOIN USR_Compaq ON DECL_DatosGenerales.Curp = USR_Compaq.Curp;
+
+
+
+CREATE FUNCTION dbo.RemoveAccents(@text NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+    -- Reemplaza caracteres acentuados con sus equivalentes no acentuados
+    SET @text = REPLACE(@text, N'á', 'a')
+    SET @text = REPLACE(@text, N'é', 'e')
+    SET @text = REPLACE(@text, N'í', 'i')
+    SET @text = REPLACE(@text, N'ó', 'o')
+    SET @text = REPLACE(@text, N'ú', 'u')
+    SET @text = REPLACE(@text, N'Á', 'A')
+    SET @text = REPLACE(@text, N'É', 'E')
+    SET @text = REPLACE(@text, N'Í', 'I')
+    SET @text = REPLACE(@text, N'Ó', 'O')
+    SET @text = REPLACE(@text, N'Ú', 'U')
+    -- Agrega más reemplazos según sea necesario
+
+    RETURN @text
+END;
+
+
+
+CREATE VIEW VistaTrimestres AS
+
+SELECT 
+    YEAR(DCLE.FechaTerminada) AS Ejercicio, -- Extrae el año de la FechaTerminada
+            	 CASE 
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 1 THEN '01/01/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 2 THEN '01/04/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 3 THEN '01/07/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 4 THEN '01/10/2023'
+    END AS FechaInicio,
+    CASE 
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 1 THEN '31/03/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 2 THEN '30/06/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 3 THEN '30/09/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 4 THEN '31/12/2023'
+    END AS FechaFin,
+	'Servidor[a] público[a] eventual' as 'Tipo integrante del sujeto',
+	'Este dato no se requiere para este periodo, de conformidad con las últimas modificaciones a los Lineamientos Técnicos Generales, aprobadas por el Pleno del Consejo Nacional del Sistema Nacional de Transparencia.' as 'Tipo de integrante',
+						MD_Person.DenominacionPuesto as clave,
+			MD_Person.DenominacionPuesto,
+			MD_Person.AreaAdscripcion as Cargo,
+			MD_Person.AreaAdscripcion,
+			MD_Person.Name,
+			MD_Person.PaternalSurname,MD_Person.MaternalSurname,
+			case DCLE.Id_Plazo
+                when 1 then 'INICIAL'
+                when 2 then 'MODIFICACION'
+                when 3 then 'CONCLUSION'
+                end AS Plazo,
+CONCAT(
+        'https://transparencia.gomezpalacio.gob.mx/wp-content/uploads/declaraciones/',DCLE.Id_SituacionPatrimonial, 
+        REPLACE(dbo.RemoveAccents(MD_Person.Name), ' ', ''),
+        REPLACE(dbo.RemoveAccents(MD_Person.PaternalSurname), ' ', ''),
+        REPLACE(dbo.RemoveAccents(MD_Person.MaternalSurname), ' ', '')
+    ) AS Hipervinculo,
+	'CONTRALORIA MUNICIPAL' as Responsable,
+				DCLE.Id_SituacionPatrimonial,
+				DATEPART(QUARTER, DCLE.FechaTerminada) AS Trimestre
+			
+
+                  FROM DECL_SituacionPatrimonial as DCLE
+                  inner JOIN USR_User AS U ON DCLE.Id_User =  U.Id_User
+                  inner join DECL_DatosGenerales on DCLE.Id_SituacionPatrimonial = DECL_DatosGenerales.Id_SituacionPatrimonial
+                  left join DECL_DatosEmpleoCargoComision decc on DCLE.Id_SituacionPatrimonial = decc.Id_SituacionPatrimonial
+                  left join MD_Person on U.Id_Person = MD_Person.Id_Person
+                  left join MD_Gender on MD_Person.Id_Gender=MD_Gender.Id_Gender
+                  where DCLE.EstaCompleta = 1 and DCLE.EsActivo = 1 and DCLE.SeEnvioAcuse =1 
+				  and MD_Person.AreaAdscripcion not like '%DIF%' and MD_Person.AreaAdscripcion not like '%SIDEAPA%' and MD_Person.AreaAdscripcion not like '%EXPO%' and MD_Person.AreaAdscripcion not like '%SIDEAPAAR%'

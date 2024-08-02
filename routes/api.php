@@ -39,6 +39,7 @@ use App\Http\Controllers\ControllerParticipacionEmpresas;
 use App\Http\Controllers\ControllerPrestamosComodatos;
 use App\Http\Controllers\ControllerRegimemMatrimonial;
 use App\Http\Controllers\ControllerRelacionDeclarante;
+use App\Http\Controllers\ControllerReportes;
 use App\Http\Controllers\ControllerRepresentaciones;
 use App\Http\Controllers\ControllerRoles;
 use App\Http\Controllers\ControllerSector;
@@ -606,7 +607,10 @@ Route::prefix('tipoinstituciones')->group(function () {
     Route::get("show", [ControllerInstituciones::class, 'show']);
 });
 
+Route::prefix('reportes')->group(function(){
+    Route::get('trasparencia/{ejercicio?}/{trimestre?}', [ControllerReportes::class,'trasparencia']);
 
+});
 
 // Route::prefix('usuarios')->group(function () {
 //     Route::post("create", [ControllerRoles::class, 'create']);

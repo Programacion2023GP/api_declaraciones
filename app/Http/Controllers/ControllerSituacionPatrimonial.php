@@ -85,7 +85,7 @@ class ControllerSituacionPatrimonial extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
-    public function user(Response $response,int $id)
+    public function user(Response $response, int $id)
     {
         $response->data = ObjResponse::DefaultResponse();
 
@@ -97,7 +97,7 @@ class ControllerSituacionPatrimonial extends Controller
 
                     'DECL_SituacionPatrimonial.Id_SituacionPatrimonial as id',
 
-                )->where('Id_User',$id)
+                )->where('Id_User', $id)->where('EstaCompleta', 1)
                 ->get();
 
             $response->data = ObjResponse::CorrectResponse();

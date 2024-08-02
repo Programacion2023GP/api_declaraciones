@@ -26,6 +26,16 @@ class ControllerIngresosNetos extends Controller
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
             $apartado->create($request->Id_SituacionPatrimonial, 8);
+            DB::table('DECL_SituacionPatrimonial')
+                ->where('Id_SituacionPatrimonial', $request->Id_SituacionPatrimonial)
+                ->where('EsSimplificada', 1)
+                ->update([
+                    'EstaCompleta' => 1,
+                    'FechaTerminada' => now()
+                ]);
+
+
+
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
