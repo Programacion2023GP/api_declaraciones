@@ -609,6 +609,7 @@ Route::prefix('tipoinstituciones')->group(function () {
 
 Route::prefix('reportes')->group(function(){
     Route::get('trasparencia/{ejercicio?}/{trimestre?}', [ControllerReportes::class,'trasparencia']);
+    Route::get('/incumplimientos/{plazo_id}/{fecha_referencia?}', [ControllerReportes::class, 'incumplimientos']);
 
 });
 

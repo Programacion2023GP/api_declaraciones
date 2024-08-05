@@ -291,7 +291,7 @@ CONCAT(
 	'CONTRALORIA MUNICIPAL' as Responsable,
 				DCLE.Id_SituacionPatrimonial,
 				DATEPART(QUARTER, DCLE.FechaTerminada) AS Trimestre
-			
+    
 
                   FROM DECL_SituacionPatrimonial as DCLE
                   inner JOIN USR_User AS U ON DCLE.Id_User =  U.Id_User
