@@ -49,8 +49,8 @@ class ControllerReportes extends Controller
             $query = "
             SELECT uc.codigoEmpleado,uc.Curp,uc.nombreE,uc.apellidoP,uc.apellidoM,uc.puesto, mdp.DenominacionCargo, mdp.DenominacionPuesto,mdp.AreaAdscripcion,uc.fechaAlta,sp.FechaRegistro,sp.FechaTerminada
             FROM USR_Compaq uc
-            INNER JOIN DECL_DatosGenerales dg ON uc.Curp = dg.Curp
-            INNER JOIN DECL_SituacionPatrimonial sp ON dg.Id_SituacionPatrimonial = sp.Id_SituacionPatrimonial 
+            INNER JOIN DECL_Datosgenerales dg ON uc.Curp = dg.Curp
+            INNER JOIN DECL_Situacionpatrimonial sp ON dg.Id_SituacionPatrimonial = sp.Id_SituacionPatrimonial 
             INNER JOIN DECL_Plazo p ON sp.Id_Plazo = p.Id_Plazo
             INNER JOIN MD_Person mdp ON uc.codigoEmpleado = mdp.Nomina
             WHERE sp.EstaCompleta = 1 AND sp.EsActivo = 1
@@ -60,15 +60,15 @@ class ControllerReportes extends Controller
             if ($plazo_id === 'undefined') {
                 $query .= "AND dg.Id_SituacionPatrimonial = (
                 SELECT MAX(Id_SituacionPatrimonial)
-                FROM DECL_DatosGenerales
+                FROM DECL_Datosgenerales
                 WHERE Curp = uc.Curp
             );";
             } else {
                 $query .= "AND sp.Id_Plazo = {$plazo_id} ";
                 $query .= "AND dg.Id_SituacionPatrimonial = (
                 SELECT MAX(scdg.Id_SituacionPatrimonial)
-                FROM DECL_DatosGenerales scdg
-                INNER JOIN DECL_SituacionPatrimonial scsp ON scdg.Id_SituacionPatrimonial = scsp.Id_SituacionPatrimonial
+                FROM DECL_Datosgenerales scdg
+                INNER JOIN DECL_Situacionpatrimonial scsp ON scdg.Id_SituacionPatrimonial = scsp.Id_SituacionPatrimonial
                 WHERE scsp.Id_Plazo = {$plazo_id} AND Curp = uc.Curp
             )";
 

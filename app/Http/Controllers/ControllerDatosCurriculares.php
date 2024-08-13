@@ -16,7 +16,7 @@ class ControllerDatosCurriculares extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            
+
             $datosInsercion = [
                 'Id_SituacionPatrimonial' => $request->Id_SituacionPatrimonial,
                 'Id_Nivel' => $request->Id_Nivel,
@@ -41,7 +41,7 @@ class ControllerDatosCurriculares extends Controller
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $DatosCurriculares;
             $apartado = new ControllerApartados();
-            $apartado->create($request->Id_SituacionPatrimonial,3);
+            $apartado->create($request->Id_SituacionPatrimonial, 3);
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
             $erros->handleException('DatosCurriculares', $ex);
@@ -55,7 +55,7 @@ class ControllerDatosCurriculares extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_DatosCurriculares') // Selecciona la tabla DECL_DatosGenerales
+            $data = DB::table('DECL_DatosCurriculares') // Selecciona la tabla DECL_Datosgenerales
                 ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
                 ->select('*') // Selecciona todas las columnas
                 ->get();

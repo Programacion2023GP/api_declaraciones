@@ -48,7 +48,7 @@ class ControllerAdeudosPasivos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_AdeudosPasivos') // Selecciona la tabla DECL_DatosGenerales
+            $data = DB::table('DECL_AdeudosPasivos') // Selecciona la tabla DECL_Datosgenerales
                 ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
                 ->select('*') // Selecciona todas las columnas
                 ->get();

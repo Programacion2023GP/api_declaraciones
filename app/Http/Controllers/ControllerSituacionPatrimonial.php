@@ -14,7 +14,7 @@ class ControllerSituacionPatrimonial extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table($hoja < 15 ? 'DECL_SituacionPatrimonial' : 'DECL_Intereses')
+            $data = DB::table($hoja < 15 ? 'DECL_Situacionpatrimonial' : 'DECL_Intereses')
                 ->where('Id_User', $id)->where('EsActivo', 1)
                 ->orderBy($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', 'desc');
 
@@ -65,7 +65,7 @@ class ControllerSituacionPatrimonial extends Controller
             // Verificar si el registro existe
             // return $id;
 
-            DB::table('DECL_SituacionPatrimonial')
+            DB::table('DECL_Situacionpatrimonial')
                 ->where('Id_SituacionPatrimonial', $id)
                 ->update(['EsActivo' => 0]);
 
@@ -90,12 +90,12 @@ class ControllerSituacionPatrimonial extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_SituacionPatrimonial')
+            $data = DB::table('DECL_Situacionpatrimonial')
                 // ->join('USR_UserRole', 'USR_UserRole.Id_User', '=', 'Notas_Aclaratorias.Id_User')
                 ->select(
-                    'DECL_SituacionPatrimonial.Id_SituacionPatrimonial as text',
+                    'DECL_Situacionpatrimonial.Id_SituacionPatrimonial as text',
 
-                    'DECL_SituacionPatrimonial.Id_SituacionPatrimonial as id',
+                    'DECL_Situacionpatrimonial.Id_SituacionPatrimonial as id',
 
                 )->where('Id_User', $id)->where('EstaCompleta', 1)
                 ->get();

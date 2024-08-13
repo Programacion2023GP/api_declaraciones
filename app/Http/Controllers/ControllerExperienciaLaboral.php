@@ -48,7 +48,7 @@ class ControllerExperienciaLaboral extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_ExperienciaLaboral') // Selecciona la tabla DECL_DatosGenerales
+            $data = DB::table('DECL_ExperienciaLaboral') // Selecciona la tabla DECL_Datosgenerales
                 ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
                 ->select('*') // Selecciona todas las columnas
                 ->get();
@@ -97,5 +97,4 @@ class ControllerExperienciaLaboral extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
-    
 }

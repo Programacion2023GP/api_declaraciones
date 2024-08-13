@@ -17,7 +17,7 @@ class ControllerDatosGenerales extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $SituacionPatrimonialId = DB::table('DECL_SituacionPatrimonial')->insertGetId([
+            $SituacionPatrimonialId = DB::table('DECL_Situacionpatrimonial')->insertGetId([
                 'Id_User' => $request->Id_User,
                 'ID_Plazo' => ($request->Id_Plazo >= 1 && $request->Id_Plazo <= 3) ?
                     $request->Id_Plazo : ($request->Id_Plazo - 3),
@@ -50,7 +50,7 @@ class ControllerDatosGenerales extends Controller
                 'FechaRegistro' => now()->format('Y-m-d H:i:s'),
                 'EsActivo' => 1,
             ];
-            $datosGenerales = DB::table('DECL_DatosGenerales')->insert($datosInsercion);
+            $datosGenerales = DB::table('DECL_Datosgenerales')->insert($datosInsercion);
 
 
 
@@ -76,7 +76,7 @@ class ControllerDatosGenerales extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_DatosGenerales') // Selecciona la tabla DECL_DatosGenerales
+            $data = DB::table('DECL_Datosgenerales') // Selecciona la tabla DECL_Datosgenerales
                 ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
                 ->select('*') // Selecciona todas las columnas
                 ->get();
@@ -96,12 +96,12 @@ class ControllerDatosGenerales extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_DatosGenerales') // Selecciona la tabla DECL_DatosGenerales
-                ->select('DECL_DatosGenerales.*', "MD_Person.DenominacionCargo", "MD_Person.AreaAdscripcion") // Selecciona todas las columnas
-                ->join('DECL_SituacionPatrimonial', 'DECL_SituacionPatrimonial.Id_SituacionPatrimonial', '=', 'DECL_DatosGenerales.Id_SituacionPatrimonial')
-                ->join('USR_User', 'USR_User.Id_User', '=', 'DECL_SituacionPatrimonial.Id_User')
+            $data = DB::table('DECL_Datosgenerales') // Selecciona la tabla DECL_Datosgenerales
+                ->select('DECL_Datosgenerales.*', "MD_Person.DenominacionCargo", "MD_Person.AreaAdscripcion") // Selecciona todas las columnas
+                ->join('DECL_Situacionpatrimonial', 'DECL_Situacionpatrimonial.Id_SituacionPatrimonial', '=', 'DECL_Datosgenerales.Id_SituacionPatrimonial')
+                ->join('USR_User', 'USR_User.Id_User', '=', 'DECL_Situacionpatrimonial.Id_User')
                 ->join('MD_Person', 'MD_Person.Id_Person', '=', 'USR_User.Id_Person')
-                ->where('DECL_DatosGenerales.Id_SituacionPatrimonial', $id)
+                ->where('DECL_Datosgenerales.Id_SituacionPatrimonial', $id)
                 ->get();
 
             $response->data = ObjResponse::CorrectResponse();
@@ -123,7 +123,7 @@ class ControllerDatosGenerales extends Controller
 
 
             // Actualizar el registro
-            DB::table('DECL_DatosGenerales')
+            DB::table('DECL_Datosgenerales')
                 ->where('Id_DatosGenerales', $id)
                 ->update([
                     'Nombre' => $request->Nombre,

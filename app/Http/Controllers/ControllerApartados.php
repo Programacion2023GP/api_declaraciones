@@ -194,35 +194,35 @@ class ControllerApartados extends Controller
 
         try {
             $apartado = DB::select("
-            select max(DECL_SituacionPatrimonial.Id_SituacionPatrimonial) as Folio,
+            select max(DECL_Situacionpatrimonial.Id_SituacionPatrimonial) as Folio,
             max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
             MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno,
             CASE
-                 WHEN  DECL_SituacionPatrimonial.EsSimplificada = 0 THEN 'Completa'
-                 WHEN  DECL_SituacionPatrimonial.EsSimplificada = 1 THEN 'Simplificada'
+                 WHEN  DECL_Situacionpatrimonial.EsSimplificada = 0 THEN 'Completa'
+                 WHEN  DECL_Situacionpatrimonial.EsSimplificada = 1 THEN 'Simplificada'
                 END AS Declaracion,
              CASE
-                 WHEN  (max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 and DECL_SituacionPatrimonial.EsSimplificada =0 OR 
-				 max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =8 and DECL_SituacionPatrimonial.EsSimplificada = 1 ) THEN 'Terminada'
+                 WHEN  (max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 and DECL_Situacionpatrimonial.EsSimplificada =0 OR 
+				 max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =8 and DECL_Situacionpatrimonial.EsSimplificada = 1 ) THEN 'Terminada'
 
                  ELSE 'En proceso'
              END AS Status,
         
-            FORMAT(DECL_SituacionPatrimonial.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
+            FORMAT(DECL_Situacionpatrimonial.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
           CASE
-                 WHEN DECL_SituacionPatrimonial.Id_Plazo = 1 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Inicial'
-                 WHEN DECL_SituacionPatrimonial.Id_Plazo = 2 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Modificación'
-                 WHEN DECL_SituacionPatrimonial.Id_Plazo = 3 AND (DECL_SituacionPatrimonial.EsSimplificada = 0 OR DECL_SituacionPatrimonial.EsSimplificada = 1) THEN 'Conclusión'
+                 WHEN DECL_Situacionpatrimonial.Id_Plazo = 1 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Inicial'
+                 WHEN DECL_Situacionpatrimonial.Id_Plazo = 2 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Modificación'
+                 WHEN DECL_Situacionpatrimonial.Id_Plazo = 3 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Conclusión'
              END AS Tipo_declaracion
             from DECL_SPApartados
-            INNER JOIN DECL_SituacionPatrimonial ON DECL_SituacionPatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
-            INNER JOIN USR_User on USR_User.Id_User = DECL_SituacionPatrimonial.Id_User
+            INNER JOIN DECL_Situacionpatrimonial ON DECL_Situacionpatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
+            INNER JOIN USR_User on USR_User.Id_User = DECL_Situacionpatrimonial.Id_User
             INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
 
 
-            WHERE DECL_SituacionPatrimonial.Id_User =? and  DECL_SituacionPatrimonial.EsActivo =1
+            WHERE DECL_Situacionpatrimonial.Id_User =? and  DECL_Situacionpatrimonial.EsActivo =1
             group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
-            DECL_SituacionPatrimonial.Id_Plazo,DECL_SituacionPatrimonial.EsSimplificada,DECL_SituacionPatrimonial.FechaRegistro
+            DECL_Situacionpatrimonial.Id_Plazo,DECL_Situacionpatrimonial.EsSimplificada,DECL_Situacionpatrimonial.FechaRegistro
 			UNION ALL
 
 
@@ -264,29 +264,50 @@ class ControllerApartados extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
+
+
+            //     SELECT 
+            //     MAX(DECL_Intereses.Id_Intereses) AS Folio,
+            //     MD_Person.Name AS Nombre,
+            //     MD_Person.PaternalSurname AS ApPaterno,
+            //     MD_Person.MaternalSurname AS ApMaterno,
+            //     'Intereses' AS Tipo_declaracion,
+            //     'Interes' AS Declaracion,
+            //     CASE
+            //         WHEN MAX(DECL_IApartados.Id_interesesApartado) = 7 THEN 'Terminada'
+            //         ELSE 'En proceso'
+            //     END AS Tstatus,
+            //     FORMAT(DECL_Intereses.FechaInicioInforma, 'dd/MM/yyyy') AS FechaRegistroFormateada
+            // FROM DECL_Intereses
+            // INNER JOIN DECL_IApartados ON DECL_IApartados.Id_Intereses = DECL_Intereses.Id_Intereses
+            // INNER JOIN USR_User ON USR_User.Id_User = DECL_Intereses.Id_User
+            // INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
+            // WHERE DECL_Intereses.Id_User = 11321 AND DECL_Intereses.EsActivo = 1
+            // GROUP BY 
+            //     DECL_Intereses.Id_Intereses,
+            //     MD_Person.Name,
+            //     MD_Person.PaternalSurname,
+            //     MD_Person.MaternalSurname,
+            //     DECL_Intereses.FechaInicioInforma
+
+            // UNION ALL
             $apartado = DB::select("
-            select max (DECL_Intereses.Id_Intereses) as Folio,
-            MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno, 'Intereses' as Tipo_declaracion, 'Interes' as Declaracion,
-            CASE
-WHEN  max(DECL_IApartados.Id_interesesApartado) =7 THEN 'Terminada'
+    
+        
+        SELECT 
+            Folio,
+            Nombre,
+            ApPaterno,
+            ApMaterno,
+            Tipo_declaracion,
+            Declaracion,
+            Tstatus,
+            FechaRegistroFormateada
+        FROM Declaraciones
+        
+        ORDER BY Folio DESC;
+        
 
-ELSE 'En proceso'
-END AS Tstatus,
- FORMAT(DECL_Intereses.FechaInicioInforma, 'dd/MM/yyyy') AS FechaRegistroFormateada
- 
-from DECL_Intereses 
-inner join DECL_IApartados on DECL_IApartados.Id_Intereses =DECL_Intereses.Id_Intereses
-INNER JOIN USR_User on USR_User.Id_User = DECL_Intereses.Id_User
-            INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
-                        WHERE DECL_Intereses.Id_User =11321 and  DECL_Intereses.EsActivo =1
-
-group by DECL_Intereses.Id_Intereses,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,DECL_Intereses.FechaInicioInforma
-      
-
-            UNION ALL
-            SELECT *
-FROM Declaraciones
-ORDER BY Folio DESC;
             ");
 
             // $apartado = VistaDeclaracionesModel::orderBy('Folio', 'DESC')->get();

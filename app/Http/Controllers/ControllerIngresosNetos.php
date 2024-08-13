@@ -26,7 +26,7 @@ class ControllerIngresosNetos extends Controller
             $response->data["alert_text"] = "regimenes encontrados";
             $apartado = new ControllerApartados();
             $apartado->create($request->Id_SituacionPatrimonial, 8);
-            DB::table('DECL_SituacionPatrimonial')
+            DB::table('DECL_Situacionpatrimonial')
                 ->where('Id_SituacionPatrimonial', $request->Id_SituacionPatrimonial)
                 ->where('EsSimplificada', 1)
                 ->update([
@@ -50,7 +50,7 @@ class ControllerIngresosNetos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_Ingresos') // Selecciona la tabla DECL_DatosGenerales
+            $data = DB::table('DECL_Ingresos') // Selecciona la tabla DECL_Datosgenerales
                 ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
                 ->select('*') // Selecciona todas las columnas
                 ->get();

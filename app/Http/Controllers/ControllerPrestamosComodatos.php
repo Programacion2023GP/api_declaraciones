@@ -36,7 +36,7 @@ class ControllerPrestamosComodatos extends Controller
 
             $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 15);
 
-            DB::table('DECL_SituacionPatrimonial')
+            DB::table('DECL_Situacionpatrimonial')
                 ->where('Id_SituacionPatrimonial', $request->all()[0]['Id_SituacionPatrimonial'])
                 ->where('EsSimplificada', 0)
                 ->update([
@@ -57,7 +57,7 @@ class ControllerPrestamosComodatos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_PrestamoComodato') // Selecciona la tabla DECL_DatosGenerales
+            $data = DB::table('DECL_PrestamoComodato') // Selecciona la tabla DECL_Datosgenerales
                 ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
                 ->select('*') // Selecciona todas las columnas
                 ->get();

@@ -144,7 +144,7 @@ ADD EsMexico BIT   DEFAULT NULL
 
 
   CREATE INDEX situacionPatrimonial_DECL_SPApartados ON DECL_SPApartados(Id_SituacionPatrimonial);
-		  CREATE INDEX situacionPatrimonial_DECL_DatosGenerales ON DECL_DatosGenerales(Id_SituacionPatrimonial);
+		  CREATE INDEX situacionPatrimonial_DECL_DatosGenerales ON DECL_Datosgenerales(Id_SituacionPatrimonial);
 		  CREATE INDEX situacionPatrimonial_DECL_DomicilioDeclarante ON DECL_DomicilioDeclarante(Id_SituacionPatrimonial);
 		  CREATE INDEX situacionPatrimonial_DECL_DECL_DatosCurriculares ON DECL_DatosCurriculares(Id_SituacionPatrimonial);
 		  CREATE INDEX situacionPatrimonial_DECL_DatosEmpleoCargoComision ON DECL_DatosEmpleoCargoComision(Id_SituacionPatrimonial);
@@ -190,8 +190,9 @@ SELECT
         ) THEN 'Terminada'
         ELSE 'En proceso'
     END AS Tstatus,
-    FORMAT(DSP.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada
-FROM DECL_SituacionPatrimonial DSP
+    DATE_FORMAT(DSP.FechaRegistro, '%d/%m/%Y') AS FechaRegistroFormateada
+
+FROM DECL_Situacionpatrimonial DSP
 INNER JOIN USR_User UU ON UU.Id_User = DSP.Id_User
 INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
 WHERE DSP.EsActivo = 1;
@@ -225,9 +226,9 @@ UPDATE MD_Person
 SET MD_Person.Nomina = USR_Compaq.codigoEmpleado
 FROM MD_Person
 INNER JOIN USR_User ON USR_User.Id_Person = MD_Person.Id_Person
-INNER JOIN DECL_SituacionPatrimonial ON DECL_SituacionPatrimonial.Id_User = USR_User.Id_User
-INNER JOIN DECL_DatosGenerales ON DECL_DatosGenerales.Id_SituacionPatrimonial = DECL_SituacionPatrimonial.Id_SituacionPatrimonial
-INNER JOIN USR_Compaq ON DECL_DatosGenerales.Curp = USR_Compaq.Curp;
+INNER JOIN DECL_Situacionpatrimonial ON DECL_Situacionpatrimonial.Id_User = USR_User.Id_User
+INNER JOIN DECL_Datosgenerales ON DECL_Datosgenerales.Id_SituacionPatrimonial = DECL_Situacionpatrimonial.Id_SituacionPatrimonial
+INNER JOIN USR_Compaq ON DECL_Datosgenerales.Curp = USR_Compaq.Curp;
 
 
 
@@ -293,11 +294,220 @@ CONCAT(
 				DATEPART(QUARTER, DCLE.FechaTerminada) AS Trimestre
     
 
-                  FROM DECL_SituacionPatrimonial as DCLE
+                  FROM DECL_Situacionpatrimonial as DCLE
                   inner JOIN USR_User AS U ON DCLE.Id_User =  U.Id_User
-                  inner join DECL_DatosGenerales on DCLE.Id_SituacionPatrimonial = DECL_DatosGenerales.Id_SituacionPatrimonial
+                  inner join DECL_Datosgenerales on DCLE.Id_SituacionPatrimonial = DECL_Datosgenerales.Id_SituacionPatrimonial
                   left join DECL_DatosEmpleoCargoComision decc on DCLE.Id_SituacionPatrimonial = decc.Id_SituacionPatrimonial
                   left join MD_Person on U.Id_Person = MD_Person.Id_Person
                   left join MD_Gender on MD_Person.Id_Gender=MD_Gender.Id_Gender
                   where DCLE.EstaCompleta = 1 and DCLE.EsActivo = 1 and DCLE.SeEnvioAcuse =1 
 				  and MD_Person.AreaAdscripcion not like '%DIF%' and MD_Person.AreaAdscripcion not like '%SIDEAPA%' and MD_Person.AreaAdscripcion not like '%EXPO%' and MD_Person.AreaAdscripcion not like '%SIDEAPAAR%'
+
+
+ALTER TABLE Adscripcion
+ADD organismo Varchar(200) default null;
+
+
+INSERT INTO Adscripcion (nombre, organismo, active) VALUES
+('Arte y Cultura', 'Presidencia', 1),
+('Asuntos Jurídicos', 'Presidencia', 1),
+('Atencion Ciudadana', 'Presidencia', 1),
+('Bienestar Social', 'Presidencia', 1),
+('Comunicacion Social', 'Presidencia', 1),
+('Contral oficina Municipal', 'Presidencia', 1),
+('Deportes', 'Presidencia', 1),
+('Desarrollo Economico', 'Presidencia', 1),
+('Desarrollo Económico y Turistico', 'Presidencia', 1),
+('Desarrollo Rural', 'Presidencia', 1),
+('Desarollo Integral de la Familia (DIF)', 'DIF', 1),
+('Ecología y Medio Ambiente', 'Presidencia', 1),
+('H. Cabildo', 'Presidencia', 1),
+('IMM/Procuraduria de la Mujer (PRODEM)', 'Presidencia', 1),
+('IMPlaDEM', 'Presidencia', 1),
+('Instituto Municipal de la Mujer', 'Presidencia', 1),
+('Juventud', 'Presidencia', 1),
+('O.M./Adquisiciones y Licitaciones', 'Presidencia', 1),
+('O.M./Bienes Materiales y Patrimoniales', 'Presidencia', 1),
+('O.M./Capital Humano', 'Presidencia', 1),
+('O.M./Centro de Tecnologias de la Informacion', 'Presidencia', 1),
+('O.M./Patrimonio', 'Presidencia', 1),
+('O.M./Recursos Materiales y Patrimoniales', 'Presidencia', 1),
+('Obras Públicas', 'Presidencia', 1),
+('Oficialia Mayor', 'Presidencia', 1),
+('Pensionados', 'Presidencia', 1),
+('Pensionados Confianza', 'Presidencia', 1),
+('Pensionista', 'Presidencia', 1),
+('Presidencia', 'Presidencia', 1),
+('Proteccion Civil', 'Presidencia', 1),
+('Protección Civil', 'Presidencia', 1),
+('Regidores', 'Presidencia', 1),
+('Relaciones Publicas', 'Presidencia', 1),
+('Relaciones Públicas', 'Presidencia', 1),
+('Salud Municipal', 'Presidencia', 1),
+('Secretaria del Ayuntamiento', 'Presidencia', 1),
+('Secretaria Privada', 'Presidencia', 1),
+('Secretaría Privada', 'Presidencia', 1),
+('Seguridad y Protección Ciudadana', 'Presidencia', 1),
+('Servicios Publicos', 'Presidencia', 1),
+('Servicios Públicos', 'Presidencia', 1),
+('Sindicato Municipal', 'Presidencia', 1),
+('Sindicatura Municipal', 'Presidencia', 1),
+('T.M./Contabilidad y Egresos', 'Presidencia', 1),
+('T.M./Ingresos', 'Presidencia', 1),
+('Tesoreria Municipal', 'Presidencia', 1),
+('Unidad Transparencia y Acceso a la Inf', NULL, 1),
+('Expo Feria', 'Expo Feria', 1),
+('Sistema Decentralizado de Agua Potable y Alcantarillado (SIDEAPA)', 'SIDEAPA', 1),
+('Sistema Decentralizado de Agua Potable y Alcantarillado Área Rural (SIDEAPAAR)', 'SIDEAPAAR', 1);
+
+
+CREATE TABLE empleocargocomision (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    organismo NVARCHAR(100) NOT NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE VIEW VistaTrimestres AS
+SELECT 
+    YEAR(DCLE.FechaTerminada) AS Ejercicio,
+    CASE 
+        WHEN QUARTER(DCLE.FechaTerminada) = 1 THEN '01/01/2023'
+        WHEN QUARTER(DCLE.FechaTerminada) = 2 THEN '01/04/2023'
+        WHEN QUARTER(DCLE.FechaTerminada) = 3 THEN '01/07/2023'
+        WHEN QUARTER(DCLE.FechaTerminada) = 4 THEN '01/10/2023'
+    END AS FechaInicio,
+    CASE 
+        WHEN QUARTER(DCLE.FechaTerminada) = 1 THEN '31/03/2023'
+        WHEN QUARTER(DCLE.FechaTerminada) = 2 THEN '30/06/2023'
+        WHEN QUARTER(DCLE.FechaTerminada) = 3 THEN '30/09/2023'
+        WHEN QUARTER(DCLE.FechaTerminada) = 4 THEN '31/12/2023'
+    END AS FechaFin,
+    'Servidor[a] público[a] eventual' AS `Tipo integrante del sujeto`,
+    'Este dato no se requiere para este periodo, de conformidad con las últimas modificaciones a los Lineamientos Técnicos Generales, aprobadas por el Pleno del Consejo Nacional del Sistema Nacional de Transparencia.' AS `Tipo de integrante`,
+    MD_Person.DenominacionPuesto AS clave,
+    MD_Person.DenominacionPuesto,
+    MD_Person.AreaAdscripcion AS Cargo,
+    MD_Person.AreaAdscripcion,
+    MD_Person.Name,
+    MD_Person.PaternalSurname,
+    MD_Person.MaternalSurname,
+    CASE DCLE.Id_Plazo
+        WHEN 1 THEN 'INICIAL'
+        WHEN 2 THEN 'MODIFICACION'
+        WHEN 3 THEN 'CONCLUSION'
+    END AS Plazo,
+    CONCAT(
+        'https://transparencia.gomezpalacio.gob.mx/wp-content/uploads/declaraciones/', 
+        DCLE.Id_SituacionPatrimonial, 
+        REPLACE(RemoveAccents(MD_Person.Name), ' ', ''),
+        REPLACE(RemoveAccents(MD_Person.PaternalSurname), ' ', ''),
+        REPLACE(RemoveAccents(MD_Person.MaternalSurname), ' ', '')
+    ) AS Hipervinculo,
+    'CONTRALORIA MUNICIPAL' AS Responsable,
+    DCLE.Id_SituacionPatrimonial,
+    QUARTER(DCLE.FechaTerminada) AS Trimestre
+FROM DECL_Situacionpatrimonial AS DCLE
+INNER JOIN USR_User AS U ON DCLE.Id_User = U.Id_User
+INNER JOIN DECL_Datosgenerales ON DCLE.Id_SituacionPatrimonial = DECL_Datosgenerales.Id_SituacionPatrimonial
+LEFT JOIN DECL_DatosEmpleoCargoComision decc ON DCLE.Id_SituacionPatrimonial = decc.Id_SituacionPatrimonial
+LEFT JOIN MD_Person ON U.Id_Person = MD_Person.Id_Person
+LEFT JOIN MD_Gender ON MD_Person.Id_Gender = MD_Gender.Id_Gender
+WHERE DCLE.EstaCompleta = 1
+  AND DCLE.EsActivo = 1
+  AND DCLE.SeEnvioAcuse = 1
+  AND MD_Person.AreaAdscripcion NOT LIKE '%DIF%'
+  AND MD_Person.AreaAdscripcion NOT LIKE '%SIDEAPA%'
+  AND MD_Person.AreaAdscripcion NOT LIKE '%EXPO%'
+  AND MD_Person.AreaAdscripcion NOT LIKE '%SIDEAPAAR%';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	CREATE VIEW Declaraciones AS
+SELECT 
+    DSP.Id_SituacionPatrimonial AS Folio,
+    MP.Name AS Nombre,
+    MP.PaternalSurname AS ApPaterno,
+    MP.MaternalSurname AS ApMaterno,
+    CASE
+        WHEN DSP.Id_Plazo = 1 THEN 'Inicial'
+        WHEN DSP.Id_Plazo = 2 THEN 'Modificación'
+        WHEN DSP.Id_Plazo = 3 THEN 'Conclusión'
+    END AS Tipo_declaracion,
+    CASE
+        WHEN DSP.EsSimplificada = 1 THEN 'Simplificada'
+        ELSE 'Completa'
+    END AS Declaracion,
+    CASE
+        WHEN EXISTS (
+            SELECT 1 
+            FROM DECL_SPApartados DSA
+            WHERE DSA.Id_SituacionPatrimonial = DSP.Id_SituacionPatrimonial 
+              AND (
+                  (DSP.EsSimplificada = 1 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 8)) OR
+                  (DSP.EsSimplificada = 0 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15))
+              )
+        ) THEN 'Terminada'
+        ELSE 'En proceso'
+    END AS Tstatus,
+    DATE_FORMAT(DSP.FechaRegistro, '%d/%m/%Y') AS FechaRegistroFormateada
+
+FROM DECL_Situacionpatrimonial DSP
+INNER JOIN USR_User UU ON UU.Id_User = DSP.Id_User
+INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
+WHERE DSP.EsActivo = 1;
