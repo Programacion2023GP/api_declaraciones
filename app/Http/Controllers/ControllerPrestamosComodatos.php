@@ -84,8 +84,17 @@ class ControllerPrestamosComodatos extends Controller
             DB::table('DECL_PrestamoComodato')
                 ->where('Id_SituacionPatrimonial', $id)
                 ->delete();
+            $apartado = new ControllerApartados();
 
+            $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 15);
 
+            DB::table('DECL_Situacionpatrimonial')
+                ->where('Id_SituacionPatrimonial', $request->all()[0]['Id_SituacionPatrimonial'])
+                ->where('EsSimplificada', 0)
+                ->update([
+                    'EstaCompleta' => 1,
+                    'FechaTerminada' => now()
+                ]);
             foreach ($request->all() as $datos) {
                 // Eliminar el campo 'identificador' de los datos
                 unset($datos['identificador']);

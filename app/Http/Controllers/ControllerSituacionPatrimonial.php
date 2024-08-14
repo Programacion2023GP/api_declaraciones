@@ -14,9 +14,9 @@ class ControllerSituacionPatrimonial extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table($hoja < 15 ? 'DECL_Situacionpatrimonial' : 'DECL_Intereses')
+            $data = DB::table($hoja < 16 ? 'DECL_Situacionpatrimonial' : 'DECL_Intereses')
                 ->where('Id_User', $id)->where('EsActivo', 1)
-                ->orderBy($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', 'desc');
+                ->orderBy($hoja < 16 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', 'desc');
 
             if ($situacion > 0) {
                 $data->skip(1);
@@ -24,9 +24,9 @@ class ControllerSituacionPatrimonial extends Controller
             $data = $data->first();
 
             // Verificar si el registro existe en la tabla apartados
-            $existsInApartadosQuery = DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
-                ->where($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $situacion)
-                ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja);
+            $existsInApartadosQuery = DB::table($hoja < 16 ? 'DECL_SPApartados' : 'DECL_IApartados')
+                ->where($hoja < 16 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $situacion)
+                ->where($hoja < 16 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja);
 
             // Obtener la consulta SQL generada y los valores vinculados
             $sql = $existsInApartadosQuery->toSql();
@@ -67,6 +67,35 @@ class ControllerSituacionPatrimonial extends Controller
 
             DB::table('DECL_Situacionpatrimonial')
                 ->where('Id_SituacionPatrimonial', $id)
+                ->update(['EsActivo' => 0]);
+
+
+
+
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | Declaración eliminada correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $id; // Puedes devolver el ID del   REGIMEN MATRIMONIAL actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            // $erros->handleException('BienesMuebles', $ex);
+            $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede actualizar");
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function interes(Response $response, Request $request, $id)
+
+    {
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            // Verificar si el registro existe
+            // return $id;
+
+            DB::table('DECL_Intereses')
+                ->where('Id_Intereses', $id)
                 ->update(['EsActivo' => 0]);
 
 

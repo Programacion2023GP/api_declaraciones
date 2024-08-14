@@ -35,6 +35,7 @@ class ControllerUsers extends Controller
                 'Id_Role' => $user->Id_Role,
                 'Name' => $user->Name,
                 'PaternalSurname' => $user->PaternalSurname,
+                'MaternalSurname' => $user->MaternalSurname,
 
             ];
             $response->data = ObjResponse::CorrectResponse();

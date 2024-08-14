@@ -597,6 +597,8 @@ Route::prefix('situacionpatrimonial')->group(function () {
     Route::get("user/{id}",[ControllerSituacionPatrimonial::class, 'user']);
     Route::get("index/{id}/{hoja}/{situacion?}", [ControllerSituacionPatrimonial::class, 'index']);
     Route::delete("delete/{id}", [ControllerSituacionPatrimonial::class, 'delete']); //put 
+    Route::delete("interes/{id}", [ControllerSituacionPatrimonial::class, 'interes']); //put 
+
 });
 
 

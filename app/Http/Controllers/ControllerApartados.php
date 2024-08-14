@@ -352,14 +352,18 @@ class ControllerApartados extends Controller
 
         try {
 
-            $count = DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
+            $query = DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
                 ->where($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $id)
-                ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja)
-                ->count();
+                ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja);
 
-            // DB::table($hoja < 15 ? 'DECL_SPApartados' : 'DECL_IApartados')
-            // ->where($hoja < 15 ? 'Id_SituacionPatrimonial' : 'Id_Intereses', $situacion)
-            // ->where($hoja < 15 ? 'Id_SituacionPatrimonialApartado' : 'Id_interesesApartado', $hoja);
+            // Imprime la consulta generada
+            echo $query->toSql();
+
+            // Imprime los parámetros utilizados en la consulta
+            print_r($query->getBindings());
+
+            // Ejecuta la consulta y obtiene el conteo
+            $count = $query->count();
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
