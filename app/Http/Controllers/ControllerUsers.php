@@ -34,6 +34,8 @@ class ControllerUsers extends Controller
                 'Id_Person' => $user->Id_Person,
                 'Id_Role' => $user->Id_Role,
                 'Name' => $user->Name,
+                'Sexo' => $user->Gender,
+
                 'PaternalSurname' => $user->PaternalSurname,
                 'MaternalSurname' => $user->MaternalSurname,
 
@@ -168,7 +170,40 @@ class ControllerUsers extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+    public function gender(Response $response, Request $request)
+    {
+        $response->data = ObjResponse::DefaultResponse();
 
+        try {
+            // Verificar si el registro existe
+
+
+            // if ($existingUser) {
+            //     // Si el correo electrónico ya existe, retornar un error
+            //     $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+            //     return response()->json($response, $response->data["status_code"]);
+            // }
+            // Actualizar el registro
+           $user= DB::table('MD_Person')
+                ->where('Id_Person', $request->Id_Person)
+                ->update([
+                    'Gender' => $request->Gender,
+                ]);
+
+
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | USUARIO actualizado correctamente.';
+            $response->data["alert_text"] = "Regímenes encontrados";
+            $response->data["result"] = $user; // Puedes devolver el ID del  USUARIO actualizado si lo necesitas
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('catalogo_tipoinmueble', $ex);
+            $response->data = ObjResponse::CatchResponse($ex);
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
     public function index(Response $response)
     {
         $response->data = ObjResponse::DefaultResponse();

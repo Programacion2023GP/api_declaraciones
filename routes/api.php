@@ -17,6 +17,7 @@ use App\Http\Controllers\ControllerDatosPareja;
 use App\Http\Controllers\ControllerDependientesEconomicos;
 use App\Http\Controllers\ControllerDocumentoObtenido;
 use App\Http\Controllers\ControllerDomicilioDeclarante;
+use App\Http\Controllers\ControllerEmpleos;
 use App\Http\Controllers\ControllerEntidadFederativa;
 use App\Http\Controllers\ControllerEstatus;
 use App\Http\Controllers\ControllerExperienciaLaboral;
@@ -87,6 +88,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::prefix('usuarios')->group(function () {
     Route::post("login", [ControllerUsers::class, 'login']);
+    Route::post("gender", [ControllerUsers::class, 'gender']);
+
     Route::post("create", [ControllerUsers::class, 'create']);
     Route::get("index", [ControllerUsers::class, 'index']);
     Route::delete('delete/{id}', [ControllerUsers::class, 'delete']);
@@ -102,9 +105,19 @@ Route::prefix('adscripcion')->group(function () {
 
     Route::get('index', [ControllerAdscripcion::class, 'index']);
     Route::get('show', [ControllerAdscripcion::class, 'show']);
+    Route::get('organismo', [ControllerAdscripcion::class, 'organismo']);
+
     Route::post('create', [ControllerAdscripcion::class, 'create']);
     Route::put('update/{id}', [ControllerAdscripcion::class, 'update']);
     Route::delete('delete/{id}', [ControllerAdscripcion::class, 'delete']);
+});
+Route::prefix('empleos')->group(function () {
+
+    Route::get('index', [ControllerEmpleos::class, 'index']);
+    Route::get('show/{id}', [ControllerEmpleos::class, 'show']);
+    Route::post('create', [ControllerEmpleos::class, 'create']);
+    Route::put('update/{id}', [ControllerEmpleos::class, 'update']);
+    Route::delete('delete/{id}', [ControllerEmpleos::class, 'delete']);
 });
 Route::prefix('estadoCivil')->group(function () {
     Route::get('index', [ControllerSituacionPersonalEstadoCivil::class, 'index']);

@@ -3,74 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\ObjResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 
-class ControllerAdscripcion extends Controller
+class ControllerEmpleos extends Controller
 {
-    public function show(Response $response)
+    public function show(Response $response, string $id)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $adscripcion = DB::table('Adscripcion')
-                ->select('nombre as text', 'id')
-                ->where('active', 1)
-                // ->orderBy('id', 'desc') // Ordenar por ID en orden descendente (mayor a menor)
+            $nivel = DB::table('Empleos')->select('valor as text', 'valor as id')->where('organismo', $id)->where('active', 1)
                 ->get();
 
             // Convertir el ID a número
-            $adscripcion = $adscripcion->map(function ($item) {
-                $item->id = (int)$item->id;
-                return $item;
-            });
+            // $nivel = $nivel->map(function ($item) {
+            //     $item->id = (int)$item->id;
+            //     return $item;
+            // });
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | lista de adscripcion.';
-            $response->data["alert_text"] = "usuarios adscripcion";
-            $response->data["result"] = $adscripcion;
+            $response->data["message"] = 'peticion satisfactoria | lista de estus.';
+            $response->data["alert_text"] = " estus";
+            $response->data["result"] = $nivel;
         } catch (\Exception $ex) {
             $response->data = ObjResponse::CatchResponse($ex->getMessage());
         }
 
         return response()->json($response, $response->data["status_code"]);
-    }
-    public function organismo(Response $response)
-    {
-        $response->data = ObjResponse::DefaultResponse();
-
-        try {
-            $adscripcion = DB::table('Adscripcion')
-                ->select('organismo as text', 'organismo as id')
-                ->where('active', 1)
-                ->whereNotNull('organismo') // Excluir los registros donde 'id' es nulo
-
-                ->groupBy('organismo')
-                ->get();
-
-
-
-            // Convertir el ID a número
-            
-
-            $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | lista de adscripcion.';
-            $response->data["alert_text"] = "usuarios adscripcion";
-            $response->data["result"] = $adscripcion;
-        } catch (\Exception $ex) {
-            $response->data = ObjResponse::CatchResponse($ex->getMessage());
-        }
-
-        return response()->json($response, $response->data["status_code"]);
-    }
+    } //    
     public function index(Response $response)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $regimen = DB::table('Adscripcion')->select('nombre as text', 'organismo', 'id as id')->where('active', 1)->orderBy('id', 'desc')
+            $regimen = DB::table('Empleos')->select('organismo', 'valor as text', 'id')->where('active', 1)->orderBy('id', 'desc')
                 ->get();
 
             // Convertir el ID a número
@@ -95,24 +63,24 @@ class ControllerAdscripcion extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
+            $maximo_id = DB::table('Empleos')->max('id');
 
-            $regimen_matrimonial = DB::table('Adscripcion')->insertGetId([
+            $regimen_matrimonial = DB::table('Empleos')->insertGetId([
                 'organismo' => $request->organismo,
-
-                'nombre' => $request->nombre,
+                'valor' => $request->valor,
             ]);
 
 
 
             // return "fff";
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria |  AEREA DE ADSCRIPCION guardado correctamente.';
+            $response->data["message"] = 'peticion satisfactoria | EMPLEO guardado correctamente.';
             $response->data["alert_text"] = "regimenes encontrados";
             $response->data["result"] = $regimen_matrimonial;
         } catch (\Exception $ex) {
             // $response->data = ObjResponse::CatchResponse($ex->getMessage());
             $erros = new ControllerErrors();
-            $erros->handleException('catalogo_adscripcion', $ex);
+            $erros->handleException('catalogo_Empleos', $ex);
             $response->data = ObjResponse::CatchResponse($ex);
         }
 
@@ -127,21 +95,21 @@ class ControllerAdscripcion extends Controller
 
 
             // Actualizar el registro
-            DB::table('Adscripcion')
+            DB::table('Empleos')
                 ->where('id', $id)
                 ->update([
                     'organismo' => $request->organismo,
 
-                    'nombre' => $request->nombre,
+                    'valor' => $request->valor,
                 ]);
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Petición satisfactoria |  AEREA DE ADSCRIPCION actualizado correctamente.';
+            $response->data["message"] = 'Petición satisfactoria | EMPLEO actualizado correctamente.';
             $response->data["alert_text"] = "Regímenes encontrados";
-            $response->data["result"] = $id; // Puedes devolver el ID del   AEREA DE ADSCRIPCION actualizado si lo necesitas
+            $response->data["result"] = $id; // Puedes devolver el ID del  EMPLEO actualizado si lo necesitas
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
-            $erros->handleException('catalogo_adscripcion', $ex);
+            $erros->handleException('catalogo_Empleos', $ex);
             $response->data = ObjResponse::CatchResponse($ex);
         }
 
@@ -156,19 +124,19 @@ class ControllerAdscripcion extends Controller
 
 
             // Actualizar el registro
-            DB::table('Adscripcion')
+            DB::table('Empleos')
                 ->where('id', $id)
                 ->update([
                     'active' => 0,
                 ]);
 
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Petición satisfactoria |  AEREA DE ADSCRIPCION eliminado correctamente.';
+            $response->data["message"] = 'Petición satisfactoria | EMPLEO eliminado correctamente.';
             $response->data["alert_text"] = "Regímenes encontrados";
-            $response->data["result"] = $id; // Puedes devolver el ID del   AEREA DE ADSCRIPCION actualizado si lo necesitas
+            $response->data["result"] = $id; // Puedes devolver el ID del  EMPLEO actualizado si lo necesitas
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
-            $erros->handleException('catalogo_adscripcion', $ex);
+            $erros->handleException('catalogo_Empleos', $ex);
             $response->data = ObjResponse::CatchResponse($ex);
         }
 
