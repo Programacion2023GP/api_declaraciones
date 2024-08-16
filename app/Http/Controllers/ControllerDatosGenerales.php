@@ -91,16 +91,16 @@ class ControllerDatosGenerales extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
+
     public function acuse(Response $response, int $id)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
             $data = DB::table('DECL_Datosgenerales') // Selecciona la tabla DECL_Datosgenerales
-                ->select('DECL_Datosgenerales.*', "MD_Person.DenominacionCargo", "MD_Person.AreaAdscripcion") // Selecciona todas las columnas
-                ->join('DECL_Situacionpatrimonial', 'DECL_Situacionpatrimonial.Id_SituacionPatrimonial', '=', 'DECL_Datosgenerales.Id_SituacionPatrimonial')
-                ->join('USR_User', 'USR_User.Id_User', '=', 'DECL_Situacionpatrimonial.Id_User')
-                ->join('MD_Person', 'MD_Person.Id_Person', '=', 'USR_User.Id_Person')
+                ->select('DECL_Datosgenerales.*', "dbo.Cat_NombresEntes.valor", "DECL_DatosEmpleoCargoComision.EmpleoCargoComision", "DECL_DatosEmpleoCargoComision.AreaAdscripcion") // Selecciona todas las columnas
+                ->join('DECL_DatosEmpleoCargoComision', 'DECL_DatosEmpleoCargoComision.Id_SituacionPatrimonial', '=', 'DECL_Datosgenerales.Id_SituacionPatrimonial')
+                ->join('dbo.Cat_NombresEntes', 'dbo.Cat_NombresEntes.clave', '=', 'DECL_DatosEmpleoCargoComision.NombreEntePublico')
                 ->where('DECL_Datosgenerales.Id_SituacionPatrimonial', $id)
                 ->get();
 

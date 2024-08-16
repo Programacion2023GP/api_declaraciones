@@ -60,6 +60,8 @@ class ControllerNotasAclaratorias extends Controller
                 ->join('USR_User', 'USR_User.Id_User', '=', 'Notas_Aclaratorias.Id_User')
                 ->join('MD_Person', 'MD_Person.Id_Person', '=', 'USR_User.Id_Person')
                 ->select(
+                   
+                    'Notas_Aclaratorias.Id_SituacionPatrimonial',
                     'Notas_Aclaratorias.Id_nota',
                     'Notas_Aclaratorias.Folio',
                     'MD_Person.Name',
