@@ -126,7 +126,7 @@ class ControllerSituacionPatrimonial extends Controller
 
                     'DECL_Situacionpatrimonial.Id_SituacionPatrimonial as id',
 
-                )->where('Id_User', $id)->where('EstaCompleta', 1)
+                )->where('Id_User', $id)->where('EstaCompleta', 1)->where('EsActivo', 1)
                 ->get();
 
             $response->data = ObjResponse::CorrectResponse();
