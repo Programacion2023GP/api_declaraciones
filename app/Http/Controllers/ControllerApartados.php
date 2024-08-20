@@ -294,19 +294,43 @@ class ControllerApartados extends Controller
             $apartado = DB::select("
     
         
-        SELECT 
-            Folio,
-            Nombre,
-            ApPaterno,
-            ApMaterno,
-            Tipo_declaracion,
-            Declaracion,
-            Tstatus,
-            FechaRegistroFormateada
-        FROM Declaraciones
+            SELECT 
+            DSP.Id_SituacionPatrimonial AS Folio,
+            MP.Gender,
+
+            MP.Name AS Nombre,
+            MP.PaternalSurname AS ApPaterno,
+            MP.MaternalSurname AS ApMaterno,
+            CASE
+                WHEN DSP.Id_Plazo = 1 THEN 'Inicial'
+                WHEN DSP.Id_Plazo = 2 THEN 'Modificación'
+                WHEN DSP.Id_Plazo = 3 THEN 'Conclusión'
+            END AS Tipo_declaracion,
+            CASE
+                WHEN DSP.EsSimplificada = 1 THEN 'Simplificada'
+                ELSE 'Completa'
+            END AS Declaracion,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM DECL_SPApartados DSA
+                    WHERE DSA.Id_SituacionPatrimonial = DSP.Id_SituacionPatrimonial 
+                      AND (
+                          (DSP.EsSimplificada = 1 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 8)) OR
+                          (DSP.EsSimplificada = 0 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15))
+                      )
+                ) THEN 'Terminada'
+                ELSE 'En proceso'
+            END AS Tstatus,
+            FORMAT(DSP.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
+             FORMAT(DSP.FechaTerminada, 'dd/MM/yyyy') AS FechaRegistroTerminada
         
-        ORDER BY Folio DESC;
         
+        FROM DECL_Situacionpatrimonial DSP
+        INNER JOIN USR_User UU ON UU.Id_User = DSP.Id_User
+        INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
+        WHERE DSP.EsActivo = 1
+        order by DSP.Id_SituacionPatrimonial desc;
 
             ");
 
