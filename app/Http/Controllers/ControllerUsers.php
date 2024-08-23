@@ -26,7 +26,7 @@ class ControllerUsers extends Controller
             ->where('USR_User.Email', $Email)
             ->where('USR_User.Active', 1)
             ->first();
-
+        // return $user;
         // Verificar si se encontró el usuario y si la contraseña coincide
         if ($user && Hash::check($Password, $user->Password)) {
             $userObject = [
@@ -184,7 +184,7 @@ class ControllerUsers extends Controller
             //     return response()->json($response, $response->data["status_code"]);
             // }
             // Actualizar el registro
-           $user= DB::table('MD_Person')
+            $user = DB::table('MD_Person')
                 ->where('Id_Person', $request->Id_Person)
                 ->update([
                     'Gender' => $request->Gender,
@@ -203,6 +203,18 @@ class ControllerUsers extends Controller
         }
 
         return response()->json($response, $response->data["status_code"]);
+    }
+    public function updatePasswords()
+    {
+        // Define la nueva contraseña
+        $newPassword = Hash::make('123456');
+
+        // Actualiza el campo 'password' en todos los registros de la tabla 'USR_User'
+        DB::table('USR_User')->update([
+            'password' => $newPassword,
+        ]);
+
+        return response()->json(['message' => 'All user passwords have been updated.']);
     }
     public function index(Response $response)
     {

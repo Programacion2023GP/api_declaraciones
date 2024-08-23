@@ -89,6 +89,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('usuarios')->group(function () {
     Route::post("login", [ControllerUsers::class, 'login']);
     Route::post("gender", [ControllerUsers::class, 'gender']);
+    Route::post("updatePasswords", [ControllerUsers::class, 'updatePasswords']);
+
 
     Route::post("create", [ControllerUsers::class, 'create']);
     Route::get("index", [ControllerUsers::class, 'index']);

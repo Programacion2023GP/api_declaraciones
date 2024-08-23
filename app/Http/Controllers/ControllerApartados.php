@@ -223,28 +223,28 @@ class ControllerApartados extends Controller
             WHERE DECL_Situacionpatrimonial.Id_User =? and  DECL_Situacionpatrimonial.EsActivo =1
             group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
             DECL_Situacionpatrimonial.Id_Plazo,DECL_Situacionpatrimonial.EsSimplificada,DECL_Situacionpatrimonial.FechaRegistro
-			UNION ALL
+
+            UNION ALL
 
 
 
-						select max (DECL_Intereses.Id_Intereses) as Folio, max (DECL_IApartados.Id_interesesApartado) as Hoja,
-						            MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno, 'Interes' as Declaracion,
-									CASE
-                 WHEN  max(DECL_IApartados.Id_interesesApartado) =7 THEN 'Terminada'
+            select max (DECL_Intereses.Id_Intereses) as Folio, max (DECL_IApartados.Id_interesesApartado) as Hoja,
+                        MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno, 'Interes' as Declaracion,
+                        CASE
+     WHEN  max(DECL_IApartados.Id_interesesApartado) =7 THEN 'Terminada'
 
-                 ELSE 'En proceso'
-             END AS Status,
-			             FORMAT(DECL_Intereses.FechaInicioInforma, 'dd/MM/yyyy') AS FechaRegistroFormateada
-						 , 'Intereses' as Tipo_declaracion
-						from DECL_Intereses 
-						inner join DECL_IApartados on DECL_IApartados.Id_Intereses =DECL_Intereses.Id_Intereses
-						INNER JOIN USR_User on USR_User.Id_User = DECL_Intereses.Id_User
-						            INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
-									            WHERE DECL_Intereses.Id_User =? and  DECL_Intereses.EsActivo =1
+     ELSE 'En proceso'
+ END AS Status,
+             FORMAT(DECL_Intereses.FechaInicioInforma, 'dd/MM/yyyy') AS FechaRegistroFormateada
+             , 'Intereses' as Tipo_declaracion
+            from DECL_Intereses 
+            inner join DECL_IApartados on DECL_IApartados.Id_Intereses =DECL_Intereses.Id_Intereses
+            INNER JOIN USR_User on USR_User.Id_User = DECL_Intereses.Id_User
+                        INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
+                                    WHERE DECL_Intereses.Id_User =? and  DECL_Intereses.EsActivo =1
 
-						group by DECL_Intereses.Id_Intereses,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,DECL_Intereses.FechaInicioInforma
-						            ORDER BY folio DESC
-
+            group by DECL_Intereses.Id_Intereses,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,DECL_Intereses.FechaInicioInforma
+                        ORDER BY folio DESC
 
             ", [$id, $id]);
 
