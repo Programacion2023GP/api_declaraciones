@@ -255,7 +255,6 @@ END;
 
 
 CREATE VIEW VistaTrimestres AS
-
 SELECT 
     YEAR(DCLE.FechaTerminada) AS Ejercicio, -- Extrae el año de la FechaTerminada
             	 CASE 
@@ -285,9 +284,10 @@ SELECT
                 end AS Plazo,
 CONCAT(
         'https://transparencia.gomezpalacio.gob.mx/wp-content/uploads/declaraciones/',DCLE.Id_SituacionPatrimonial, 
-        REPLACE(dbo.RemoveAccents(MD_Person.Name), ' ', ''),
+
         REPLACE(dbo.RemoveAccents(MD_Person.PaternalSurname), ' ', ''),
-        REPLACE(dbo.RemoveAccents(MD_Person.MaternalSurname), ' ', '')
+        REPLACE(dbo.RemoveAccents(MD_Person.MaternalSurname), ' ', ''),
+        REPLACE(dbo.RemoveAccents(MD_Person.Name), ' ', '')
     ) AS Hipervinculo,
 	'CONTRALORIA MUNICIPAL' as Responsable,
 				DCLE.Id_SituacionPatrimonial,
@@ -302,8 +302,6 @@ CONCAT(
                   left join MD_Gender on MD_Person.Id_Gender=MD_Gender.Id_Gender
                   where DCLE.EstaCompleta = 1 and DCLE.EsActivo = 1 and DCLE.SeEnvioAcuse =1 
 				  and MD_Person.AreaAdscripcion not like '%DIF%' and MD_Person.AreaAdscripcion not like '%SIDEAPA%' and MD_Person.AreaAdscripcion not like '%EXPO%' and MD_Person.AreaAdscripcion not like '%SIDEAPAAR%'
-
-
 ALTER TABLE Adscripcion
 ADD organismo Varchar(200) default null;
 

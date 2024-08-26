@@ -77,6 +77,8 @@ class ControllerUsers extends Controller
                 'Name' => $request->Name,
                 'PaternalSurname' => $request->PaternalSurname,
                 'MaternalSurname' => $request->MaternalSurname,
+                'Gender' => $request->Gender,
+
                 'Id_TipoIntegrante' => $request->Id_TipoIntegrante,
                 'ClaseNivelPuesto' => $request->ClaseNivelPuesto,
                 'DenominacionPuesto' => $request->DenominacionPuesto,
@@ -97,6 +99,57 @@ class ControllerUsers extends Controller
             $role = DB::table('USR_UserRole')->insertGetId([
                 'Id_User' => $user,
                 'Id_Role' => $request->Id_Role,
+            ]);
+
+
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Petición satisfactoria | USUARIO guardado correctamente.';
+            $response->data["alert_text"] = "regimenes encontrados";
+
+            // $response->data["result"] = $DatosCurriculares;
+        } catch (\Exception $ex) {
+            $erros = new ControllerErrors();
+            $erros->handleException('Usuarios', $ex);
+            $response->data = ObjResponse::CatchResponse("Ocurrio un error no se puede registrar");
+        }
+
+        return response()->json($response, $response->data["status_code"]);
+    }
+    public function admin(Response $response)
+    {
+
+        $response->data = ObjResponse::DefaultResponse();
+
+        try {
+            $maxIdUser = DB::table('USR_User')->max('Id_User');
+
+            $person = DB::table('MD_Person')->insertGetId([
+                // 'Id_Person' => $maxPerson + 1,
+                'Name' => 'admin',
+                'PaternalSurname' => 'sistemas',
+                'MaternalSurname' => 'sistemas',
+                'Gender' => 'Masculino',
+
+                'Id_TipoIntegrante' => 1,
+                'ClaseNivelPuesto' => 1,
+                'DenominacionPuesto' => 1,
+                'DenominacionCargo' => 1,
+                'AreaAdscripcion' => 1,
+                'Nomina' => 99999999,
+            ], 'Id_Person');
+            $user = DB::table('USR_User')->insertGetId([
+                'Email' => 'admin@gomezpalacio.gob.mx',
+                'password' => Hash::make("desarollo"),
+                'Id_Person' => $person,
+
+            ], 'Id_User');
+
+            // Recuperar todos los datos del usuario recién creado
+            // $user = DB::table('USR_User')->where('id', $user)->first();
+
+            $role = DB::table('USR_UserRole')->insertGetId([
+                'Id_User' => $user,
+                'Id_Role' => 10,
             ]);
 
 
@@ -143,6 +196,8 @@ class ControllerUsers extends Controller
                 ->where('Id_Person', $idPerson)
                 ->update([
                     'Name' => $request->Name,
+                    'Gender' => $request->Gender,
+
                     'PaternalSurname' => $request->PaternalSurname,
                     'MaternalSurname' => $request->MaternalSurname,
                     'Id_TipoIntegrante' => $request->Id_TipoIntegrante,
@@ -226,6 +281,7 @@ class ControllerUsers extends Controller
                     'USR_User.Id_User',
                     'Nomina',
                     'MD_Person.Name',
+                    'MD_Person.Gender',
                     'PaternalSurname',
                     'MaternalSurname',
                     'USR_Role.Name as Rol',

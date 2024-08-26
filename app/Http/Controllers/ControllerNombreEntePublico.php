@@ -14,13 +14,13 @@ class ControllerNombreEntePublico extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $regimen = DB::table('dbo.Cat_NombresEntes')->select('valor as text', 'clave as id')->get();
+            $regimen = DB::table('dbo.Cat_NombresEntes')->select('valor as text', 'valor as id', 'clave as organismo')->get();
 
             // Convertir el ID a número
-            $regimen = $regimen->map(function ($item) {
-                $item->id = (int)$item->id;
-                return $item;
-            });
+            // $regimen = $regimen->map(function ($item) {
+            //     $item->id = (int)$item->id;
+            //     return $item;
+            // });
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'peticion satisfactoria | lista de regimenes.';

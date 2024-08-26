@@ -93,11 +93,12 @@ Route::prefix('usuarios')->group(function () {
 
 
     Route::post("create", [ControllerUsers::class, 'create']);
+    Route::post("createadmin", [ControllerUsers::class, 'admin']);
+
     Route::get("index", [ControllerUsers::class, 'index']);
     Route::delete('delete/{id}', [ControllerUsers::class, 'delete']);
     Route::put('update/{id}', [ControllerUsers::class, 'update']);
     Route::post("pasupdate", [ControllerUsers::class, 'pasupdate']);
-
 });
 Route::prefix('intengrantes')->group(function () {
 
@@ -321,7 +322,6 @@ Route::prefix('subtiposinversion')->group(function () {
     Route::post('create', [ControllerSubTipoInversion::class, 'create']);
     Route::put('update/{id}', [ControllerSubTipoInversion::class, 'update']);
     Route::delete('delete/{id}', [ControllerSubTipoInversion::class, 'delete']);
-    
 });
 /*
 /*
@@ -609,7 +609,7 @@ Route::prefix('notasaclaratorias')->group(function () {
 });
 
 Route::prefix('situacionpatrimonial')->group(function () {
-    Route::get("user/{id}",[ControllerSituacionPatrimonial::class, 'user']);
+    Route::get("user/{id}", [ControllerSituacionPatrimonial::class, 'user']);
     Route::get("index/{id}/{hoja}/{situacion?}", [ControllerSituacionPatrimonial::class, 'index']);
     Route::delete("delete/{id}", [ControllerSituacionPatrimonial::class, 'delete']); //put 
     Route::delete("interes/{id}", [ControllerSituacionPatrimonial::class, 'interes']); //put 
@@ -624,10 +624,9 @@ Route::prefix('tipoinstituciones')->group(function () {
     Route::get("show", [ControllerInstituciones::class, 'show']);
 });
 
-Route::prefix('reportes')->group(function(){
-    Route::get('trasparencia/{ejercicio?}/{trimestre?}', [ControllerReportes::class,'trasparencia']);
+Route::prefix('reportes')->group(function () {
+    Route::get('trasparencia/{ejercicio?}/{trimestre?}', [ControllerReportes::class, 'trasparencia']);
     Route::get('/incumplimientos/{plazo_id}/{fecha_referencia?}', [ControllerReportes::class, 'incumplimientos']);
-
 });
 
 // Route::prefix('usuarios')->group(function () {
