@@ -61,13 +61,13 @@ class ControllerUsers extends Controller
             $maxIdUser = DB::table('USR_User')->max('Id_User');
             $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
 
-            if ($existingUser) {
+            if ($existingUser ) {
                 // Si el correo electrónico ya existe, retornar un error
                 $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
                 return response()->json($response, $response->data["status_code"]);
             }
             $existingUser = DB::table('MD_Person')->where('Nomina', $request->Nomina)->first();
-            if ($existingUser) {
+            if ($existingUser && $request->Nomina != 999999) {
                 // Si el correo electrónico ya existe, retornar un error
                 $response->data = ObjResponse::CatchResponse("ya esta registrado el numero de nomina");
                 return response()->json($response, $response->data["status_code"]);
