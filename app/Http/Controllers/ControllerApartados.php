@@ -329,7 +329,7 @@ class ControllerApartados extends Controller
         FROM DECL_Situacionpatrimonial DSP
         INNER JOIN USR_User UU ON UU.Id_User = DSP.Id_User
         INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
-        WHERE DSP.EsActivo = 1
+        WHERE DSP.EsActivo = 1 and DSP.FechaTerminada is not null
         order by DSP.Id_SituacionPatrimonial desc;
 
             ");
