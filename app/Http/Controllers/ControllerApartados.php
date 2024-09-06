@@ -220,7 +220,7 @@ class ControllerApartados extends Controller
             INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
 
 
-            WHERE DECL_Situacionpatrimonial.Id_User =? and  DECL_Situacionpatrimonial.EsActivo =1
+            WHERE DECL_Situacionpatrimonial.Id_User =? and  DECL_Situacionpatrimonial.EsActivo =1  
             group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
             DECL_Situacionpatrimonial.Id_Plazo,DECL_Situacionpatrimonial.EsSimplificada,DECL_Situacionpatrimonial.FechaRegistro
 
@@ -241,10 +241,19 @@ class ControllerApartados extends Controller
             inner join DECL_IApartados on DECL_IApartados.Id_Intereses =DECL_Intereses.Id_Intereses
             INNER JOIN USR_User on USR_User.Id_User = DECL_Intereses.Id_User
                         INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
-                                    WHERE DECL_Intereses.Id_User =? and  DECL_Intereses.EsActivo =1 and DECL_Situacionpatrimonial.FechaTerminada is not null
+                                    WHERE DECL_Intereses.Id_User =? and  DECL_Intereses.EsActivo =1
 
             group by DECL_Intereses.Id_Intereses,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,DECL_Intereses.FechaInicioInforma
                         ORDER BY folio DESC
+
+
+
+
+
+
+
+
+
 
             ", [$id, $id]);
 
