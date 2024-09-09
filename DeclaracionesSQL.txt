@@ -1097,3 +1097,12 @@ ADD Gender NVARCHAR(50) NULL;
 
 ALTER TABLE MD_Person
 ADD CONSTRAINT CHK_Gender CHECK (Gender IN ('Femenino', 'Masculino'));
+
+
+
+
+  update Cat_NombresEntes set valor='R. Ayuntamiento de Gómez Palacio Durango' where clave=1;
+    update Cat_NombresEntes set valor='DIF' where clave=3;
+	    update Cat_NombresEntes set valor='SIDEAPAAR' where clave=4;
+			    update Cat_NombresEntes set valor='Expo Feria' where clave=2;
+					    update Cat_NombresEntes set valor='SIDEAPA' where clave=5;

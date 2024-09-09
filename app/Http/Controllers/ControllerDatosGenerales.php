@@ -97,12 +97,22 @@ class ControllerDatosGenerales extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_Datosgenerales') // Selecciona la tabla DECL_Datosgenerales
-                ->select('DECL_Datosgenerales.*', "dbo.Cat_NombresEntes.valor", "DECL_DatosEmpleoCargoComision.EmpleoCargoComision", "DECL_DatosEmpleoCargoComision.AreaAdscripcion") // Selecciona todas las columnas
+            $data = DB::table('DECL_Datosgenerales')
+                ->select(
+                    'DECL_Datosgenerales.*',
+                    'dbo.Cat_NombresEntes.valor',
+                    'DECL_DatosEmpleoCargoComision.EmpleoCargoComision',
+                    'DECL_DatosEmpleoCargoComision.AreaAdscripcion'
+                )
                 ->join('DECL_DatosEmpleoCargoComision', 'DECL_DatosEmpleoCargoComision.Id_SituacionPatrimonial', '=', 'DECL_Datosgenerales.Id_SituacionPatrimonial')
-                ->join('dbo.Cat_NombresEntes', 'dbo.Cat_NombresEntes.clave', '=', 'DECL_DatosEmpleoCargoComision.NombreEntePublico')
+                // Realiza el JOIN solo si NombreEntePublico es un número
+                ->leftJoin('dbo.Cat_NombresEntes', function ($join) {
+                    $join->on(DB::raw('TRY_CONVERT(int, DECL_DatosEmpleoCargoComision.NombreEntePublico)'), '=', 'dbo.Cat_NombresEntes.clave');
+                })
                 ->where('DECL_Datosgenerales.Id_SituacionPatrimonial', $id)
                 ->get();
+
+
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'peticion satisfactoria | lista de tipo de adeudos.';
