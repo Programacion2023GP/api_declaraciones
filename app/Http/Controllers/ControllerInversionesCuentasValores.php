@@ -46,14 +46,19 @@ class ControllerInversionesCuentasValores extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
-    public function index(Response $response, int $id)
+    public function index(Response $response, Request $request, $id = null)
     {
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_InversionesCuentasValores') // Selecciona la tabla DECL_Datosgenerales
-                ->where('Id_SituacionPatrimonial', $id) // Agrega una condición where para filtrar por Id_SituacionPatrimonial
-                ->select('*') // Selecciona todas las columnas
+            $data = DB::table('DECL_InversionesCuentasValores');
+            if (!$id) {
+                $data = $data->whereIn('Id_SituacionPatrimonial', $request->masiveIds);
+                # code...
+            } else {
+                $data = $data->where('Id_SituacionPatrimonial', $id);
+            }
+            $data = $data->select('*') // Selecciona todas las columnas
                 ->get();
 
             $response->data = ObjResponse::CorrectResponse();

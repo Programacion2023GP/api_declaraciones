@@ -391,6 +391,8 @@ Route::prefix('tipofideocomisos')->group(function () {
 Route::prefix('datosgenerales')->group(function () {
     Route::post('create', [ControllerDatosGenerales::class, 'create']);
     Route::get('index/{id}', [ControllerDatosGenerales::class, 'index']);
+    Route::post('index/masive', [ControllerDatosGenerales::class, 'index']);
+
     Route::get('acuse/{id}', [ControllerDatosGenerales::class, 'acuse']);
     Route::post("update/{id}", [ControllerDatosGenerales::class, 'update']); //put 
 
@@ -402,8 +404,7 @@ Route::prefix('domiciliodeclarante')->group(function () {
     Route::post("create", [ControllerDomicilioDeclarante::class, 'create']);
     Route::get("index/{id}", [ControllerDomicilioDeclarante::class, 'index']);
     Route::post("update/{id}", [ControllerDomicilioDeclarante::class, 'update']); //put 
-
-
+    Route::post('index/masive', [ControllerDomicilioDeclarante::class, 'index']);
 });
 /*
 ! PAGINA 3
@@ -412,8 +413,7 @@ Route::prefix('datoscurriculares')->group(function () {
     Route::post("create", [ControllerDatosCurriculares::class, 'create']);
     Route::get("index/{id}", [ControllerDatosCurriculares::class, 'index']);
     Route::post("update/{id}", [ControllerDatosCurriculares::class, 'update']); //put 
-
-
+    Route::post('index/masive', [ControllerDatosCurriculares::class, 'index']);
 });
 /*
 ! PAGINA 4
@@ -422,6 +422,7 @@ Route::prefix('datoscargoscomision')->group(function () {
     Route::post("create", [ControllerDatosEmpleoCargoComision::class, 'create']);
     Route::get("index/{id}", [ControllerDatosEmpleoCargoComision::class, 'index']);
     Route::post("update/{id}", [ControllerDatosEmpleoCargoComision::class, 'update']); //put 
+    Route::post('index/masive', [ControllerDatosEmpleoCargoComision::class, 'index']);
 });
 /*
 ! PAGINA 5
@@ -430,8 +431,7 @@ Route::prefix('experiencialaboral')->group(function () {
     Route::post("create", [ControllerExperienciaLaboral::class, 'create']);
     Route::get("index/{id}", [ControllerExperienciaLaboral::class, 'index']);
     Route::post("update/{id}", [ControllerExperienciaLaboral::class, 'update']); //put 
-
-
+    Route::post('index/masive', [ControllerExperienciaLaboral::class, 'index']);
 });
 /*
 ! PAGINA 6
@@ -440,8 +440,7 @@ Route::prefix('datospareja')->group(function () {
     Route::post("create", [ControllerDatosPareja::class, 'create']);
     Route::get("index/{id}", [ControllerDatosPareja::class, 'index']);
     Route::post("update/{id}", [ControllerDatosPareja::class, 'update']); //put 
-
-
+    Route::post('index/masive', [ControllerDatosPareja::class, 'index']);
 });
 /*
 ! PAGINA 7
@@ -450,7 +449,7 @@ Route::prefix('dependienteseconomicos')->group(function () {
     Route::post("create", [ControllerDependientesEconomicos::class, 'create']);
     Route::get("index/{id}", [ControllerDependientesEconomicos::class, 'index']);
     Route::post("update/{id}", [ControllerDependientesEconomicos::class, 'update']); //put 
-
+    Route::post('index/masive', [ControllerDependientesEconomicos::class, 'index']);
 });
 /*
 ! PAGINA 8
@@ -459,6 +458,7 @@ Route::prefix('ingresos')->group(function () {
     Route::post("create", [ControllerIngresosNetos::class, 'create']);
     Route::get("index/{id}", [ControllerIngresosNetos::class, 'index']);
     Route::post("update/{id}", [ControllerIngresosNetos::class, 'update']);
+    Route::post('index/masive', [ControllerIngresosNetos::class, 'index']);
 });
 /*
 ! PAGINA 9
@@ -467,6 +467,7 @@ Route::prefix('servidorpublico')->group(function () {
     Route::post("create", [ControllerServidorPublico::class, 'create']);
     Route::get("index/{id}", [ControllerServidorPublico::class, 'index']);
     Route::post("update/{id}", [ControllerServidorPublico::class, 'update']);
+    Route::post('index/masive', [ControllerServidorPublico::class, 'index']);
 });
 
 /*
@@ -476,6 +477,7 @@ Route::prefix('bienesinmuebles')->group(function () {
     Route::post("create", [ControllerBienesInmuebles::class, 'create']);
     Route::get("index/{id}", [ControllerBienesInmuebles::class, 'index']);
     Route::post("update/{id}", [ControllerBienesInmuebles::class, 'update']);
+    Route::post('index/masive', [ControllerBienesInmuebles::class, 'index']);
 });
 /*
 ! PAGINA 11
@@ -484,6 +486,7 @@ Route::prefix('vehiculos')->group(function () {
     Route::post("create", [ControllerTiposVehiculos::class, 'create']);
     Route::get("index/{id}", [ControllerTiposVehiculos::class, 'index']);
     Route::post("update/{id}", [ControllerTiposVehiculos::class, 'update']);
+    Route::post('index/masive', [ControllerTiposVehiculos::class, 'index']);
 });
 
 /*
@@ -493,6 +496,7 @@ Route::prefix('bienesmuebles')->group(function () {
     Route::post("create", [ControllerBienesMuebles::class, 'create']);
     Route::get("index/{id}", [ControllerBienesMuebles::class, 'index']);
     Route::post("update/{id}", [ControllerBienesMuebles::class, 'update']);
+    Route::post('index/masive', [ControllerBienesMuebles::class, 'index']);
 });
 /*
 ! PAGINA 13
@@ -501,6 +505,7 @@ Route::prefix('inversionescuentas')->group(function () {
     Route::post("create", [ControllerInversionesCuentasValores::class, 'create']);
     Route::get("index/{id}", [ControllerInversionesCuentasValores::class, 'index']);
     Route::post("update/{id}", [ControllerInversionesCuentasValores::class, 'update']);
+    Route::post('index/masive', [ControllerInversionesCuentasValores::class, 'index']);
 });
 /*
 ! PAGINA 14
@@ -509,6 +514,7 @@ Route::prefix('adeudospasivos')->group(function () {
     Route::post("create", [ControllerAdeudosPasivos::class, 'create']);
     Route::get("index/{id}", [ControllerAdeudosPasivos::class, 'index']);
     Route::post("update/{id}", [ControllerAdeudosPasivos::class, 'update']);
+    Route::post('index/masive', [ControllerAdeudosPasivos::class, 'index']);
 });
 /*
 ! PAGINA 15
@@ -517,6 +523,7 @@ Route::prefix('prestamoscomodatos')->group(function () {
     Route::post("create", [ControllerPrestamosComodatos::class, 'create']);
     Route::get("index/{id}", [ControllerPrestamosComodatos::class, 'index']);
     Route::post("update/{id}", [ControllerPrestamosComodatos::class, 'update']);
+    Route::post('index/masive', [ControllerPrestamosComodatos::class, 'index']);
 });
 
 /*
