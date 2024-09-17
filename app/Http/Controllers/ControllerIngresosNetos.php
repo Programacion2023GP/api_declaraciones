@@ -50,15 +50,16 @@ class ControllerIngresosNetos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_Ingresos');
             if (!$id) {
-                $data = $data->whereIn('Id_SituacionPatrimonial', $request->masiveIds);
+                $masiveIds = implode(',', $request->masiveIds);
+                $data = DB::select("SELECT * FROM DECL_Ingresos WHERE Id_SituacionPatrimonial IN ($masiveIds)");
                 # code...
             } else {
+                $data = DB::table('DECL_Ingresos');
                 $data = $data->where('Id_SituacionPatrimonial', $id);
+                $data = $data->select('*') // Selecciona todas las columnas
+                    ->get();
             }
-            $data = $data->select('*') // Selecciona todas las columnas
-                ->get();
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'peticion satisfactoria | lista de tipo de adeudos.';
             $response->data["alert_text"] = "lista de inversion";

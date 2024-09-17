@@ -76,17 +76,26 @@ class ControllerDatosGenerales extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            $data = DB::table('DECL_Datosgenerales');
 
             if (!$id) {
-                $data = $data->whereIn('Id_SituacionPatrimonial', $request->masiveIds);
+                // $masiveIds = explode(',', $request->masiveIds);
+                // $masiveIds = implode(',', $request->masiveIds);
+                // $masiveIds = implode(',', $request->masiveIds);
+                $chuckMasiveIds = array_chunk($request->masiveIds,1000);
+                foreach ($chuckMasiveIds as $masiveId) {
+                    $masiveIds = implode(',', $masiveId);
+                    $data = DB::select("SELECT * FROM DECL_Datosgenerales WHERE Id_SituacionPatrimonial IN ($masiveIds)");
+                   $response->data["result"] = array_merge($response->data["result"], $data);
+                }
+
             } else {
                 // Si solo se proporciona un ID, conviértelo a entero y úsalo
+                $data = DB::table('DECL_Datosgenerales');
                 $id = (int)$id;
                 $data = $data->where('Id_SituacionPatrimonial', $id);
+                $data = $data->select('*')->get();
             }
 
-            $data = $data->select('*')->get();
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Petición satisfactoria | lista de tipo de adeudos.';

@@ -1,0 +1,2 @@
+[2024-09-17 09:56:10] SQLSTATE[28000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Login failed for user 'sa'. (Connection: sqlsrv, SQL: select [valor] as [text], [clave] as [id] from [AmbitoPublico] where [active] = 1)
+[2024-09-17 09:56:52] SQLSTATE[28000]: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Login failed for user 'sa'. (Connection: sqlsrv, SQL: select [valor] as [text], [clave] as [id] from [AmbitoPublico] where [active] = 1)

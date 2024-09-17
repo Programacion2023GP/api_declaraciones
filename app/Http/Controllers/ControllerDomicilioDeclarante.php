@@ -55,16 +55,17 @@ class ControllerDomicilioDeclarante extends Controller
 
         try {
 
-            $data = DB::table('DECL_DomicilioDeclarante');
             if (!$id) {
-                $data = $data->whereIn('Id_SituacionPatrimonial', $request->masiveIds);
+                $masiveIds = implode(',', $request->masiveIds);
+                $data = DB::select("SELECT * FROM DECL_DomicilioDeclarante WHERE Id_SituacionPatrimonial IN ($masiveIds)");
                 # code...
             } else {
+                $data = DB::table('DECL_DomicilioDeclarante');
                 $data = $data->where('Id_SituacionPatrimonial', $id);
+                $data = $data->select('*') // Selecciona todas las columnas
+                    ->get();
             }
             // Selecciona la tabla DECL_Datosgenerales
-            $data = $data->select('*') // Selecciona todas las columnas
-                ->get();
 
             // $data->select('*') // Selecciona todas las columnas
             //     ->get();
