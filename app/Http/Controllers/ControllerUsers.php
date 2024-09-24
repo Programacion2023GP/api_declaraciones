@@ -61,7 +61,7 @@ class ControllerUsers extends Controller
             $maxIdUser = DB::table('USR_User')->max('Id_User');
             $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
 
-            if ($existingUser ) {
+            if ($existingUser) {
                 // Si el correo electrónico ya existe, retornar un error
                 $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
                 return response()->json($response, $response->data["status_code"]);
@@ -271,7 +271,7 @@ class ControllerUsers extends Controller
 
         return response()->json(['message' => 'All user passwords have been updated.']);
     }
-    public function index(Response $response)
+    public function index(Response $response, int $idPerson = 0)
     {
         $response->data = ObjResponse::DefaultResponse();
 
@@ -296,9 +296,19 @@ class ControllerUsers extends Controller
                 )
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
-                ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role')
+                ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
 
-                ->where('USR_User.Active', 1)
+            $person = DB::table('MD_Person')
+                ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
+                ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
+                ->where('MD_Person.Id_Person', $idPerson)->first();
+            if ($person && $person->Id_Role == 4) {
+                # code...
+
+                $usuarios = $usuarios->where('MD_Person.AreaAdscripcion', $person->AreaAdscripcion)->whereNot('MD_Person.Id_Person', $idPerson);
+            }
+            $usuarios = $usuarios->where('USR_User.Active', 1)
+
                 ->orderBy('MD_Person.Id_Person', 'desc') // Ordenar por ID en orden descendente (mayor a menor)
                 ->get();
 

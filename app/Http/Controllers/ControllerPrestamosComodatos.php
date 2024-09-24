@@ -41,6 +41,8 @@ class ControllerPrestamosComodatos extends Controller
                 ->where('EsSimplificada', 0)
                 ->update([
                     'EstaCompleta' => 1,
+                    'SeEnvioAcuse' => 1,
+
                     'FechaTerminada' => now()
                 ]);
             // $response->data["result"] = $DatosCurriculares;

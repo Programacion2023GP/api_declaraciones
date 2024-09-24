@@ -31,6 +31,7 @@ class ControllerIngresosNetos extends Controller
                 ->where('EsSimplificada', 1)
                 ->update([
                     'EstaCompleta' => 1,
+                    'SeEnvioAcuse'=>1,
                     'FechaTerminada' => now()
                 ]);
 

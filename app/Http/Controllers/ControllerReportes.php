@@ -35,7 +35,7 @@ class ControllerReportes extends Controller
 
         return response()->json($response, $response->data["status_code"]);
     }
-    public function incumplimientos(Response $response, $plazo_id, $fecha_referencia = '2020-07-01')
+    public function incumplimientos(Response $response, $plazo_id, $fecha_referencia = '2020-07-01',$fecha_fin = '2020-07-01')
     {
         $response->data = ObjResponse::DefaultResponse();
         try {
@@ -45,6 +45,7 @@ class ControllerReportes extends Controller
             $DIAS_HABILES = $DIAS_HABILES_INICIO_CONCLUSION;
 
             $fecha_referencia = Carbon::parse($fecha_referencia)->format('Y-m-d');
+            $fecha_fin = Carbon::parse($fecha_fin)->format('Y-m-d');
 
             $query = "
             SELECT uc.codigoEmpleado,uc.Curp,uc.nombreE,uc.apellidoP,uc.apellidoM,uc.puesto, mdp.DenominacionCargo, mdp.DenominacionPuesto,mdp.AreaAdscripcion,uc.fechaAlta,sp.FechaRegistro,sp.FechaTerminada
@@ -78,6 +79,10 @@ class ControllerReportes extends Controller
                     }
 
                     $query .= "AND sp.FechaTerminada >= '{$fecha_referencia}T00:00:00'";
+                    $query .= "AND sp.FechaTerminada <= '{$fecha_fin}T00:00:00'";
+
+
+
                 }
             }
 

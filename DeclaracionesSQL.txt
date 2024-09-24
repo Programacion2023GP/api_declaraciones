@@ -302,6 +302,150 @@ CONCAT(
                   left join MD_Gender on MD_Person.Id_Gender=MD_Gender.Id_Gender
                   where DCLE.EstaCompleta = 1 and DCLE.EsActivo = 1 and DCLE.SeEnvioAcuse =1 
 				  and MD_Person.AreaAdscripcion not like '%DIF%' and MD_Person.AreaAdscripcion not like '%SIDEAPA%' and MD_Person.AreaAdscripcion not like '%EXPO%' and MD_Person.AreaAdscripcion not like '%SIDEAPAAR%'
+
+
+
+
+
+
+
+V2 
+
+
+
+
+
+create VIEW VistaTrimestres AS
+
+SELECT distinct
+    YEAR(DCLE.FechaTerminada) AS Ejercicio, -- Extrae el año de la FechaTerminada
+            	 CASE 
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 1 THEN '01/01/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 2 THEN '01/04/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 3 THEN '01/07/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 4 THEN '01/10/2023'
+    END AS FechaInicio,
+    CASE 
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 1 THEN '31/03/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 2 THEN '30/06/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 3 THEN '30/09/2023'
+        WHEN DATEPART(QUARTER, DCLE.FechaTerminada) = 4 THEN '31/12/2023'
+    END AS FechaFin,
+	'Servidor(a) público(a)' as 'Tipo integrante del sujeto',
+						Compaq.puesto as clave,
+			Compaq.puesto as DenominacionPuesto,
+			Compaq.departamento as Cargo,
+			Compaq.departamento,
+
+			MD_Person.Name,
+			MD_Person.PaternalSurname,MD_Person.MaternalSurname,
+						CASE 
+    WHEN Compaq.sexo = 'F' THEN 'Mujer'
+    WHEN Compaq.sexo = 'M' THEN 'Hombre'
+END AS Sexo,
+			case DCLE.Id_Plazo
+                when 1 then 'Inicio'
+                when 2 then 'Modificación'
+                when 3 then 'Conclusión'
+                end AS Plazo,
+CONCAT(
+       DCLE.Id_SituacionPatrimonial, 
+
+        REPLACE(dbo.RemoveAccents(MD_Person.PaternalSurname), ' ', ''),
+        REPLACE(dbo.RemoveAccents(MD_Person.MaternalSurname), ' ', ''),
+        REPLACE(dbo.RemoveAccents(MD_Person.Name), ' ', '')
+    ) AS Hipervinculo,
+	'CONTRALORIA MUNICIPAL' as Responsable,
+	''as 'Fecha de actualización',
+				DCLE.Id_SituacionPatrimonial,
+				DATEPART(QUARTER, DCLE.FechaTerminada) AS Trimestre
+    
+
+                  FROM DECL_Situacionpatrimonial as DCLE
+
+                  inner JOIN USR_User AS U ON DCLE.Id_User =  U.Id_User
+				  inner join DECL_Datosgenerales on DCLE.Id_SituacionPatrimonial = DECL_Datosgenerales.Id_SituacionPatrimonial
+                  left join USR_Compaq as Compaq on Compaq.Curp = DECL_Datosgenerales.Curp
+                  left join DECL_DatosEmpleoCargoComision decc on DCLE.Id_SituacionPatrimonial = decc.Id_SituacionPatrimonial
+                  left join MD_Person on U.Id_Person = MD_Person.Id_Person
+                  left join MD_Gender on MD_Person.Id_Gender=MD_Gender.Id_Gender
+                  and DCLE.EstaCompleta = 1 and DCLE.EsActivo = 1 
+				  and MD_Person.AreaAdscripcion NOT IN (
+    'centro felipe angeles',
+    'Planta oriente',
+    'COORDONACION DE ALCANTARILLADO',
+    'Alcantarillado',
+    'Albergue Jornalero',
+    'sada',
+    'POTABILIZADORA',
+    '2',
+    'Planta tratadora oriente',
+    'SISTEMA DESCENTRALIZADO DE AGUA POTABLE Y ALCANTARILLADO DEL MUNICIPIO DE GOMEZ PALACIO DGO',
+    'OPERADOR AGUA POTABLE',
+    'eeee',
+    'COORDINACION DE ALCANTRILLADO',
+    'Atencion al cliente',
+    'AGUA POTABLE',
+    'Albergue Trujano',
+    'e',
+    'Plantas Potabilizadoras',
+    'SANEAMIENTO',
+    'Sistemas',
+    'Estancia Infantil Tierra Blanca',
+    'Planta tratadora norte',
+    'Estancia Infantil Felipe Ángeles',
+    'CENTRO CONTROL',
+    'Asilo de Ancianos',
+    'Postura',
+    'AREA TECNICA',
+    'PLANTA NORTE',
+    'Planta tratadora',
+    'desarrollo',
+    'planta trataodra',
+    'Club de la Tercera Edad',
+    'Planta tratadpra',
+    'CALL CENTER',
+    'qwerty',
+    'Hola',
+    'sistema para el desarrollo integral de la familia',
+    'ueueue',
+    'SISTEMA PARA EL DESARROLLO INTEGRAL DE LA FAMILIA GOMEZ PALACIO DURANGO',
+    'Casa Club de la Tercera Edad',
+    'PAMAR',
+    'qwert',
+    'Cloracion',
+    'Plantra Tratadora',
+    'Club de Niños y Niñas',
+    'PLANTAS PURIFICADORAS',
+    'centro comunitario c+ 50',
+    'lk',
+    'OPERACION Y MANTENIMIENTO',
+    'Subdireccion Comercial',
+    'TECNICA',
+    'Coordinacion de agua potable',
+    'SISTEMA PARA EL DESARROLLO INTEGRAL DE LA FAMILIA GOMEZ PALACIO DGO',
+    'Club de niñas, niños y adolescentes',
+    'Albergue',
+    'PTARS ORIENTE',
+    'Estancia Infantil Villa Nápoles',
+    'Capillas de Velación',
+    'PROY',
+    'Valores',
+    'DIIF ASILO DE ANCIANOS',
+    'MAQUINARIA PESADA',
+    'Producción',
+    'Comercial',
+    'Club de Niñas y Niños',
+    '1',
+    'PLANTAS',
+    'CULTURA DEL AGUA',
+    'el mero mero',
+    'zohetdavidruiseci@gmail.com'
+);
+
+
+
+
 ALTER TABLE Adscripcion
 ADD organismo Varchar(200) default null;
 

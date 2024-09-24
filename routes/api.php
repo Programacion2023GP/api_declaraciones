@@ -95,7 +95,7 @@ Route::prefix('usuarios')->group(function () {
     Route::post("create", [ControllerUsers::class, 'create']);
     Route::post("createadmin", [ControllerUsers::class, 'admin']);
 
-    Route::get("index", [ControllerUsers::class, 'index']);
+    Route::get("index/{idPerson?}", [ControllerUsers::class, 'index']);
     Route::delete('delete/{id}', [ControllerUsers::class, 'delete']);
     Route::put('update/{id}', [ControllerUsers::class, 'update']);
     Route::post("pasupdate", [ControllerUsers::class, 'pasupdate']);
@@ -633,7 +633,7 @@ Route::prefix('tipoinstituciones')->group(function () {
 
 Route::prefix('reportes')->group(function () {
     Route::get('trasparencia/{ejercicio?}/{trimestre?}', [ControllerReportes::class, 'trasparencia']);
-    Route::get('/incumplimientos/{plazo_id}/{fecha_referencia?}', [ControllerReportes::class, 'incumplimientos']);
+    Route::get('/incumplimientos/{plazo_id}/{fecha_referencia?}/{fecha_fin?}', [ControllerReportes::class, 'incumplimientos']);
 });
 
 // Route::prefix('usuarios')->group(function () {
