@@ -78,6 +78,7 @@ class ControllerUsers extends Controller
                 'PaternalSurname' => $request->PaternalSurname,
                 'MaternalSurname' => $request->MaternalSurname,
                 'Gender' => $request->Gender,
+                'organismo' => $request->organismo,
 
                 'Id_TipoIntegrante' => $request->Id_TipoIntegrante,
                 'ClaseNivelPuesto' => $request->ClaseNivelPuesto,
@@ -197,6 +198,7 @@ class ControllerUsers extends Controller
                 ->update([
                     'Name' => $request->Name,
                     'Gender' => $request->Gender,
+                    'organismo' => $request->organismo,
 
                     'PaternalSurname' => $request->PaternalSurname,
                     'MaternalSurname' => $request->MaternalSurname,
@@ -291,7 +293,8 @@ class ControllerUsers extends Controller
                     'USR_Role.Id_Role',
                     'MD_Person.Id_TipoIntegrante',
                     'MD_Person.ClaseNivelPuesto',
-                    'MD_Person.AreaAdscripcion'
+                    'MD_Person.AreaAdscripcion',
+                    'MD_Person.organismo',
 
                 )
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
