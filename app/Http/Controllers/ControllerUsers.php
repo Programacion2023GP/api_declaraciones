@@ -286,6 +286,7 @@ class ControllerUsers extends Controller
                     'MD_Person.Gender',
                     'PaternalSurname',
                     'MaternalSurname',
+                    DB::raw("CONCAT(MD_Person.Name, ' ', PaternalSurname, ' ', MaternalSurname) as NombreCompleto"),
                     'USR_Role.Name as Rol',
                     'DenominacionPuesto',
                     'USR_User.Email',
