@@ -26,7 +26,6 @@ class ControllerUsers extends Controller
             ->where('USR_User.Email', $Email)
             ->where('USR_User.Active', 1)
             ->first();
-        // return $user;
         // Verificar si se encontró el usuario y si la contraseña coincide
         if ($user && Hash::check($Password, $user->Password)) {
             $userObject = [
@@ -50,7 +49,41 @@ class ControllerUsers extends Controller
             return response()->json($response, $response->data["status_code"]);
         }
     }
+    public function updatePassword(Request $request, Response $response)
+    {
+        // Obtener las credenciales del usuario desde la solicitud
+        $response->data = ObjResponse::DefaultResponse();
+        try {
+            $user = DB::table('USR_User')
+            ->where('Id_User', $request->Id_User)
+            ->first();
+        
+            if (!$user) {
+                // Si el usuario no existe, devuelve un error
+                $response->data = ObjResponse::CatchResponse('Usuario no encontrado');
+                return response()->json($response, $response->data["status_code"]);
+            }
 
+            $newPassword = Hash::make($request->Password);
+
+            $updated = DB::table('USR_User')
+                ->where('Id_User', $request->Id_User)
+                ->update(['Password' => $newPassword]);
+
+            if ($updated) {
+                $response->data = ObjResponse::CorrectResponse();
+                $response->data["message"] = 'Contraseña actualizada correctamente.';
+                return response()->json($response, $response->data["status_code"]);
+            } else {
+                $response->data = ObjResponse::CatchResponse('No se pudo actualizar la contraseña');
+                return response()->json($response, $response->data["status_code"]);
+            }
+        } catch (\Exception $e) {
+            $response->data = ObjResponse::CatchResponse('Ocurrió un error al actualizar la contraseña');
+            $response->data["error"] = $e->getMessage();
+            return response()->json($response, $response->data["status_code"]);
+        }
+    }
 
     public function create(Response $response, Request $request)
     {
@@ -176,11 +209,11 @@ class ControllerUsers extends Controller
 
             $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
 
-            // if ($existingUser) {
-            //     // Si el correo electrónico ya existe, retornar un error
-            //     $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
-            //     return response()->json($response, $response->data["status_code"]);
-            // }
+            if ($existingUser) {
+                // Si el correo electrónico ya existe, retornar un error
+                $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+                return response()->json($response, $response->data["status_code"]);
+            }
             // Actualizar el registro
             DB::table('USR_User')
                 ->where('Id_User', $id)

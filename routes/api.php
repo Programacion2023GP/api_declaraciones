@@ -99,6 +99,8 @@ Route::prefix('usuarios')->group(function () {
     Route::delete('delete/{id}', [ControllerUsers::class, 'delete']);
     Route::put('update/{id}', [ControllerUsers::class, 'update']);
     Route::post("pasupdate", [ControllerUsers::class, 'pasupdate']);
+    Route::post("updatePassword", [ControllerUsers::class, 'updatePassword']);
+
 });
 Route::prefix('intengrantes')->group(function () {
 
