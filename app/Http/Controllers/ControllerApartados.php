@@ -306,7 +306,7 @@ class ControllerApartados extends Controller
             SELECT 
             DSP.Id_SituacionPatrimonial AS Folio,
             MP.Gender,
-
+            UC.fechaAlta as EmpleadoFechaAlta,
             MP.Name AS Nombre,
             MP.PaternalSurname AS ApPaterno,
             MP.MaternalSurname AS ApMaterno,
@@ -336,8 +336,11 @@ class ControllerApartados extends Controller
         
         
         FROM DECL_Situacionpatrimonial DSP
+        
         INNER JOIN USR_User UU ON UU.Id_User = DSP.Id_User
+        
         INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
+        LEFT JOIN USR_Compaq UC ON UC.codigoEmpleado = MP.Nomina
         WHERE DSP.EsActivo = 1 and DSP.FechaTerminada is not null
         order by DSP.Id_SituacionPatrimonial desc;
 
