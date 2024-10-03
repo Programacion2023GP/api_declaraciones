@@ -202,8 +202,7 @@ class ControllerApartados extends Controller
                  WHEN  DECL_Situacionpatrimonial.EsSimplificada = 1 THEN 'Simplificada'
                 END AS Declaracion,
              CASE
-                 WHEN  (max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =15 and DECL_Situacionpatrimonial.EsSimplificada =0 OR 
-				 max(DECL_SPApartados.Id_SituacionPatrimonialApartado) =8 and DECL_Situacionpatrimonial.EsSimplificada = 1 ) THEN 'Terminada'
+                 WHEN  DECL_Situacionpatrimonial.EstaCompleta =1 THEN 'Terminada'
 
                  ELSE 'En proceso'
              END AS Status,
@@ -221,8 +220,8 @@ class ControllerApartados extends Controller
 
 
             WHERE DECL_Situacionpatrimonial.Id_User =? and  DECL_Situacionpatrimonial.EsActivo =1  
-            group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
-            DECL_Situacionpatrimonial.Id_Plazo,DECL_Situacionpatrimonial.EsSimplificada,DECL_Situacionpatrimonial.FechaRegistro
+			      group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
+            DECL_Situacionpatrimonial.Id_Plazo,DECL_Situacionpatrimonial.EsSimplificada,DECL_Situacionpatrimonial.FechaRegistro,DECL_Situacionpatrimonial.EstaCompleta
 
             UNION ALL
 
