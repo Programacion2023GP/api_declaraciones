@@ -373,6 +373,7 @@ class ControllerUsers extends Controller
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
                 ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
 
+                
             // Seleccionar la persona si el ID fue proporcionado
             $person = DB::table('MD_Person')
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
