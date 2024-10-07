@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ObjResponse;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Response;
+use phpseclib3\Crypt\RSA;
+use phpseclib3\File\X509;
 
 class ControllerUsers extends Controller
 {
@@ -17,47 +20,81 @@ class ControllerUsers extends Controller
         $Email = $request->Email;
         $Password = $request->Password;
 
+        // Verificar si se ha subido un archivo de certificado
+        if (!$request->hasFile('certificate')) {
+            $response->data = ObjResponse::CatchResponse('El archivo del certificado es obligatorio.');
+            return response()->json($response, $response->data["status_code"]);
+        }
+
+        // Obtener el archivo del certificado
+        $uploadedCertificate = $request->file('certificate');
+
         // Buscar el usuario en la base de datos por su correo electrónico
         $user = DB::table('USR_User')
             ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
             ->join('MD_Person', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
-
             ->select('USR_User.*', 'MD_Person.*', 'USR_UserRole.Id_Role')
             ->where('USR_User.Email', $Email)
             ->where('USR_User.Active', 1)
             ->first();
+
         // Verificar si se encontró el usuario y si la contraseña coincide
         if ($user && Hash::check($Password, $user->Password)) {
-            $userObject = [
-                'Id_User' => $user->Id_User,
-                'Id_Person' => $user->Id_Person,
-                'Id_Role' => $user->Id_Role,
-                'Name' => $user->Name,
-                'Sexo' => $user->Gender,
+            // Obtener el ID del usuario
+            $userId = $user->Id_User;
 
-                'PaternalSurname' => $user->PaternalSurname,
-                'MaternalSurname' => $user->MaternalSurname,
+            // Construir la ruta del certificado almacenado
+            $storedCertificatePath = storage_path("app/certificates/{$userId}/{$userId}.key");
 
-            ];
-            $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Usuario logeado.';
-            $response->data["result"]["user"] = $userObject;
-            return response()->json($response, $response->data["status_code"]);
+            // Verificar si el archivo del certificado almacenado existe
+            if (!file_exists($storedCertificatePath)) {
+                $response->data = ObjResponse::CatchResponse('Certificado no encontrado en el servidor.');
+                return response()->json($response, $response->data["status_code"]);
+            }
+
+            // Leer el contenido del certificado almacenado
+            $storedCertificateContent = file_get_contents($storedCertificatePath);
+
+            // Leer el contenido del certificado recibido
+            $uploadedCertificateContent = file_get_contents($uploadedCertificate->getRealPath());
+
+            // Comparar el contenido del certificado recibido con el certificado almacenado
+            if ($storedCertificateContent === $uploadedCertificateContent) {
+                // Si los certificados coinciden, proceder
+                $userObject = [
+                    'Id_User' => $user->Id_User,
+                    'Id_Person' => $user->Id_Person,
+                    'Id_Role' => $user->Id_Role,
+                    'Name' => $user->Name,
+                    'Sexo' => $user->Gender,
+                    'PaternalSurname' => $user->PaternalSurname,
+                    'MaternalSurname' => $user->MaternalSurname,
+                ];
+                $response->data = ObjResponse::CorrectResponse();
+                $response->data["message"] = 'Usuario logeado.';
+                $response->data["result"]["user"] = $userObject;
+                return response()->json($response, $response->data["status_code"]);
+            } else {
+                // Si los certificados no coinciden
+                $response->data = ObjResponse::CatchResponse('El certificado recibido no coincide con el certificado registrado.');
+                return response()->json($response, $response->data["status_code"]);
+            }
         } else {
             $response->data = ObjResponse::CatchResponse('Credenciales incorrectas');
-
             return response()->json($response, $response->data["status_code"]);
         }
     }
+
+
     public function updatePassword(Request $request, Response $response)
     {
         // Obtener las credenciales del usuario desde la solicitud
         $response->data = ObjResponse::DefaultResponse();
         try {
             $user = DB::table('USR_User')
-            ->where('Id_User', $request->Id_User)
-            ->first();
-        
+                ->where('Id_User', $request->Id_User)
+                ->first();
+
             if (!$user) {
                 // Si el usuario no existe, devuelve un error
                 $response->data = ObjResponse::CatchResponse('Usuario no encontrado');
@@ -308,9 +345,11 @@ class ControllerUsers extends Controller
     }
     public function index(Response $response, int $idPerson = 0)
     {
+        // Inicialización de la respuesta por defecto
         $response->data = ObjResponse::DefaultResponse();
 
         try {
+            // Selección de los datos de los usuarios
             $usuarios = DB::table('MD_Person')
                 ->select(
                     'USR_User.Id_User',
@@ -328,39 +367,60 @@ class ControllerUsers extends Controller
                     'MD_Person.Id_TipoIntegrante',
                     'MD_Person.ClaseNivelPuesto',
                     'MD_Person.AreaAdscripcion',
-                    'MD_Person.organismo',
-
+                    'MD_Person.organismo'
                 )
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
                 ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
 
+            // Seleccionar la persona si el ID fue proporcionado
             $person = DB::table('MD_Person')
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
-                ->where('MD_Person.Id_Person', $idPerson)->first();
+                ->where('MD_Person.Id_Person', $idPerson)
+                ->first();
+
+            // Si la persona existe y el rol es 4, filtrar por adscripción
             if ($person && $person->Id_Role == 4) {
-                # code...
-
-                $usuarios = $usuarios->where('MD_Person.AreaAdscripcion', $person->AreaAdscripcion)->whereNot('MD_Person.Id_Person', $idPerson);
+                $usuarios = $usuarios->where('MD_Person.AreaAdscripcion', $person->AreaAdscripcion)
+                    ->where('MD_Person.Id_Person', '<>', $idPerson);
             }
-            $usuarios = $usuarios->where('USR_User.Active', 1)
 
-                ->orderBy('MD_Person.Id_Person', 'desc') // Ordenar por ID en orden descendente (mayor a menor)
+            // Aplicar filtro de usuarios activos
+            $usuarios = $usuarios->where('USR_User.Active', 1)
+                ->orderBy('MD_Person.Id_Person', 'desc') // Orden descendente
                 ->get();
 
+            $usuarios = $usuarios->map(function ($usuario) {
+                $userId = $usuario->Id_User;
+
+                // Crear un nuevo objeto con la propiedad `storedCertificatePath` primero
+                $usuarioNuevo = (object) array_merge(
+                    ['storedCertificatePath' => asset("storage/certificates/{$userId}/{$userId}.key")],
+                    (array) $usuario // Convertir el objeto original a un array
+                );
+
+                return $usuarioNuevo;
+            });
 
 
+            // Luego puedes continuar aplicando otras transformaciones si es necesario
+
+
+            // Respuesta exitosa
             $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'peticion satisfactoria | lista de adscripcion.';
-            $response->data["alert_text"] = "usuarios adscripcion";
+            $response->data["message"] = 'Petición satisfactoria | Lista de adscripción.';
+            $response->data["alert_text"] = "Usuarios adscripción";
             $response->data["result"] = $usuarios;
         } catch (\Exception $ex) {
+            // Manejo de errores
             $response->data = ObjResponse::CatchResponse($ex->getMessage());
         }
 
+        // Devolver la respuesta en formato JSON
         return response()->json($response, $response->data["status_code"]);
     }
+
     public function delete(Response $response, Request $request, $id)
     {
         $response->data = ObjResponse::DefaultResponse();
@@ -418,6 +478,78 @@ class ControllerUsers extends Controller
             $response->data = ObjResponse::CatchResponse('Ocurrió un error al actualizar la contraseña');
             $response->data["error"] = $e->getMessage();
             return response()->json($response, $response->data["status_code"]);
+        }
+    }
+    public function generateCert($userId = null)
+    {
+        // Si se pasa un userId
+        if ($userId) {
+            // Verificar si el usuario existe en la base de datos
+            $user = DB::table('USR_User')->where('Id_User', $userId)->first();
+
+            if ($user) {
+                // Generar certificado solo para el usuario especificado
+                $this->generateCertForUser($user->Id_User, $user->Email);
+                return response()->json(['message' => "Certificado generado para el usuario con ID: {$userId}."]);
+            } else {
+                // Usuario no encontrado
+                return response()->json(['error' => "Usuario con ID {$userId} no encontrado."], 404);
+            }
+        } else {
+            // Si no se pasa un userId, generar certificados para todos los usuarios
+            $users = DB::table('USR_User')->get();
+
+            foreach ($users as $user) {
+                $this->generateCertForUser($user->Id_User, $user->Email);
+            }
+
+            return response()->json(['message' => 'Certificados generados para todos los usuarios.']);
+        }
+    }
+
+    public function generateCertForUser($userId, $email)
+    {
+        // Crear el directorio para almacenar el certificado del usuario
+        $certDir = storage_path("app/certificates/{$userId}");
+
+        if (!file_exists($certDir)) {
+            mkdir($certDir, 0755, true);
+        }
+
+        try {
+            // Generar clave privada
+            $privateKey = RSA::createKey(2048);
+            $keyPath = "{$certDir}/{$userId}.key";
+            file_put_contents($keyPath, $privateKey->toString('PKCS8'));
+
+            // Crear el certificado X509
+            $x509 = new X509();
+            $subject = new X509();
+
+            // Configurar el Distinguished Name (DN)
+            $subject->setDNProp('id-at-commonName', $email);
+
+            // Configurar la fecha de expiración
+            $x509->setEndDate('+1 year');
+
+            // Configurar la clave pública
+            $x509->setPublicKey($privateKey->getPublicKey());
+
+            // Configurar un número de serie aleatorio
+            $x509->setSerialNumber(random_int(1000, 9999));
+
+            // Crear un certificado autofirmado (emisor y sujeto son iguales)
+            $cert = $x509->sign($subject, $privateKey);
+
+            // Guardar el certificado
+            $certPath = "{$certDir}/{$userId}.cert";
+            file_put_contents($certPath, $x509->saveX509($cert));
+
+            // Retorno de éxito (opcional)
+            return response()->json(['message' => "Certificado generado para el usuario con ID: {$userId}."]);
+        } catch (\Exception $e) {
+            // Manejo de excepciones
+            return response()->json(['error' => "Error al generar el certificado: {$e->getMessage()}"], 500);
         }
     }
 }
