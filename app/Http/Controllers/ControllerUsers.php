@@ -44,7 +44,7 @@ class ControllerUsers extends Controller
             $userId = $user->Id_User;
 
             // Construir la ruta del certificado almacenado
-            $storedCertificatePath = storage_path("app/certificates/{$userId}/{$userId}.key");
+            $storedCertificatePath = storage_path("app/public/certificates/{$userId}/{$userId}.key");
 
             // Verificar si el archivo del certificado almacenado existe
             if (!file_exists($storedCertificatePath)) {
@@ -373,7 +373,7 @@ class ControllerUsers extends Controller
                 ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
                 ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
 
-                
+
             // Seleccionar la persona si el ID fue proporcionado
             $person = DB::table('MD_Person')
                 ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
