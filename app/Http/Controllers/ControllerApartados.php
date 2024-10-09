@@ -340,7 +340,7 @@ class ControllerApartados extends Controller
         
         INNER JOIN MD_Person MP ON MP.Id_Person = UU.Id_Person
         LEFT JOIN USR_Compaq UC ON UC.codigoEmpleado = MP.Nomina
-        WHERE DSP.EsActivo = 1 and DSP.FechaTerminada is not null
+        WHERE DSP.EsActivo = 1
         order by DSP.Id_SituacionPatrimonial desc;
 
             ");
