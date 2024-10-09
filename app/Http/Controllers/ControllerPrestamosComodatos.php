@@ -27,7 +27,14 @@ class ControllerPrestamosComodatos extends Controller
                 DB::table('DECL_PrestamoComodato')->insert($datos);
             }
 
+            DB::table('DECL_Situacionpatrimonial')
+                ->where('Id_SituacionPatrimonial', $request->all()[0]['Id_SituacionPatrimonial'])
+                ->update([
+                    'EstaCompleta' => 1,
+                    'SeEnvioAcuse' => 1,
 
+                    'FechaTerminada' => now()
+                ]);
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Se insertaron los PRESTAMOS COMODATOS.';
@@ -36,15 +43,7 @@ class ControllerPrestamosComodatos extends Controller
 
             $apartado->create($request->all()[0]['Id_SituacionPatrimonial'], 15);
 
-            DB::table('DECL_Situacionpatrimonial')
-                ->where('Id_SituacionPatrimonial', $request->all()[0]['Id_SituacionPatrimonial'])
-                ->where('EsSimplificada', 0)
-                ->update([
-                    'EstaCompleta' => 1,
-                    'SeEnvioAcuse' => 1,
 
-                    'FechaTerminada' => now()
-                ]);
             // $response->data["result"] = $DatosCurriculares;
         } catch (\Exception $ex) {
             $erros = new ControllerErrors();
