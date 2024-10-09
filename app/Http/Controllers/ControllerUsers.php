@@ -245,13 +245,13 @@ class ControllerUsers extends Controller
         try {
             // Verificar si el registro existe
 
-            $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
+            // $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
 
-            if ($existingUser) {
-                // Si el correo electrónico ya existe, retornar un error
-                $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
-                return response()->json($response, $response->data["status_code"]);
-            }
+            // if ($existingUser) {
+            //     // Si el correo electrónico ya existe, retornar un error
+            //     $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+            //     return response()->json($response, $response->data["status_code"]);
+            // }
             // Actualizar el registro
             DB::table('USR_User')
                 ->where('Id_User', $id)
