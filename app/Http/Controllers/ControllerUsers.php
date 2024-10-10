@@ -512,7 +512,7 @@ class ControllerUsers extends Controller
     public function generateCertForUser($userId, $email)
     {
         // Crear el directorio para almacenar el certificado del usuario
-        $certDir = storage_path("app/certificates/{$userId}");
+        $certDir = storage_path("app/public/certificates/{$userId}");
 
         if (!file_exists($certDir)) {
             mkdir($certDir, 0755, true);
