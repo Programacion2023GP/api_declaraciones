@@ -48,7 +48,7 @@ class ControllerUsers extends Controller
 
             // Verificar si el archivo del certificado almacenado existe
             // if (!file_exists($storedCertificatePath) && $Email !="admin@gomezpalacio.gob.mx") {
-                
+
             //     $response->data = ObjResponse::CatchResponse('Certificado no encontrado en el servidor.');
             //     return response()->json($response, $response->data["status_code"]);
             // }
@@ -61,20 +61,20 @@ class ControllerUsers extends Controller
 
             // Comparar el contenido del certificado recibido con el certificado almacenado
             // if ($storedCertificateContent === $uploadedCertificateContent || $Email =='admin@gomezpalacio.gob.mx') {
-                // Si los certificados coinciden, proceder
-                $userObject = [
-                    'Id_User' => $user->Id_User,
-                    'Id_Person' => $user->Id_Person,
-                    'Id_Role' => $user->Id_Role,
-                    'Name' => $user->Name,
-                    'Sexo' => $user->Gender,
-                    'PaternalSurname' => $user->PaternalSurname,
-                    'MaternalSurname' => $user->MaternalSurname,
-                ];
-                $response->data = ObjResponse::CorrectResponse();
-                $response->data["message"] = 'Usuario logeado.';
-                $response->data["result"]["user"] = $userObject;
-                return response()->json($response, $response->data["status_code"]);
+            // Si los certificados coinciden, proceder
+            $userObject = [
+                'Id_User' => $user->Id_User,
+                'Id_Person' => $user->Id_Person,
+                'Id_Role' => $user->Id_Role,
+                'Name' => $user->Name,
+                'Sexo' => $user->Gender,
+                'PaternalSurname' => $user->PaternalSurname,
+                'MaternalSurname' => $user->MaternalSurname,
+            ];
+            $response->data = ObjResponse::CorrectResponse();
+            $response->data["message"] = 'Usuario logeado.';
+            $response->data["result"]["user"] = $userObject;
+            return response()->json($response, $response->data["status_code"]);
             // } else {
             //     // Si los certificados no coinciden
             //     $response->data = ObjResponse::CatchResponse('El certificado recibido no coincide con el certificado registrado.');
@@ -138,11 +138,11 @@ class ControllerUsers extends Controller
                 return response()->json($response, $response->data["status_code"]);
             }
             $existingUser = DB::table('MD_Person')->where('Nomina', $request->Nomina)->first();
-            if ($existingUser && $request->Nomina != 999999) {
-                // Si el correo electrónico ya existe, retornar un error
-                $response->data = ObjResponse::CatchResponse("ya esta registrado el numero de nomina");
-                return response()->json($response, $response->data["status_code"]);
-            }
+            // if ($existingUser && $request->Nomina != 999999) {
+            //     // Si el correo electrónico ya existe, retornar un error
+            //     $response->data = ObjResponse::CatchResponse("ya esta registrado el numero de nomina");
+            //     return response()->json($response, $response->data["status_code"]);
+            // }
             $person = DB::table('MD_Person')->insertGetId([
                 // 'Id_Person' => $maxPerson + 1,
                 'Name' => $request->Name,
@@ -259,6 +259,22 @@ class ControllerUsers extends Controller
                 ->update([
                     'Email' => $request->Email,
                 ]);
+            $userRole = DB::table('USR_UserRole')->where('Id_User', $id)->first();
+
+            if ($userRole) {
+                // Si el registro existe, lo actualizamos
+                DB::table('USR_UserRole')
+                    ->where('Id_User', $id)
+                    ->update([
+                        'Id_Role' => $request->Id_Role,
+                    ]);
+            } else {
+                // Si no existe, lo creamos
+                DB::table('USR_UserRole')->insert([
+                    'Id_User' => $id,
+                    'Id_Role' => $request->Id_Role,
+                ]);
+            }
 
             // Obtiene el Id_Person del registro actualizado
             $idPerson = DB::table('USR_User')
@@ -281,11 +297,7 @@ class ControllerUsers extends Controller
                     'AreaAdscripcion' => $request->AreaAdscripcion,
                     'Nomina' => $request->Nomina,
                 ]);
-            DB::table('USR_UserRole')
-                ->where('Id_User', $id)
-                ->update([
-                    'Id_Role' => $request->Id_Role,
-                ]);
+
 
             $response->data = ObjResponse::CorrectResponse();
             $response->data["message"] = 'Petición satisfactoria | USUARIO actualizado correctamente.';
@@ -371,9 +383,9 @@ class ControllerUsers extends Controller
                     'MD_Person.AreaAdscripcion',
                     'MD_Person.organismo'
                 )
-                ->join('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
-                ->join('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
-                ->join('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
+                ->leftjoin('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
+                ->leftjoin('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
+                ->leftjoin('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
 
 
             // Seleccionar la persona si el ID fue proporcionado
