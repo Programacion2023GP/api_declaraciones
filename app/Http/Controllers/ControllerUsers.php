@@ -21,13 +21,13 @@ class ControllerUsers extends Controller
         $Password = $request->Password;
 
         // Verificar si se ha subido un archivo de certificado
-        if (!$request->hasFile('certificate') && $Email !="admin@gomezpalacio.gob.mx") {
-            $response->data = ObjResponse::CatchResponse('El archivo del certificado es obligatorio.');
-            return response()->json($response, $response->data["status_code"]);
-        }
+        // if (!$request->hasFile('certificate') && $Email !="admin@gomezpalacio.gob.mx") {
+        //     $response->data = ObjResponse::CatchResponse('El archivo del certificado es obligatorio.');
+        //     return response()->json($response, $response->data["status_code"]);
+        // }
 
         // Obtener el archivo del certificado
-        $uploadedCertificate = $request->file('certificate');
+        // $uploadedCertificate = $request->file('certificate');
 
         // Buscar el usuario en la base de datos por su correo electrónico
         $user = DB::table('USR_User')
@@ -44,22 +44,23 @@ class ControllerUsers extends Controller
             $userId = $user->Id_User;
 
             // Construir la ruta del certificado almacenado
-            $storedCertificatePath = storage_path("app/public/certificates/{$userId}/{$userId}.key");
+            // $storedCertificatePath = storage_path("app/public/certificates/{$userId}/{$userId}.key");
 
             // Verificar si el archivo del certificado almacenado existe
-            if (!file_exists($storedCertificatePath) && $Email !="admin@gomezpalacio.gob.mx") {
-                $response->data = ObjResponse::CatchResponse('Certificado no encontrado en el servidor.');
-                return response()->json($response, $response->data["status_code"]);
-            }
+            // if (!file_exists($storedCertificatePath) && $Email !="admin@gomezpalacio.gob.mx") {
+                
+            //     $response->data = ObjResponse::CatchResponse('Certificado no encontrado en el servidor.');
+            //     return response()->json($response, $response->data["status_code"]);
+            // }
 
             // Leer el contenido del certificado almacenado
-            $storedCertificateContent = file_get_contents($storedCertificatePath);
+            // $storedCertificateContent = file_get_contents($storedCertificatePath);
 
             // Leer el contenido del certificado recibido
-            $uploadedCertificateContent = $Email =='admin@gomezpalacio.gob.mx'?"": file_get_contents($uploadedCertificate->getRealPath());
+            // $uploadedCertificateContent = $Email =='admin@gomezpalacio.gob.mx'?"": file_get_contents($uploadedCertificate->getRealPath());
 
             // Comparar el contenido del certificado recibido con el certificado almacenado
-            if ($storedCertificateContent === $uploadedCertificateContent || $Email =='admin@gomezpalacio.gob.mx') {
+            // if ($storedCertificateContent === $uploadedCertificateContent || $Email =='admin@gomezpalacio.gob.mx') {
                 // Si los certificados coinciden, proceder
                 $userObject = [
                     'Id_User' => $user->Id_User,
@@ -74,11 +75,11 @@ class ControllerUsers extends Controller
                 $response->data["message"] = 'Usuario logeado.';
                 $response->data["result"]["user"] = $userObject;
                 return response()->json($response, $response->data["status_code"]);
-            } else {
-                // Si los certificados no coinciden
-                $response->data = ObjResponse::CatchResponse('El certificado recibido no coincide con el certificado registrado.');
-                return response()->json($response, $response->data["status_code"]);
-            }
+            // } else {
+            //     // Si los certificados no coinciden
+            //     $response->data = ObjResponse::CatchResponse('El certificado recibido no coincide con el certificado registrado.');
+            //     return response()->json($response, $response->data["status_code"]);
+            // }
         } else {
             $response->data = ObjResponse::CatchResponse('Credenciales incorrectas');
             return response()->json($response, $response->data["status_code"]);
