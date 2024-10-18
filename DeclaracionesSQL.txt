@@ -338,6 +338,9 @@ SELECT DISTINCT
 
 			MD_Person.Name,
 			MD_Person.PaternalSurname,MD_Person.MaternalSurname,
+            CONCAT(MD_Person.Name,
+			MD_Person.PaternalSurname,MD_Person.MaternalSurname,
+            )
 						CASE 
     WHEN Compaq.sexo = 'F' THEN 'Mujer'
     WHEN Compaq.sexo = 'M' THEN 'Hombre'

@@ -323,10 +323,10 @@ class ControllerApartados extends Controller
                     SELECT 1 
                     FROM DECL_SPApartados DSA
                     WHERE DSA.Id_SituacionPatrimonial = DSP.Id_SituacionPatrimonial 
-                      AND (
-                          (DSP.EsSimplificada = 1 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 8)) OR
-                          (DSP.EsSimplificada = 0 AND DSA.Id_SituacionPatrimonialApartado IN (1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15))
-                      )
+                    AND (
+                        (DSP.EsSimplificada = 1 AND  DSP.EstaCompleta =1) OR
+                        (DSP.EsSimplificada = 0 AND DSP.EstaCompleta =1)
+                    )
                 ) THEN 'Terminada'
                 ELSE 'En proceso'
             END AS Tstatus,
