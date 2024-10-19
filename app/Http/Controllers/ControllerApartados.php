@@ -317,19 +317,8 @@ class ControllerApartados extends Controller
             CASE
                 WHEN DSP.EsSimplificada = 1 THEN 'Simplificada'
                 ELSE 'Completa'
-            END AS Declaracion,
-            CASE
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM DECL_SPApartados DSA
-                    WHERE DSA.Id_SituacionPatrimonial = DSP.Id_SituacionPatrimonial 
-                    AND (
-                        (DSP.EsSimplificada = 1 AND  DSP.EstaCompleta =1) OR
-                        (DSP.EsSimplificada = 0 AND DSP.EstaCompleta =1)
-                    )
-                ) THEN 'Terminada'
-                ELSE 'En proceso'
-            END AS Tstatus,
+                END AS Declaracion,
+                IIF(DSP.EstaCompleta = 1, 'Terminada', 'En proceso') AS Tstatus,
             FORMAT(DSP.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
              FORMAT(DSP.FechaTerminada, 'dd/MM/yyyy') AS FechaRegistroTerminada
         
