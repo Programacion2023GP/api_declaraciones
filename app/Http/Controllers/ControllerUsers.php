@@ -367,14 +367,14 @@ class ControllerUsers extends Controller
             $usuarios = DB::table('MD_Person')
                 ->select(
                     'USR_User.Id_User',
-                    'Nomina',
+                    'MD_Person.Nomina',
                     'MD_Person.Name',
                     'MD_Person.Gender',
-                    'PaternalSurname',
-                    'MaternalSurname',
-                    DB::raw("CONCAT(MD_Person.Name, ' ', PaternalSurname, ' ', MaternalSurname) as NombreCompleto"),
+                    'MD_Person.PaternalSurname',
+                    'MD_Person.MaternalSurname',
+                    DB::raw("CONCAT(MD_Person.Name, ' ', MD_Person.PaternalSurname, ' ', MD_Person.MaternalSurname) as NombreCompleto"),
                     'USR_Role.Name as Rol',
-                    'DenominacionPuesto',
+                    'MD_Person.DenominacionPuesto',
                     'USR_User.Email',
                     'MD_Person.DenominacionCargo',
                     'USR_Role.Id_Role',
@@ -383,9 +383,11 @@ class ControllerUsers extends Controller
                     'MD_Person.AreaAdscripcion',
                     'MD_Person.organismo'
                 )
-                ->leftjoin('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
-                ->leftjoin('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
-                ->leftjoin('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role');
+                ->leftJoin('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
+                ->leftJoin('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
+                ->leftJoin('USR_Role', 'USR_UserRole.Id_Role', '=', 'USR_Role.Id_Role')
+               ;
+
 
 
             // Seleccionar la persona si el ID fue proporcionado
