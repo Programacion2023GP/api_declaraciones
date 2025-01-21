@@ -79,6 +79,14 @@ class ControllerApartados extends Controller
                         DB::table('DECL_PrestamoComodato')
                             ->where('Id_SituacionPatrimonial', $situacionPatrimonial)
                             ->delete();
+                            DB::table('DECL_Situacionpatrimonial')
+                            ->where('Id_SituacionPatrimonial', $situacionPatrimonial['Id_SituacionPatrimonial'])
+                            ->update([
+                                'EstaCompleta' => 1,
+                                'SeEnvioAcuse' => 1,
+            
+                                'FechaTerminada' => now()
+                            ]);
                         break;
 
                     default:
