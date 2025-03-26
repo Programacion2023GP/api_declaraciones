@@ -28,6 +28,7 @@ use App\Http\Controllers\ControllerFormaRecepcion;
 use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerInstituciones;
 use App\Http\Controllers\ControllerInversionesCuentasValores;
+use App\Http\Controllers\ControllerJsons;
 use App\Http\Controllers\ControllerMonedas;
 use App\Http\Controllers\ControllerMotivosBaja;
 use App\Http\Controllers\ControllerMunicipios;
@@ -642,3 +643,6 @@ Route::prefix('reportes')->group(function () {
 // Route::prefix('usuarios')->group(function () {
 //     Route::post("create", [ControllerRoles::class, 'create']);
 // });
+Route::prefix('dowloand')->group(function () {
+    Route::get('jsons', [ControllerJsons::class, 'descargarJsonZip']);
+});
