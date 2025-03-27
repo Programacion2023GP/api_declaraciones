@@ -149,6 +149,9 @@ class ControllerJsons extends Controller
                     "domicilioDeclarante" => $this->generarSeccionDomicilio($declaracion),
                     "datosCurricularesDeclarante" => $this->generarSeccionDatosCurriculares($declaracion),
                     "datosEmpleoCargoComision" => $this->generarSeccionDatosEmpleoCargoComision($declaracion),
+                    "experienciaLaboral" => $this->generarSeccionExperienciaLaboral($declaracion->{'Id_SituacionPatrimonial'}),
+                    "datosPareja" => $this->generarSeccionDatosPareja($declaracion->{'Id_SituacionPatrimonial'}),
+
                 ]
             ]
         ];
@@ -282,32 +285,262 @@ class ControllerJsons extends Controller
 
         ];
     }
-    protected function generarSeccionExperienciaLaboral($declaracion)
+    protected function generarSeccionExperienciaLaboral($id)
     {
-        $experienciasLaborales =  DB::select("");
-        $experiencia =[
+        $experienciasLaborales = DB::select("
+            IF EXISTS (SELECT * FROM DECL_ExperienciaLaboral WHERE Id_SituacionPatrimonial = ?)
+            BEGIN
+                SELECT 
+                    Ex.Id_AmbitoPublico,
+                    Am.nombre AS ambitoSector_clave,
+                    Am.valor AS ambitoSector_valor,
+                    Nio.clave AS nivelOrdenGobierno, 
+                    Ap.valor AS ambitoPublico,
+                    Ex.nombreEntePublico,
+                    Ex.areaAdscripcion,
+                    Ex.empleoCargoComision,
+                    Ex.funcionPrincipal,
+                    Ex.NombreEmpresaSociedadAsociacion,
+                    Ex.RFC,
+                    Ex.Puesto,
+                    S.Abreviatura AS sector_clave,
+                    S.valor AS sector_valor,
+                    CONVERT(VARCHAR(10), Ex.fechaIngreso, 120) AS fechaIngreso,
+                    CONVERT(VARCHAR(10), Ex.FechaEngreso, 120) AS fechaEgreso,
+                    IIF(Ex.FueEnMexico = 1, 'MX', 'EX') AS ubicacion,
+                    Ex.Aclaraciones,
+                    Ex.FueEnMexico
+                FROM DECL_ExperienciaLaboral AS Ex 
+                LEFT JOIN AmbitoSector AS Am ON Am.clave = Ex.Id_AmbitoSector
+                LEFT JOIN NivelOrdenGobierno AS Nio ON Nio.clave = Ex.Id_NivelOrdenGobierno
+                LEFT JOIN AmbitoPublico AS Ap ON Ap.clave = Ex.Id_AmbitoPublico
+                LEFT JOIN Sector AS S ON S.clave = Ex.Id_Sector
+                WHERE Ex.Id_SituacionPatrimonial = ?;
+            END
+            ELSE 
+            BEGIN
+                SELECT 'No existen registros' AS message;
+            END
+        ", [$id, $id]);
 
-        ];
-        foreach ($experienciasLaborales as $key => $value) {
-            array_push($experiencia,[
-                    "tipoOperacion"=>'AGREGAR',
-                    // "ambitoSector"=>"",
-                    "ambitoPublico"=>"",
-                    "nombreEntePublico"=>"",
-                    "areaAdscripcion"=>"",
-                    "empleoCargoComision"=>"",
-                    "funcionPrincipal"=>"",
-                    "fechaIngreso"=>"",
-                    "fechaEgreso"=>"",
-                    "ubicacion"=>"",
-                    "ubicacion"=>"",
-
-            ]);
+        // Verificar si no hay registros
+        if (isset($experienciasLaborales[0]->message)) {
+            return [
+                "ninguno" => true,
+                "experienciaLaboral" => [],
+                "aclaracionesObservaciones" => ""
+            ];
         }
+
+        // Procesar los resultados
+        $experiencia = [];
+        foreach ($experienciasLaborales as $item) {
+            if ($item->Id_AmbitoPublico == 1) {
+                // Experiencia en sector público
+                $experiencia[] = [
+                    "tipoOperacion" => 'AGREGAR',
+                    "ambitoSector" => [
+                        "clave" => $item->ambitoSector_clave ?? null,
+                        "valor" => $item->ambitoSector_valor ?? null
+                    ],
+                    "nivelOrdenGobierno" => $item->nivelOrdenGobierno ?? null,
+                    "ambitoPublico" => $item->ambitoPublico ?? null,
+                    "nombreEntePublico" => $item->nombreEntePublico ?? null,
+                    "areaAdscripcion" => $item->areaAdscripcion ?? null,
+                    "empleoCargoComision" => $item->empleoCargoComision ?? null,
+                    "funcionPrincipal" => $item->funcionPrincipal ?? null,
+                    "fechaIngreso" => $item->fechaIngreso ?? null,
+                    "fechaEgreso" => $item->fechaEgreso ?? null,
+                    "ubicacion" => $item->ubicacion ?? null
+                ];
+            } else {
+                // Experiencia en sector privado
+                $experiencia[] = [
+                    "tipoOperacion" => 'AGREGAR',
+                    "ambitoSector" => [
+                        "clave" => $item->ambitoSector_clave ?? null,
+                        "valor" => $item->ambitoSector_valor ?? null
+                    ],
+                    "nombreEmpresaSociedadAsociacion" => $item->NombreEmpresaSociedadAsociacion ?? null,
+                    "rfc" => $item->RFC ?? null,
+                    "area" => $item->areaAdscripcion ?? null,
+                    "puesto" => $item->Puesto ?? null,
+                    "sector" => [
+                        "clave" => $item->sector_clave ?? null,
+                        "valor" => $item->sector_valor ?? null
+                    ],
+                    "ubicacion" => $item->ubicacion ?? null
+                ];
+            }
+        }
+
+        // Obtener aclaraciones (del primer registro)
+        $aclaraciones = $experienciasLaborales[0]->Aclaraciones ?? '';
+
         return [
-            "ninguno" => $experienciasLaborales[0]->{'Mensaje'}?false:true,
-            "experienciaLaboral"=>$experiencia
-    ];
+            "ninguno" => empty($experiencia),
+            "experiencia" => $experiencia,
+            "aclaracionesObservaciones" => $aclaraciones
+        ];
+    }
+    protected function generarSeccionDatosPareja($id)
+    {
+        $pareja = DB::selectOne("
+        IF EXISTS (SELECT * FROM DECL_DatosPareja WHERE Id_SituacionPatrimonial = ?)
+        BEGIN
+        SELECT 
+        p.Nombre,PrimerApellido,SegundoApellido,CONVERT(VARCHAR(10), FechaNacimiento, 120) AS 'FechaNacimiento',RfcPareja,rc.valor as 'relacionConDeclarante',  p.EsCiudadanoExtranjero,p.Curp,p.EsDependienteEconomico,p.HabitaDomicilioDeclarante,
+          IIF(p.Id_LugarDondeReside = 0, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside',p.Calle,p.NumeroExterior,p.NumeroInterior,p.ColoniaLocalidad,p.CodigoPostal,ac.valor as 'actividad valor',ac.nombre as 'actividad clave',Nio.valor as 'nivelOrdenGobierno',
+          ap.valor as 'ambitoPublico',p.NombreEntePublico,p.AreaAdscripcion,p.EmpleoCargoComision,p.FuncionPrincipal,p.ValorSalarioMensualNeto as 'monto valor',m.Divisa,p.NombreEmpresaSociedadAsociacion as 'nombreEmpresaSociedadAsociacion',p.RfcEmpresa,
+          CONVERT(VARCHAR(10), FechaIngreso, 120) AS 'FechaIngreso',s.valor as 'sector clave',s.Abreviatura as 'sector valor',p.EsProveedorContratistaGobierno,p.CiudadLocalidad,p.EstadoProvincia,p.Aclaraciones,  Pa.Pais
+
+        
+          from DECL_DatosPareja as p
+          left join ParentescoRelacion as rc on rc.clave = p.Id_RelacionDeclarante
+          left join ActividadLaboral as ac on ac.clave = p.Id_ActividadLaboral
+          left join NivelOrdenGobierno as Nio on Nio.clave = p.Id_NivelOrdenGobierno
+          left join AmbitoPublico as ap on ap.clave = p.Id_AmbitoPublico
+          left join Moneda as m on m.Clave = p.Id_MonedaSalarioMensualNeto
+          left join Sector as s on s.clave = p.Id_Sector
+          left join Pais as pa on pa.Clave = p.Id_Pais
+
+                WHERE Id_SituacionPatrimonial = ?
+
+        END
+        ELSE 
+        BEGIN
+            SELECT 'No existen registros' AS message;
+        END
+
+
+
+    
+        ", [$id, $id]);
+        $datosPareja = [
+            "ninguno" => isset($pareja->message) ? true : false,
+        ];
+        if (isset($pareja->message)) {
+            return $datosPareja;
+        }
+        if (!isset($pareja->message)) {
+            # code.. .
+            array_push(
+                $datosPareja,
+                [
+                    "tipoOperacion" => 'AGREGAR',
+                    "nombre" => $pareja->Nombre,
+                    "primerApellido" => $pareja->PrimerApellido,
+                    "segundoApellido" => $pareja->SegundoApellido,
+                    "fechaNacimiento" => $pareja->FechaNacimiento,
+                    "rfc" => $pareja->RfcPareja,
+                    "relacionConDeclarante" => $pareja->relacionConDeclarante,
+                    "ciudadanoExtranjero" => $pareja->EsCiudadanoExtranjero ? true : false,
+                    "curp" => $pareja->Curp,
+                    "esDependienteEconomico" => $pareja->EsDependienteEconomico ? true : false,
+                    "habitaDomicilioDeclarante" => $pareja->HabitaDomicilioDeclarante ? true : false,
+                    "lugarDondeReside" => $pareja->lugarDondeReside,
+                    "domicilioMexico" => [
+                        "calle" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"Calle"} : "",
+                        "numeroExterior" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroExterior"} : "",
+                        "numeroInterior" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroInterior"} : "",
+                        "coloniaLocalidad" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"ColoniaLocalidad"} : "",
+                        "municipioAlcaldia" => [
+                            "clave" => null,
+                            "valor" => null,
+
+                        ],
+                        "entidadFederativa" => [
+                            "clave" => null,
+                            "valor" => null,
+                        ],
+                        "codigoPostal" => $pareja->{"lugarDondeReside"} == "MEXICO" ? "" :  $pareja->{"CodigoPostal"},
+                    ],
+                    "domicilioExtranjero" => [
+                        "calle" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Calle"} : "",
+                        "numeroExterior" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"NumeroExterior"} : "",
+                        "numeroInterior" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"NumeroInterior"} : "",
+                        "ciudadLocalidad" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CiudadLocalidad"} : "",
+                        "estadoProvincia" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"EstadoProvincia"} : "",
+                        "pais" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Pais"} : "",
+                        "codigoPostal" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CodigoPostal"} : "",
+                    ],
+
+                ]
+            );
+        }
+        if ($pareja->{'actividad valor'}) {
+            $datosPareja["actividadLaboral"] = [
+                "clave" => $pareja->{'actividad clave'},
+                "valor" => $pareja->{'actividad valor'},
+            ];
+        }
+        if ($pareja->{'actividad clave'} == 'PUB') {
+            $datosPareja["actividadLaboralSectorPublico"] = [
+                "nivelOrdenGobierno" => $pareja->nivelOrdenGobierno,
+                "ambitoPublico" => $pareja->ambitoPublico,
+                "nombreEntePublico" => $pareja->NombreEntePublico,
+                "areaAdscripcion" => $pareja->AreaAdscripcion,
+                "empleoCargoComision" => $pareja->EmpleoCargoComision,
+                "funcionPrincipal" => $pareja->FuncionPrincipal,
+                "salarioMensualNeto" => [
+                    "monto" => [
+                        "valor" =>  $pareja->{'monto valor'},
+                        "moneda" =>  $pareja->Divisa,
+
+                    ],
+                    "fechaIngreso" => $pareja->FechaIngreso,
+                ]
+            ];
+        }
+        if ($pareja->{'actividad clave'} == 'PRI') {
+            $datosPareja["actividadLaboralSectorPrivadoOtro"] = [
+                "nombreEmpresaSociedadAsociacion" => $pareja->nombreEmpresaSociedadAsociacion,
+                "empleoCargoComision" => $pareja->EmpleoCargoComision,
+                "rfc" => $pareja->RfcEmpresa,
+                "fechaIngreso" => $pareja->FechaIngreso,
+                "sector" => [
+                    "clave" => $pareja->{'sector clave'},
+                    "valor" => $pareja->{'sector valor'},
+                ],
+                "salarioMensualNeto" =>
+                [
+                    "monto" => [
+                        "valor" => $pareja->{'monto valor'},
+                        "moneda" => $pareja->Divisa,
+
+                    ]
+                ],
+                "proveedorContratistaGobierno" => false,
+
+
+            ];
+        }
+        $datosPareja["aclaracionesObservaciones"]= $pareja->Aclaraciones;
+
+        // "actividadLaboralSectorPrivadoOtro" => [
+        //     "nombreEmpresaSociedadAsociacion" => "",
+        //     "empleoCargoComision" => "",
+        //     "rfc" => "",
+        //     "fechaIngreso" => "",
+        //     "sector" => [
+        //         "clave" => "",
+        //         "valor" => "",
+        //     ],
+        //     "salarioMensualNeto" =>
+        //     [
+        //         "monto" => [
+        //             "valor" => "",
+        //             "moneda" => "",
+
+        //         ]
+        //     ],
+        //     "proveedorContratistaGobierno" => false,
+
+        // ],
+        // "aclaracionesObservaciones" => "",
+        # code...
+
+        return $datosPareja;
     }
     protected function generarNombreArchivo($declaracion)
     {
