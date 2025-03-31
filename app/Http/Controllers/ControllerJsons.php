@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Response;
 use ZipArchive;
 use Illuminate\Support\Facades\Storage;
 
+use function Laravel\Prompts\select;
+
 class ControllerJsons extends Controller
 {
 
@@ -61,6 +63,7 @@ class ControllerJsons extends Controller
         FilteredHoja3 AS (
             SELECT * FROM Hoja3 WHERE rn_hoja3 = 1
         ),
+
         DatosEmpleo AS (
             SELECT
                 h4.Id_SituacionPatrimonial,
@@ -82,12 +85,19 @@ class ControllerJsons extends Controller
                 h4.CiudadLocalidad as 'h4 ciudadLocalidad',
                 h4.EstadoProvincia as 'h4 estadoProvincia',
                 h4.CodigoPostal as 'h4 codigoPostal',
+				m4Municio.clave_geologica as 'h4 clave municipioAlcaldia',
+			m4Municio.Municipio as 'h4 valor municipioAlcaldia',
+    RIGHT('0' + CAST(m4Estado.Clave AS VARCHAR(2)), 2) AS 'h4 clave entidadFederativa',
+			m4Estado.Estado as 'h4 valor entidadFederativa',
                 h4Pais.Pais as 'h4 pais',
                 h4.Aclaraciones as 'h4 aclaracionesObservaciones',
                 ROW_NUMBER() OVER (PARTITION BY h4.Id_SituacionPatrimonial ORDER BY h4.FechaRegistro DESC) as rn_empleo
             FROM DECL_DatosEmpleoCargoComision as h4
             INNER JOIN NivelOrdenGobierno as h4NivelOrdenGobierno ON h4NivelOrdenGobierno.clave = h4.Id_NivelOrdenGobierno
             INNER JOIN AmbitoPublico as h4AmbitoPublico ON h4AmbitoPublico.clave = h4.Id_AmbitoPublico
+			LEFT JOIN Municipio as m4Municio on m4Municio.Clave =h4.Id_MunicipioAlcaldia
+			LEFT JOIN Estado as m4Estado on m4Estado.Clave =h4.Id_EntidadFederativa
+
             LEFT JOIN Pais as h4Pais ON h4Pais.Clave = h4.Id_Pais
         ),
         FilteredDatosEmpleo AS (
@@ -96,6 +106,13 @@ class ControllerJsons extends Controller
         
         SELECT 
             Declaracion.Id_SituacionPatrimonial,
+			Declaracion.FechaRegistro,
+			Declaracion.EsSimplificada,
+			CASE
+    WHEN Declaracion.Id_Plazo =1  THEN 'INICIAL'
+    WHEN Declaracion.Id_Plazo =2 THEN 'MODIFICACIÓN'
+    WHEN Declaracion.Id_Plazo =3 THEN 'CONCLUSIÓN'
+END as tipo,
             h1.Nombre as 'h1 nombre',
             h1.PrimerApellido as 'h1 primerApellido',
             h1.SegundoApellido as 'h1 segundoApellido',
@@ -121,6 +138,10 @@ class ControllerJsons extends Controller
             h2.EstadoProvincia as 'h2 estadoProvincia',
             h2.CodigoPostal as 'h2 CodigoPostal',
             h2Pais.Code as 'h2 Pais',
+			m2Municio.clave_geologica as 'h2 clave municipioAlcaldia',
+			m2Municio.Municipio as 'h2 valor municipioAlcaldia',
+    RIGHT('0' + CAST(m2Estado.Clave AS VARCHAR(2)), 2) AS 'h2 clave entidadFederativa',
+			m2Estado.Estado as 'h2 valor entidadFederativa',
             h2.Aclaraciones as 'h2 aclaracionesObservaciones',
             FilteredHoja3.*,
             FilteredDatosEmpleo.*
@@ -131,32 +152,52 @@ class ControllerJsons extends Controller
         INNER JOIN Pais ON Pais.Clave = h1.Id_PaisNacimiento
         INNER JOIN Pais as Nacionalidad ON Nacionalidad.Clave = h1.Id_Nacionalidad
         INNER JOIN DECL_DomicilioDeclarante as h2 ON h2.Id_SituacionPatrimonial = Declaracion.Id_SituacionPatrimonial
-        LEFT JOIN Pais as h2Pais ON h2Pais.Clave = h2.Id_Pais
+		LEFT JOIN Pais as h2Pais ON h2Pais.Clave = h2.Id_Pais
+		LEFT JOIN Municipio as m2Municio on m2Municio.Clave =h2.Id_MunicipioAlcaldia
+		LEFT JOIN Estado as m2Estado on m2Estado.Clave =h2.Id_EntidadFederativa
+
         INNER JOIN FilteredHoja3 ON FilteredHoja3.h3_Id_SituacionPatrimonial = Declaracion.Id_SituacionPatrimonial
         INNER JOIN FilteredDatosEmpleo ON FilteredDatosEmpleo.Id_SituacionPatrimonial = Declaracion.Id_SituacionPatrimonial
-        WHERE Declaracion.EstaCompleta = 1
+        WHERE Declaracion.EstaCompleta = 1 
         ORDER BY Declaracion.Id_SituacionPatrimonial DESC;
         ");
     }
 
     protected function generarEstructuraJson($declaracion)
     {
-        return [
-            "metaData" => [],
-            "declaracion" => [
-                "situacionPatrimonial" => [
-                    "datosGenerales" => $this->generarSeccionDatosGenerales($declaracion),
-                    "domicilioDeclarante" => $this->generarSeccionDomicilio($declaracion),
-                    "datosCurricularesDeclarante" => $this->generarSeccionDatosCurriculares($declaracion),
-                    "datosEmpleoCargoComision" => $this->generarSeccionDatosEmpleoCargoComision($declaracion),
-                    "experienciaLaboral" => $this->generarSeccionExperienciaLaboral($declaracion->{'Id_SituacionPatrimonial'}),
-                    "datosPareja" => $this->generarSeccionDatosPareja($declaracion->{'Id_SituacionPatrimonial'}),
+        $situacionPatrimonial = [
+            "datosGenerales" => $this->generarSeccionDatosGenerales($declaracion),
+            "domicilioDeclarante" => $this->generarSeccionDomicilio($declaracion),
+            "datosCurricularesDeclarante" => $this->generarSeccionDatosCurriculares($declaracion),
+            "datosEmpleoCargoComision" => $this->generarSeccionDatosEmpleoCargoComision($declaracion),
+            "experienciaLaboral" => $this->generarSeccionExperienciaLaboral($declaracion->{'Id_SituacionPatrimonial'}),
+            "datosPareja" => $this->generarSeccionDatosPareja($declaracion->{'Id_SituacionPatrimonial'}),
+            "datosDependienteEconomico" => $this->generarSeccionDatosDependientesEconomicos($declaracion->{'Id_SituacionPatrimonial'}),
+            "ingresos" => $this->generarSeccionIngresos($declaracion->{'Id_SituacionPatrimonial'})
+        ];
 
-                ]
+        if ($declaracion->{'tipo'} != 'MODIFICACIÓN' ) {
+            $situacionPatrimonial["actividadAnualAnterior"] = $this->generarSeccionActividadAnualAnterior($declaracion->{'Id_SituacionPatrimonial'});
+        }
+        $situacionPatrimonial["bienesInmuebles"] = $this->generarSeccionBienesInmuebles($declaracion->{'Id_SituacionPatrimonial'});
+
+        return [
+            "metaData" => $this->generarMetaData($declaracion),
+            "declaracion" => [
+                "situacionPatrimonial" => $situacionPatrimonial
             ]
         ];
     }
-
+    protected function generarMetaData($declaracion)
+    {
+        return [
+            "actualizacion" => $declaracion->{'FechaRegistro'},
+            "institucion" => 'R. AYUNTAMIENTO DE GOMEZ PALACIO',
+            "tipo" => $declaracion->{'tipo'},
+            "declaracionCompleta" => !$declaracion->{'EsSimplificada'},
+            "actualizacionConflictoInteres" => false,
+        ];
+    }
     protected function generarSeccionDatosGenerales($declaracion)
     {
         return [
@@ -198,8 +239,16 @@ class ControllerJsons extends Controller
                 "numeroExterior" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 numeroExterior"},
                 "numeroInterior" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 numeroInterior"},
                 "coloniaLocalidad" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 coloniaLocalidad"},
-                "municipioAlcaldia" => $declaracion->{"h2 Pais"} ? "" :  [],
-                "entidadFederativa" => $declaracion->{"h2 Pais"} ? "" :  [],
+                "municipioAlcaldia" => $declaracion->{"h2 Pais"} ? "" :  [
+                    "clave" => $declaracion->{'h2 clave municipioAlcaldia'},
+                    "valor" => $declaracion->{'h2 valor municipioAlcaldia'},
+
+                ],
+                "entidadFederativa" => $declaracion->{"h2 Pais"} ? "" :  [
+                    "clave" => $declaracion->{'h2 clave entidadFederativa'},
+                    "valor" => $declaracion->{'h2 valor entidadFederativa'},
+
+                ],
                 "codigoPostal" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 CodigoPostal"},
             ],
             "domicilioExtranjero" => [
@@ -261,13 +310,15 @@ class ControllerJsons extends Controller
                 "numeroExterior" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 NumeroExterior'},
                 "numeroInterior" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 NumeroInterior'},
                 "coloniaLocalidad" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 coloniaLocalidad'},
-                "municipioAlcaldia" => [
-                    // "clave" => $declaracion->{'h4 estatus'},
-                    // "valor" => $declaracion->{'h4 estatus'},
+                "municipioAlcaldia" => $declaracion->{"h4 pais"} ? "" :  [
+                    "clave" => $declaracion->{'h4 clave municipioAlcaldia'},
+                    "valor" => $declaracion->{'h4 valor municipioAlcaldia'},
+
                 ],
-                "entidadFederativa" => [
-                    // "clave" => $declaracion->{'h4 estatus'},
-                    // "valor" => $declaracion->{'h4 estatus'},
+                "entidadFederativa" => $declaracion->{"h2 Pais"} ? "" :  [
+                    "clave" => $declaracion->{'h4 clave entidadFederativa'},
+                    "valor" => $declaracion->{'h4 valor entidadFederativa'},
+
                 ],
                 "codigoPostal" =>  $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 codigoPostal'},
             ],
@@ -390,10 +441,14 @@ class ControllerJsons extends Controller
         BEGIN
         SELECT 
         p.Nombre,PrimerApellido,SegundoApellido,CONVERT(VARCHAR(10), FechaNacimiento, 120) AS 'FechaNacimiento',RfcPareja,rc.valor as 'relacionConDeclarante',  p.EsCiudadanoExtranjero,p.Curp,p.EsDependienteEconomico,p.HabitaDomicilioDeclarante,
-          IIF(p.Id_LugarDondeReside = 0, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside',p.Calle,p.NumeroExterior,p.NumeroInterior,p.ColoniaLocalidad,p.CodigoPostal,ac.valor as 'actividad valor',ac.nombre as 'actividad clave',Nio.valor as 'nivelOrdenGobierno',
+          IIF(p.Id_LugarDondeReside = 1, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside',p.Calle,p.NumeroExterior,p.NumeroInterior,p.ColoniaLocalidad,p.CodigoPostal,ac.valor as 'actividad valor',ac.nombre as 'actividad clave',Nio.valor as 'nivelOrdenGobierno',
           ap.valor as 'ambitoPublico',p.NombreEntePublico,p.AreaAdscripcion,p.EmpleoCargoComision,p.FuncionPrincipal,p.ValorSalarioMensualNeto as 'monto valor',m.Divisa,p.NombreEmpresaSociedadAsociacion as 'nombreEmpresaSociedadAsociacion',p.RfcEmpresa,
-          CONVERT(VARCHAR(10), FechaIngreso, 120) AS 'FechaIngreso',s.valor as 'sector clave',s.Abreviatura as 'sector valor',p.EsProveedorContratistaGobierno,p.CiudadLocalidad,p.EstadoProvincia,p.Aclaraciones,  Pa.Pais
-
+          CONVERT(VARCHAR(10), FechaIngreso, 120) AS 'FechaIngreso',s.valor as 'sector clave',s.Abreviatura as 'sector valor',p.EsProveedorContratistaGobierno,p.CiudadLocalidad,p.EstadoProvincia,p.Aclaraciones,  Pa.Pais,
+		  Municipio.clave_geologica as 'clave municipioAlcaldia',Municipio.Municipio as 'valor municipioAlcaldia',
+		  RIGHT('0' + CAST(Estado.Clave AS VARCHAR(2)), 2) AS 'clave entidadFederativa',
+		  Estado.Estado as 'valor entidadFederativa'
+		  	
+		
         
           from DECL_DatosPareja as p
           left join ParentescoRelacion as rc on rc.clave = p.Id_RelacionDeclarante
@@ -403,7 +458,8 @@ class ControllerJsons extends Controller
           left join Moneda as m on m.Clave = p.Id_MonedaSalarioMensualNeto
           left join Sector as s on s.clave = p.Id_Sector
           left join Pais as pa on pa.Clave = p.Id_Pais
-
+		  LEFT JOIN Municipio  on Municipio.Clave =p.Id_MunicipioAlcaldia
+		LEFT JOIN Estado  on Municipio.Clave =p.Id_EntidadFederativa
                 WHERE Id_SituacionPatrimonial = ?
 
         END
@@ -424,9 +480,10 @@ class ControllerJsons extends Controller
         }
         if (!isset($pareja->message)) {
             # code.. .
-            array_push(
-                $datosPareja,
+            $datosPareja  =
                 [
+                    "ninguno" => isset($pareja->message) ? true : false,
+
                     "tipoOperacion" => 'AGREGAR',
                     "nombre" => $pareja->Nombre,
                     "primerApellido" => $pareja->PrimerApellido,
@@ -445,13 +502,14 @@ class ControllerJsons extends Controller
                         "numeroInterior" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroInterior"} : "",
                         "coloniaLocalidad" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"ColoniaLocalidad"} : "",
                         "municipioAlcaldia" => [
-                            "clave" => null,
-                            "valor" => null,
+                            "clave" => $pareja->{'clave municipioAlcaldia'},
+                            "valor" => $pareja->{'valor municipioAlcaldia'},
 
                         ],
                         "entidadFederativa" => [
-                            "clave" => null,
-                            "valor" => null,
+                            "clave" => $pareja->{'clave entidadFederativa'},
+                            "valor" => $pareja->{'valor entidadFederativa'},
+
                         ],
                         "codigoPostal" => $pareja->{"lugarDondeReside"} == "MEXICO" ? "" :  $pareja->{"CodigoPostal"},
                     ],
@@ -464,9 +522,7 @@ class ControllerJsons extends Controller
                         "pais" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Pais"} : "",
                         "codigoPostal" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CodigoPostal"} : "",
                     ],
-
-                ]
-            );
+                ];
         }
         if ($pareja->{'actividad valor'}) {
             $datosPareja["actividadLaboral"] = [
@@ -515,32 +571,501 @@ class ControllerJsons extends Controller
 
             ];
         }
-        $datosPareja["aclaracionesObservaciones"]= $pareja->Aclaraciones;
+        $datosPareja["aclaracionesObservaciones"] = $pareja->Aclaraciones;
 
-        // "actividadLaboralSectorPrivadoOtro" => [
-        //     "nombreEmpresaSociedadAsociacion" => "",
-        //     "empleoCargoComision" => "",
-        //     "rfc" => "",
-        //     "fechaIngreso" => "",
-        //     "sector" => [
-        //         "clave" => "",
-        //         "valor" => "",
-        //     ],
-        //     "salarioMensualNeto" =>
-        //     [
-        //         "monto" => [
-        //             "valor" => "",
-        //             "moneda" => "",
-
-        //         ]
-        //     ],
-        //     "proveedorContratistaGobierno" => false,
-
-        // ],
-        // "aclaracionesObservaciones" => "",
-        # code...
 
         return $datosPareja;
+    }
+    protected function generarSeccionDatosDependientesEconomicos($id)
+    {
+        $dependientesEconomicos = DB::select(
+            "
+            IF EXISTS (SELECT * FROM DECL_DatosDependienteEconomico WHERE Id_SituacionPatrimonial = ?)
+            BEGIN
+            SELECT 
+           dp.Nombre,dp.PrimerApellido,dp.SegundoApellido,CONVERT(VARCHAR(10), dp.FechaNacimiento, 120) AS 'h3 FechaNacimiento',dp.RfcDependiente,
+           pr.abreviatura as 'clave parentescoRelacion',pr.valor as 'valor parentescoRelacion',dp.EsCiudadanoExtranjero,dp.Curp,dp.HabitaDomicilioDeclarante,IIF(dp.Id_LugarDondeReside = 1, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside',
+           dp.Calle,dp.NumeroExterior,dp.NumeroInterior,dp.ColoniaLocalidad,dp.CodigoPostal,
+              Municipio.clave_geologica as 'clave municipioAlcaldia',Municipio.Municipio as 'valor municipioAlcaldia',
+              RIGHT('0' + CAST(Estado.Clave AS VARCHAR(2)), 2) AS 'clave entidadFederativa',
+              Estado.Estado as 'valor entidadFederativa',dp.CiudadLocalidad,dp.EstadoProvincia  	
+              ,p.Pais,ac.valor as 'actividad valor',ac.nombre as 'actividad clave'
+              ,Nio.valor as 'nivelOrdenGobierno',ap.valor as 'ambitoPublico'
+              ,dp.NombreEntePublico,dp.AreaAdscripcion,dp.EmpleoCargoComision,dp.FuncionPrincipal,dp.ValorSalarioMensualNeto as 'monto valor',
+              m.Divisa,CONVERT(VARCHAR(10), dp.FechaIngreso, 120) AS 'FechaIngreso',dp.NombreEmpresaSociedadAsociacion as 'nombreEmpresaSociedadAsociacion',dp.RfcEmpresa,s.valor as 'sector clave',s.Abreviatura as 'sector valor',dp.EsProveedorContratistaGobierno,dp.Aclaraciones
+              from DECL_DatosDependienteEconomico as dp 
+              inner join ParentescoRelacion as pr on pr.clave = dp.Id_ParentescoRelacion
+              LEFT JOIN Municipio  on Municipio.Clave =dp.Id_MunicipioAlcaldia
+              LEFT JOIN Estado  on Municipio.Clave =dp.Id_EntidadFederativa
+              left join Pais as p on p.Clave = dp.Id_Pais
+              left join ActividadLaboral as ac on ac.clave = dp.Id_ActividadLaboral
+              left join NivelOrdenGobierno as Nio on Nio.clave = dp.Id_NivelOrdenGobierno
+              left join AmbitoPublico as ap on ap.clave = dp.Id_AmbitoPublico
+              left join Moneda as m on m.Clave = dp.Id_MonedaSalarioMensualNeto
+              left join Sector as s on s.clave = dp.Id_Sector
+    
+              WHERE Id_SituacionPatrimonial = ?
+    
+            END
+            ELSE 
+            BEGIN
+                SELECT 'No existen registros' AS message;
+            END
+    
+    
+    
+    
+            ",
+            [$id, $id]
+        );
+        $dependientes = [];
+        $dependientes = [
+            "ninguno" => isset($dependientesEconomicos[0]->message) ? true : false,
+        ];
+        $dependientes = [
+            "ninguno" => isset($dependientesEconomicos[0]->message) ? true : false,
+            "dependienteEconomico" => [],
+            "aclaracionesObservaciones" => "",
+
+        ];
+        if (isset($dependientesEconomicos[0]->message)) {
+            return $dependientes;
+        }
+        foreach ($dependientesEconomicos as $dep) {
+
+            $dependiente = [
+                "nombre" => $dep->Nombre,
+                "primerApellido" => $dep->PrimerApellido,
+                "segundoApellido" => $dep->SegundoApellido,
+                "fechaNacimiento" => $dep->{'h3 FechaNacimiento'},
+                "rfc" => $dep->RfcDependiente,
+                "parentescoRelacion" => [
+                    "clave" => $dep->{'clave parentescoRelacion'},
+                    "valor" => $dep->{'valor parentescoRelacion'},
+                ],
+                "extranjero" => $dep->EsCiudadanoExtranjero ? true : false,
+                "curp" => $dep->Curp,
+                "habitaDomicilioDeclarante" => $dep->HabitaDomicilioDeclarante ? true : false,
+                "lugarDondeReside" => $dep->lugarDondeReside,
+                "domicilioMexico" => [
+                    "calle" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
+                    "numeroExterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
+                    "numeroInterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
+                    "coloniaLocalidad" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
+                    "municipioAlcaldia" => [
+                        "clave" => $dep->{'clave municipioAlcaldia'},
+                        "valor" => $dep->{'valor municipioAlcaldia'},
+
+                    ],
+                    "entidadFederativa" => [
+                        "clave" => $dep->{'clave entidadFederativa'},
+                        "valor" => $dep->{'valor entidadFederativa'},
+
+                    ],
+                    "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? "" :  $dep->{"CodigoPostal"},
+                ],
+                "domicilioExtranjero" => [
+                    "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
+                    "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
+                    "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
+                    "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
+                    "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
+                    "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
+                    "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
+                ],
+
+
+            ];
+            if ($dep->{'actividad valor'}) {
+                $dependiente["actividadLaboral"] = [
+                    "clave" => $dep->{'actividad clave'},
+                    "valor" => $dep->{'actividad valor'},
+                ];
+            }
+            if ($dep->{'actividad clave'} == 'PUB') {
+                $dependiente["actividadLaboralSectorPublico"] = [
+                    "nivelOrdenGobierno" => $dep->nivelOrdenGobierno,
+                    "ambitoPublico" => $dep->ambitoPublico,
+                    "nombreEntePublico" => $dep->NombreEntePublico,
+                    "areaAdscripcion" => $dep->AreaAdscripcion,
+                    "empleoCargoComision" => $dep->EmpleoCargoComision,
+                    "funcionPrincipal" => $dep->FuncionPrincipal,
+                    "salarioMensualNeto" => [
+                        "monto" => [
+                            "valor" =>  $dep->{'monto valor'},
+                            "moneda" =>  $dep->Divisa,
+
+                        ],
+                        "fechaIngreso" => $dep->FechaIngreso,
+                    ]
+                ];
+            }
+            if ($dep->{'actividad clave'} == 'PRI') {
+                $dependiente["actividadLaboralSectorPrivadoOtro"] = [
+                    "nombreEmpresaSociedadAsociacion" => $dep->nombreEmpresaSociedadAsociacion,
+                    "empleoCargoComision" => $dep->EmpleoCargoComision,
+                    "rfc" => $dep->RfcEmpresa,
+                    "fechaIngreso" => $dep->FechaIngreso,
+                    "proveedorContratistaGobierno" => false,
+                    "sector" => [
+                        "clave" => $dep->{'sector clave'},
+                        "valor" => $dep->{'sector valor'},
+                    ],
+                    "salarioMensualNeto" =>
+                    [
+                        "monto" => [
+                            "valor" => $dep->{'monto valor'},
+                            "moneda" => $dep->Divisa,
+
+                        ]
+                    ],
+
+
+                ];
+            }
+            $dependientes["dependienteEconomico"][] = $dependiente;
+        }
+
+        return $dependientes;
+    }
+    protected function generarSeccionIngresos($id)
+    {
+        $declaracion = DB::selectOne(
+            "select  i.Id_SituacionPatrimonial,i.RemuneracionMensualAnualConclusionCargoPublico as 'h8 valor remuneracionMensualCargoPublico'
+            ,i.OtrosIngresosMensualesAnualesConclusionTotal as 'h8 valor otrosIngresosMensualesTotal'
+            ,i.AICE_Id_RemuneracionTotal as 'h8 valor actividadIndustrialComercialEmpresarial',
+            i.AICE_NombreRazonSocial as 'h8 nombreRazonSocial',
+            i.AICE_TipoNegocio as 'h8 TipoNegocio',
+            i.AF_RemuneracionTotal as 'h8 valor actividadFinanciera',
+            ti.abreviatura as 'h8 clave tipoInstrumento',
+            ti.valor as 'h8 valor tipoInstrumento',
+            i.SP_RemuneracionTotal as 'h8 RemuneracionTotal',
+            SP_TipoServicioPrestado as 'h8 servicios tipoServicio',
+            i.IngresoMensualAnualConclusionNeto as 'h8 ingresos',
+            i.IngresoNetoParejaDependiente as 'h8 ingresoMensualNetoParejaDependiente',
+            i.TotalIngresosNetos as 'h8 totalIngresosMensualesNetos',
+            i.Aclaraciones as 'h8 Aclaraciones'
+            from DECL_Ingresos as i
+    left join TipoInstrumento as ti on ti.clave = i.AF_Id_TipoInstrumento
+    where i.Id_SituacionPatrimonial =?
+    ",
+            [$id]
+        );
+        if (!$declaracion) {
+            return;
+        }
+        return [
+            "remuneracionMensualCargoPublico" => [
+                "valor" => $declaracion->{'h8 valor remuneracionMensualCargoPublico'},
+                "moneda" => "MXN",
+            ],
+            "otrosIngresosMensualesTotal" => [
+                "valor" => $declaracion->{'h8 valor otrosIngresosMensualesTotal'},
+                "moneda" => "MXN",
+            ],
+            "actividadIndustrialComercialEmpresarial" => [
+                "remuneracionTotal" => [
+                    "monto" => [
+                        "valor" => $declaracion->{'h8 valor actividadIndustrialComercialEmpresarial'},
+                        "moneda" => "MXN",
+                    ]
+                ],
+                "actividades" => [
+                    [
+                        "remuneracion" => [
+                            "monto" => [
+                                "valor" => $declaracion->{'h8 valor actividadIndustrialComercialEmpresarial'},
+                                "moneda" => "MXN",
+                            ],
+                            "nombreRazonSocial" => $declaracion->{'h8 nombreRazonSocial'},
+                            "tipoNegocio" => $declaracion->{'h8 TipoNegocio'},
+                        ]
+                    ]
+                ],
+            ],
+            "actividadFinanciera" => [
+                "remuneracionTotal" => [
+                    "monto" => [
+                        "valor" => $declaracion->{'h8 valor actividadFinanciera'},
+                        "moneda" => "MXN",
+                    ]
+                ],
+                "actividades" => [[
+                    "remuneracion" => [
+                        "monto" => [
+                            "valor" => $declaracion->{'h8 valor actividadFinanciera'},
+                            "moneda" => "MXN",
+                        ]
+                    ],
+                    "tipoInstrumento" => [
+                        "clave" => $declaracion->{'h8 clave tipoInstrumento'},
+                        "valor" => $declaracion->{'h8 valor tipoInstrumento'},
+                    ]
+                ]],
+
+            ],
+            "serviciosProfesionales" => [
+                "remuneracionTotal" => [
+                    "monto" => [
+                        "valor" => $declaracion->{'h8 RemuneracionTotal'},
+                        "moneda" => "MXN",
+                    ]
+                ],
+                "servicios" => [
+                    [
+                        "remuneracion" => [
+                            "monto" => [
+                                "valor" => $declaracion->{'h8 RemuneracionTotal'},
+                                "moneda" => "MXN",
+                            ]
+                        ],
+                        "tipoServicio" => $declaracion->{'h8 servicios tipoServicio'},
+                    ]
+                ]
+            ],
+            // "serviciosProfesionales" => [
+            //     "remuneracionTotal" => [
+            //         "monto" => [
+            //             "valor" => "",
+            //             "moneda" => "MXN",
+            //         ]
+            //     ],
+            //     "servicios" => [
+            //         [
+            //             "remuneracion" => [
+            //                 "monto" => [
+            //                     "valor" => "",
+            //                     "moneda" => "MXN",
+            //                 ]
+            //             ],
+            //             "tipoServicio" => "",
+            //         ]
+            //     ]
+            // ],
+            "otrosIngresos" => [
+                "remuneracionTotal" => [
+                    "monto" => [
+                        "valor" => $declaracion->{'h8 valor otrosIngresosMensualesTotal'},
+                        "moneda" => "MXN",
+                    ]
+                ],
+                "ingresos" => [
+                    [
+                        "remuneracion" => [
+                            "monto" => [
+                                "valor" => $declaracion->{'h8 valor otrosIngresosMensualesTotal'},
+                                "moneda" => "MXN",
+                            ]
+                        ],
+                        "tipoIngreso" => "",
+                    ]
+                ]
+            ],
+            "ingresoMensualNetoDeclarante" => [
+                "monto" => [
+                    "valor" => $declaracion->{'h8 ingresos'},
+                    "moneda" => "MXN",
+                ]
+            ],
+            "ingresoMensualNetoParejaDependiente" => [
+                "monto" => [
+                    "valor" => $declaracion->{'h8 ingresoMensualNetoParejaDependiente'},
+                    "moneda" => "MXN",
+                ]
+            ],
+            "totalIngresosMensualesNetos" => [
+                "monto" => [
+                    "valor" => $declaracion->{'h8 totalIngresosMensualesNetos'},
+                    "moneda" => "MXN",
+                ]
+            ],
+            "aclaracionesObservaciones" => $declaracion->{'h8 Aclaraciones'},
+        ];
+    }
+    protected function generarSeccionActividadAnualAnterior($id)
+    {
+        $declaracion = DB::selectOne(
+            "select  
+			i.FechaInicio,
+			i.FechaConclusion,
+			i.RemuneracionNetaCargoPublico as 'valor remuneracionMensualCargoPublico'
+            ,i.OtrosIngresosTotal as 'valor otrosIngresosMensualesTotal'
+            ,i.AICE_Id_RemuneracionTotal as 'valor actividadIndustrialComercialEmpresarial',
+            i.AICE_NombreRazonSocial as 'nombreRazonSocial',
+            i.AICE_TipoNegocio as 'TipoNegocio',
+            i.AF_RemuneracionTotal as 'valor actividadFinanciera',
+            ti.abreviatura as 'clave tipoInstrumento',
+            ti.valor as 'valor tipoInstrumento',
+            i.SP_RemuneracionTotal as 'RemuneracionTotal',
+            SP_TipoServicioPrestado as 'servicios tipoServicio',
+            i.IngresoMensualConclusionNeto as 'ingresos',
+            i.IngresoNetoParejaDependiente as 'ingresoMensualNetoParejaDependiente',
+            i.TotalIngresosNetos as 'totalIngresosMensualesNetos',
+			tb.clave as 'tipoBienEnajenado',
+            i.Aclaraciones
+            from DECL_ActividadAnualAnterior as i
+    left join TipoInstrumento as ti on ti.clave = i.AF_Id_TipoInstrumento
+	left join TipoBienEnajenacionBienes as tb on tb.clave = i.EB_Id_TipoBienEnajenado
+    where i.Id_SituacionPatrimonial =?
+    ",
+            [$id]
+        );
+        $actividadAnual = [];
+        $actividadAnual["servidorPublicoAnioAnterior"] = $declaracion ? true : false;
+        if (!$declaracion) {
+            return $actividadAnual;
+        }
+        $actividadAnual["fechaIngreso"] =  $declaracion->{'FechaInicio'};
+        $actividadAnual["fechaConclusion"] = $declaracion->{'FechaConclusion'};
+        $actividadAnual["remuneracionNetaCargoPublico"] = [
+            "monto" => [
+                "valor" => $declaracion->{'valor remuneracionMensualCargoPublico'},
+                "moneda" => "MXN"
+            ]
+        ];
+        $actividadAnual["otrosIngresosTotal"] = [
+            "monto" => [
+                "valor" => $declaracion->{'valor otrosIngresosMensualesTotal'},
+                "moneda" => "MXN"
+            ]
+        ];
+        $actividadAnual["actividadIndustrialComercialEmpresarial"] = [
+            "remuneracionTotal" => [
+                "monto" => [
+                    "valor" => $declaracion->{'valor actividadIndustrialComercialEmpresarial'},
+                    "moneda" => "MXN"
+                ]
+            ],
+            "actividades" => [
+                [
+                    "remuneracion" => [
+                        "monto" => [
+                            "valor" => $declaracion->{'valor actividadIndustrialComercialEmpresarial'},
+                            "moneda" => "MXN"
+                        ],
+
+                    ],
+                    "nombreRazonSocial" => $declaracion->{'nombreRazonSocial'},
+                    "tipoNegocio" => $declaracion->{'TipoNegocio'},
+
+                ]
+            ]
+        ];
+        $actividadAnual["actividadFinanciera"] = [
+            "remuneracionTotal" => [
+                "monto" => [
+                    "valor" => $declaracion->{'valor actividadFinanciera'},
+                    "moneda" => "MXN"
+                ]
+            ],
+            "actividades" => [
+                [
+                    "remuneracion" => [
+                        "monto" => [
+                            "valor" => $declaracion->{'valor actividadFinanciera'},
+                            "moneda" => "MXN"
+                        ],
+
+                    ],
+                    "tipoInstrumento" => [
+                        "clave" => $declaracion->{'clave tipoInstrumento'},
+                        "valor" => $declaracion->{'valor tipoInstrumento'},
+
+
+                    ],
+
+                ]
+            ]
+        ];
+        $actividadAnual["serviciosProfesionales"] = [
+            "remuneracionTotal" => [
+                "monto" => [
+                    "valor" => $declaracion->{'RemuneracionTotal'},
+                    "moneda" => "MXN",
+                ]
+            ],
+            "servicios" => [
+                [
+                    "remuneracion" => [
+                        "monto" => [
+                            "valor" => $declaracion->{'RemuneracionTotal'},
+                            "moneda" => "MXN",
+                        ]
+                    ],
+                    "tipoServicio" => $declaracion->{'servicios tipoServicio'},
+                ]
+            ]
+        ];
+        $actividadAnual["enajenacionBienes"] = [
+            "remuneracionTotal" => [
+                "monto" => [
+                    "valor" => "",
+                    "moneda" => "MXN",
+                ]
+            ],
+            "bienes" => [
+                [
+                    "remuneracion" => [
+                        "monto" => [
+                            "valor" => "",
+                            "moneda" => "MXN",
+                        ]
+                    ],
+                    "tipoBienEnajenado" => $declaracion->{'tipoBienEnajenado'},
+                ]
+            ]
+        ];
+        $actividadAnual["otrosIngresos"] = [
+            "remuneracionTotal" => [
+                "monto" => [
+                    "valor" => $declaracion->{'ingresos'},
+                    "moneda" => "MXN",
+                ]
+            ],
+            "ingresos" => [
+                [
+                    "remuneracion" => [
+                        "monto" => [
+                            "valor" => $declaracion->{'ingresos'},
+                            "moneda" => "MXN",
+                        ]
+                    ],
+                    "tipoIngreso" => "",
+                ]
+            ]
+        ];
+        $actividadAnual["ingresoNetoAnualDeclarante"] = [
+            "monto" => [
+                "valor" => $declaracion->{'ingresos'},
+                "moneda" => "MXN",
+            ]
+        ];
+        $actividadAnual["ingresoNetoAnualParejaDependiente"] = [
+            "monto" => [
+                "valor" => $declaracion->{'ingresoMensualNetoParejaDependiente'},
+                "moneda" => "MXN",
+            ]
+        ];
+        $actividadAnual["totalIngresosNetosAnuales"] = [
+            "monto" => [
+                "valor" => $declaracion->{'totalIngresosMensualesNetos'},
+                "moneda" => "MXN",
+            ]
+        ];
+        $actividadAnual["aclaracionesObservaciones"] = $declaracion->{'Aclaraciones'};
+        return $actividadAnual;
+    }
+    protected function generarSeccionBienesInmuebles($id){
+        $declaracion = DB::select();
+        $bienesInmuebles = [];
+        $bienesInmuebles["ninguno"] = $declaracion ? false : true;
+        if (!$declaracion) {
+            return $bienesInmuebles;
+        }
+        $bienesInmuebles["aclaracionesObservaciones"] = "";
+
+        return $bienesInmuebles;
+
     }
     protected function generarNombreArchivo($declaracion)
     {
