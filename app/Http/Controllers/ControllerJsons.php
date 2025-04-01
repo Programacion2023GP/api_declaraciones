@@ -176,11 +176,11 @@ END as tipo,
             "ingresos" => $this->generarSeccionIngresos($declaracion->{'Id_SituacionPatrimonial'})
         ];
 
-        if ($declaracion->{'tipo'} != 'MODIFICACIÓN' ) {
+        if ($declaracion->{'tipo'} != 'MODIFICACIÓN') {
             $situacionPatrimonial["actividadAnualAnterior"] = $this->generarSeccionActividadAnualAnterior($declaracion->{'Id_SituacionPatrimonial'});
         }
         $situacionPatrimonial["bienesInmuebles"] = $this->generarSeccionBienesInmuebles($declaracion->{'Id_SituacionPatrimonial'});
-
+        $situacionPatrimonial["vehiculos"] = $this->generarSeccionVehiculos($declaracion->{'Id_SituacionPatrimonial'});
         return [
             "metaData" => $this->generarMetaData($declaracion),
             "declaracion" => [
@@ -459,7 +459,7 @@ END as tipo,
           left join Sector as s on s.clave = p.Id_Sector
           left join Pais as pa on pa.Clave = p.Id_Pais
 		  LEFT JOIN Municipio  on Municipio.Clave =p.Id_MunicipioAlcaldia
-		LEFT JOIN Estado  on Municipio.Clave =p.Id_EntidadFederativa
+		LEFT JOIN Estado  on Estado.Clave =p.Id_EntidadFederativa
                 WHERE Id_SituacionPatrimonial = ?
 
         END
@@ -596,7 +596,7 @@ END as tipo,
               from DECL_DatosDependienteEconomico as dp 
               inner join ParentescoRelacion as pr on pr.clave = dp.Id_ParentescoRelacion
               LEFT JOIN Municipio  on Municipio.Clave =dp.Id_MunicipioAlcaldia
-              LEFT JOIN Estado  on Municipio.Clave =dp.Id_EntidadFederativa
+              LEFT JOIN Estado  on Estado.Clave =dp.Id_EntidadFederativa
               left join Pais as p on p.Clave = dp.Id_Pais
               left join ActividadLaboral as ac on ac.clave = dp.Id_ActividadLaboral
               left join NivelOrdenGobierno as Nio on Nio.clave = dp.Id_NivelOrdenGobierno
@@ -1055,17 +1055,410 @@ END as tipo,
         $actividadAnual["aclaracionesObservaciones"] = $declaracion->{'Aclaraciones'};
         return $actividadAnual;
     }
-    protected function generarSeccionBienesInmuebles($id){
-        $declaracion = DB::select();
-        $bienesInmuebles = [];
-        $bienesInmuebles["ninguno"] = $declaracion ? false : true;
-        if (!$declaracion) {
-            return $bienesInmuebles;
+    protected function generarSeccionBienesInmuebles($id)
+    {
+        $declaracion = DB::select("
+        select ti.valor as 'valor TipoInmueble',ti.abreviatura as 'clave TipoInmueble',t.valor as 'valor titular',t.abreviatura as 'clave titular',bienes.PorcentajePropiedad,bienes.SuperficieTerreno,bienes.Superficieconstruncion,
+        CASE
+            WHEN bienes.TR_Id_TipoPersona = 1 or bienes.TR_Id_TipoPersona = 0 THEN 'FISICA'
+            WHEN bienes.T_id_TipoPersona = 2 THEN 'MORAL'
+        END AS 'tercero tipo_persona',bienes.T_NombreRazonSocial,bienes.T_Rfc,
+        CASE
+            WHEN bienes.TR_Id_TipoPersona = 1 or bienes.TR_Id_TipoPersona = 0 THEN 'FISICA'
+            WHEN bienes.TR_Id_TipoPersona = 2 THEN 'MORAL'
+        END AS 'transmisor tipo_persona',bienes.TR_NombreRazonSocial,bienes.TR_Rfc,
+        rd.valor as 'valor relacion',
+        rd.abreviatura as 'clave relacion',
+        fd.valor as 'valor FormaAdquisicion',
+        fd.abreviatura as 'clave FormaAdquisicion',
+        fp.valor as 'forma_pago',
+        bienes.ValorAdquisicion,
+        bienes.FechaAdquisicion,
+        bienes.DatoIdentificacion,
+        vc.valor as 'valor conformeA',
+        mb.valor as 'valor motivo_baja',
+        mb.abreviatura as 'clave motivo_baja',
+        bienes.Calle,
+        bienes.NumeroExterior,
+        bienes.NumeroInterior,
+        bienes.ColoniaLocalidad,
+        Municipio.clave_geologica as 'clave municipioAlcaldia',
+        Municipio.Municipio as 'valor municipioAlcaldia',
+        RIGHT('0' + CAST(Estado.Clave AS VARCHAR(2)), 2) AS 'clave entidadFederativa',
+        Estado.Estado as 'valor entidadFederativa',
+        bienes.CodigoPostal,
+        bienes.CiudadLocalidad,
+        bienes.EstadoProvincia,
+		bienes.Aclaraciones,
+        p.Pais,
+        IIF(bienes.EsEnMexico = 1, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside'
+        from DECL_BienesInmuebles as bienes
+        inner join TipoInmueble as ti on ti.clave = bienes.Id_TipoInmueble
+        inner join Titular as t on t.clave = bienes.Id_Titular
+        left join ParentescoRelacion as rd on rd.clave = bienes.Id_Relacion
+        left join FormaAdquisicion as fd on fd.clave = bienes.Id_FormaAdquisicion
+        left join FormaPago as fp on fp.clave = bienes.Id_FormaPago
+        left join ValorConformeA as vc on vc.clave = bienes.Id_ValorConformeA
+        left join MotivoBaja as mb on mb.clave = bienes.Id_MotivoBaja
+        LEFT JOIN Municipio  on Municipio.Clave =bienes.Id_MunicipioAlcaldia
+        LEFT JOIN Estado  on Estado.Clave =bienes.Id_EntidadFederativa
+        left join Pais as p on p.Clave  = bienes.Id_Pais
+        where bienes.Id_SituacionPatrimonial =?
+        ", [$id]);
+
+        $resultado = [
+            "ninguno" => empty($declaracion),
+            "bienInmueble" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($declaracion)) {
+            return $resultado;
         }
-        $bienesInmuebles["aclaracionesObservaciones"] = "";
 
-        return $bienesInmuebles;
+        foreach ($declaracion as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $bien = [
+                'tipoOperacion' => "AGREGAR",
+                'tipoInmueble' => [
+                    "clave" => $dep->{'clave TipoInmueble'},
+                    "valor" => $dep->{'valor TipoInmueble'},
+                ],
+                'titular' => [
+                    "titularBien" => [
+                        [
+                            "clave" => $dep->{'clave titular'},
+                            "valor" => $dep->{'valor titular'},
+                        ]
+                    ]
+                ],
+                'porcentajePropiedad' => $dep->{'PorcentajePropiedad'},
+                'superficieTerreno' => [
+                    "superficie" => [
+                        "valor" => $dep->{'SuperficieTerreno'},
+                        "unidad" => "m2",
+                    ]
+                ],
+                'superficieConstruccion' => [
+                    "superficie" => [
+                        "valor" => $dep->{'Superficieconstruncion'},
+                        "unidad" => "m2",
+                    ]
+                ],
+                'tercero' => [
+                    [
+                        "tipoPersona" => $dep->{'tercero tipo_persona'},
+                        "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
+                    ]
+                ],
+                'transmisor' => [
+                    [
+                        "tipoPersona" => $dep->{'transmisor tipo_persona'},
+                        "nombreRazonSocial" => $dep->{'TR_NombreRazonSocial'},
+                        "rfc" => $dep->{'TR_Rfc'},
+                        "relacion" => [
+                            "parentescoRelacion" => [
+                                "clave" => $dep->{'clave relacion'},
+                                "valor" => $dep->{'valor relacion'},
+                            ]
+                        ],
+                    ]
+                ],
+                'formaAdquisicion' => [
+                    "clave" => $dep->{'clave FormaAdquisicion'},
+                    "valor" => $dep->{'valor FormaAdquisicion'},
+                ],
+                "formaPago" => $dep->{'forma_pago'},
+                'valorAdquisicion' => [
+                    "monto" => [
+                        "valor" => $dep->{'ValorAdquisicion'},
+                        "moneda" => "MXN",
+                    ]
+                ],
+                "fechaAdquisicion" => $dep->{'FechaAdquisicion'},
+                "datoIdentificacion" => $dep->{'DatoIdentificacion'},
+                "valorConformeA" => $dep->{'valor conformeA'},
+                'domicilioMexico' => [
+                    "calle" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
+                    "numeroExterior" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
+                    "numeroInterior" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
+                    "coloniaLocalidad" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
+                    "municipioAlcaldia" => [
+                        "clave" => $dep->{'clave municipioAlcaldia'},
+                        "valor" => $dep->{'valor municipioAlcaldia'},
+                    ],
+                    "entidadFederativa" => [
+                        "clave" => $dep->{'clave entidadFederativa'},
+                        "valor" => $dep->{'valor entidadFederativa'},
+                    ],
+                    "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"CodigoPostal"} : "",
+                ],
+                "domicilioExtranjero" => [
+                    "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
+                    "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
+                    "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
+                    "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
+                    "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
+                    "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
+                    "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
+                ],
+                'motivoBaja' => [
+                    "clave" => $dep->{"clave motivo_baja"},
+                    "valor" => $dep->{"valor motivo_baja"},
+                ]
+            ];
 
+            $resultado['bienInmueble'][] = $bien;
+        }
+
+        return $resultado;
+    }
+    // protected function generarSeccionBienesInmuebles($id)
+    // {
+    //     $declaracion = DB::select("
+    //     select ti.valor as 'valor TipoInmueble',ti.abreviatura as 'clave TipoInmueble',t.valor as 'valor titular',t.abreviatura as 'clave titular',bienes.PorcentajePropiedad,bienes.SuperficieTerreno,bienes.Superficieconstruncion,
+    //     CASE
+    //         WHEN bienes.TR_Id_TipoPersona = 1 or bienes.TR_Id_TipoPersona = 0 THEN 'FISICA'
+    //         WHEN bienes.T_id_TipoPersona = 2 THEN 'MORAL'
+    //     END AS 'tercero tipo_persona',bienes.T_NombreRazonSocial,bienes.T_Rfc,
+    //     CASE
+    //         WHEN bienes.TR_Id_TipoPersona = 1 or bienes.TR_Id_TipoPersona = 0 THEN 'FISICA'
+    //         WHEN bienes.TR_Id_TipoPersona = 2 THEN 'MORAL'
+    //     END AS 'transmisor tipo_persona',bienes.TR_NombreRazonSocial,bienes.TR_Rfc,
+    //     rd.valor as 'valor relacion',
+    //     rd.abreviatura as 'clave relacion',
+    //     fd.valor as 'valor FormaAdquisicion',
+    //     fd.abreviatura as 'clave FormaAdquisicion',
+    //     fp.valor as 'forma_pago',
+    //     bienes.ValorAdquisicion,
+    //     bienes.FechaAdquisicion,
+    //     bienes.DatoIdentificacion,
+    //     vc.valor as 'valor conformeA',
+    //     mb.valor as 'valor motivo_baja',
+    //     mb.abreviatura as 'clave motivo_baja',
+    //     bienes.Calle,
+    //     bienes.NumeroExterior,
+    //     bienes.NumeroInterior,
+    //     bienes.ColoniaLocalidad,
+    //     Municipio.clave_geologica as 'clave municipioAlcaldia',
+    //     Municipio.Municipio as 'valor municipioAlcaldia',
+    //     RIGHT('0' + CAST(Estado.Clave AS VARCHAR(2)), 2) AS 'clave entidadFederativa',
+    //     Estado.Estado as 'valor entidadFederativa',
+    //     bienes.CodigoPostal,
+    //     bienes.CiudadLocalidad,
+    //     bienes.EstadoProvincia,
+    //     p.Pais,
+    //     IIF(bienes.EsEnMexico = 1, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside'
+    //     from DECL_BienesInmuebles as bienes
+    //     inner join TipoInmueble as ti on ti.clave = bienes.Id_TipoInmueble
+    //     inner join Titular as t on t.clave = bienes.Id_Titular
+    //     left join ParentescoRelacion as rd on rd.clave = bienes.Id_Relacion
+    //     left join FormaAdquisicion as fd on fd.clave = bienes.Id_FormaAdquisicion
+    //     left join FormaPago as fp on fp.clave = bienes.Id_FormaPago
+    //     left join ValorConformeA as vc on vc.clave = bienes.Id_ValorConformeA
+    //     left join MotivoBaja as mb on mb.clave = bienes.Id_MotivoBaja
+    //     LEFT JOIN Municipio  on Municipio.Clave =bienes.Id_MunicipioAlcaldia
+    //     LEFT JOIN Estado  on Estado.Clave =bienes.Id_EntidadFederativa
+    //     left join Pais as p on p.Clave  = bienes.Id_Pais
+
+    //         where bienes.Id_SituacionPatrimonial =?
+    //     ", [$id]);
+    //     $bienesInmuebles = [];
+    //     $bienesInmuebles["ninguno"] = !empty($declaracion) ? false : true;
+    //     if (empty($declaracion)) {
+    //         return $bienesInmuebles;
+    //     }
+    //     foreach ($declaracion as $dep) {
+    //         $bien = [];
+    //         $bienesInmuebles['tipoOperacion'] = "AGREGAR";
+    //         $bienesInmuebles['tipoInmueble'] = [
+    //             "clave" => $dep->{'clave TipoInmueble'},
+    //             "valor" => $dep->{'valor TipoInmueble'},
+
+    //         ];
+    //         $bienesInmuebles['titular'] = [
+    //             "titularBien" => [
+    //                 [
+    //                     "clave" => $dep->{'valor titular'},
+    //                     "valor" => $dep->{'valor titular'},
+
+    //                 ]
+    //             ]
+
+    //         ];
+    //         $bienesInmuebles['porcentajePropiedad'] = $dep->{'PorcentajePropiedad'};
+    //         $bienesInmuebles['superficieTerreno'] = [
+    //             "superficie" => [
+    //                 "valor" => $dep->{'SuperficieTerreno'},
+    //                 "unidad" => "m2",
+
+    //             ]
+
+    //         ];
+    //         $bienesInmuebles['superficieConstruccion'] = [
+    //             "superficie" => [
+    //                 "valor" => $dep->{'Superficieconstruncion'},
+    //                 "unidad" => "m2",
+    //             ]
+    //         ];
+    //         $bienesInmuebles['tercero'] = [
+    //             [
+    //                 "tipoPersona" => $dep->{'tercero tipo_persona'},
+    //                 "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
+    //             ]
+
+    //         ];
+    //         $bienesInmuebles['transmisor'] = [
+    //             [
+    //                 "tipoPersona" => $dep->{'transmisor tipo_persona'},
+    //                 "nombreRazonSocial" => $dep->{'TR_NombreRazonSocial'},
+    //                 "rfc" => $dep->{'TR_Rfc'},
+    //                 "relacion" => [
+    //                     "parentescoRelacion" => [
+    //                         "clave" => $dep->{'clave relacion'},
+    //                         "valor" => $dep->{'valor relacion'},
+
+    //                     ]
+    //                 ],
+
+    //             ]
+    //         ];
+    //         $bienesInmuebles['formaAdquisicion'] = [
+
+    //             "clave" => $dep->{'clave FormaAdquisicion'},
+    //             "valor" => $dep->{'valor FormaAdquisicion'},
+
+
+    //         ];
+    //         $bienesInmuebles["formaPago"] = $dep->{'forma_pago'};
+    //         $bienesInmuebles['valorAdquisicion'] = [
+    //             "monto" => [
+    //                 "valor" => $dep->{'ValorAdquisicion'},
+    //                 "moneda" => "MXN",
+
+    //             ]
+
+    //         ];
+    //         $bienesInmuebles["fechaAdquisicion"] = $dep->{'FechaAdquisicion'};
+    //         $bienesInmuebles["datoIdentificacion"] = $dep->{'DatoIdentificacion'};
+    //         $bienesInmuebles["valorConformeA"] = $dep->{'valor conformeA'};
+    //         $bienesInmuebles["domicilioMexico"] = [
+    //             "calle" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
+    //             "numeroExterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
+    //             "numeroInterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
+    //             "coloniaLocalidad" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
+    //             "municipioAlcaldia" => [
+    //                 "clave" => $dep->{'clave municipioAlcaldia'},
+    //                 "valor" => $dep->{'valor municipioAlcaldia'},
+
+    //             ],
+    //             "entidadFederativa" => [
+    //                 "clave" => $dep->{'clave entidadFederativa'},
+    //                 "valor" => $dep->{'valor entidadFederativa'},
+
+    //             ],
+    //             "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? "" :  $dep->{"CodigoPostal"},
+    //         ];
+    //         $bienesInmuebles["domicilioExtranjero"] = [
+    //             "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
+    //             "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
+    //             "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
+    //             "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
+    //             "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
+    //             "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
+    //             "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
+    //         ];
+    //         $bienesInmuebles['motivoBaja'] = [
+    //             "clave" => $dep->{"clave motivo_baja"},
+    //             "valor" => $dep->{"valor motivo_baja"},
+
+    //         ];
+    //         $bienesInmuebles['bienInmueble'][] = $bien;
+    //     }
+    //     $bienesInmuebles["aclaracionesObservaciones"] = "";
+
+    //     return $bienesInmuebles;
+    // }
+    protected function generarSeccionVehiculos($id)
+    {
+        $declaracion = DB::select("",[$id]);
+        $resultado = [
+            "ninguno" => empty($declaracion),
+            "vehiculo" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($declaracion)) {
+            return $resultado;
+        }
+
+        foreach ($declaracion as $dep) {
+            $vehiculo = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoVehiculo" => [
+                    "clave" => "",
+                    "valor" => "",
+
+                ],
+                "titular" => [
+                    "titularBien" => [
+                        [
+
+                            "clave" => "",
+                            "valor" => "",
+                        ]
+                    ]
+
+                ],
+                "transmisor" => [
+                    [
+                        "tipoPersona" => "",
+                        "nombreRazonSocial" => "",
+                        "rfc" => "",
+                        "relacion" => "",
+
+                    ]
+                ],
+                "marca" => "",
+                "modelo" => "",
+                "anio" => "",
+                "numeroSerieRegistro" => "",
+                "tercero" => [
+
+                    [
+                        "tipoPersona" => "",
+                        "nombreRazonSocial" => "",
+                        "rfc" => "",
+
+                    ]
+                ],
+                "lugarRegistro" => [
+                    "pais" => "",
+                    "entidadFederativa" => [
+                        "clave" => "",
+                        "valor" => "",
+
+                    ]
+                ],
+                "formaAdquisicion" => [
+                    "clave" => "",
+                    "valor" => "",
+                ],
+                "formaPago" => "",
+                "valorAdquisicion" => [
+                    "valor" => "",
+                    "moneda" => "",
+                ],
+                "fechaAdquisicion" => "",
+                "motivoBaja" => [
+                    "clave" => "",
+                    "valor" => "",
+                ],
+
+            ];
+            $resultado['vehiculo'][] = $vehiculo;
+        }
+        return $resultado;
     }
     protected function generarNombreArchivo($declaracion)
     {

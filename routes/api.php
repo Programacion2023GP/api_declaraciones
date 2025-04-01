@@ -645,4 +645,6 @@ Route::prefix('reportes')->group(function () {
 // });
 Route::prefix('dowloand')->group(function () {
     Route::post('jsons', [ControllerJsons::class, 'descargarJsonZip']);
+    Route::get('/', [ControllerJsons::class, 'descargarJsonZip']);
+
 });
