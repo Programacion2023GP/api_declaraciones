@@ -56,6 +56,7 @@ class ControllerReportes extends Controller
             INNER JOIN MD_Person mdp ON uc.codigoEmpleado = mdp.Nomina
             WHERE sp.EstaCompleta = 1 AND sp.EsActivo = 1
             AND uc.fechaAlta >= '2020-07-01'
+            
             ";
 
             if ($plazo_id === 'undefined') {
