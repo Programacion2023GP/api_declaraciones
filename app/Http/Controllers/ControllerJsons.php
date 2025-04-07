@@ -17,28 +17,54 @@ class ControllerJsons extends Controller
 
     public function descargarJsonZip()
     {
-        set_time_limit(12000); // 300 segundos = 5 minutos
+        // set_time_limit(12000); // 300 segundos = 5 minutos
+        // ini_set('memory_limit', '1024M');
+        // $declaraciones = $this->obtenerDeclaraciones();
+
+        // $zipFileName = 'declaraciones_json.zip';
+        // $zipPath = storage_path("app/$zipFileName");
+
+        // $zip = new ZipArchive;
+        // if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+        //     foreach ($declaraciones as $declaracion) {
+        //         $json = $this->generarEstructuraJson($declaracion);
+        //         $jsonData = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        //         $jsonFileName = $this->generarNombreArchivo($declaracion);
+
+        //         $zip->addFromString($jsonFileName, $jsonData);
+        //     }
+        //     $zip->close();
+        // } else {
+        //     return response()->json(["error" => "No se pudo crear el archivo ZIP"], 500);
+        // }
+
+        // return response()->download($zipPath)->deleteFileAfterSend(true);
+
+        
+        set_time_limit(12000);
         ini_set('memory_limit', '1024M');
         $declaraciones = $this->obtenerDeclaraciones();
-
-        $zipFileName = 'declaraciones_json.zip';
-        $zipPath = storage_path("app/$zipFileName");
-
-        $zip = new ZipArchive;
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            foreach ($declaraciones as $declaracion) {
-                $json = $this->generarEstructuraJson($declaracion);
-                $jsonData = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                $jsonFileName = $this->generarNombreArchivo($declaracion);
-
-                $zip->addFromString($jsonFileName, $jsonData);
-            }
-            $zip->close();
-        } else {
-            return response()->json(["error" => "No se pudo crear el archivo ZIP"], 500);
+    
+        // Crear un array que contendrá todas las declaraciones
+        $jsonCompleto = [];
+        
+        foreach ($declaraciones as $declaracion) {
+            // Generar la estructura JSON para cada declaración y añadirla al array
+            $jsonCompleto[] = $this->generarEstructuraJson($declaracion);
         }
-
-        return response()->download($zipPath)->deleteFileAfterSend(true);
+    
+        // Convertir el array completo a JSON
+        $jsonData = json_encode($jsonCompleto, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        
+        // Nombre del archivo único
+        $jsonFileName = 'declaraciones_completas.json';
+        $jsonPath = storage_path("app/$jsonFileName");
+    
+        // Guardar el JSON en un archivo temporal
+        file_put_contents($jsonPath, $jsonData);
+    
+        // Descargar el archivo y eliminarlo después
+        return response()->download($jsonPath)->deleteFileAfterSend(true);
     }
 
     protected function obtenerDeclaraciones()
@@ -68,39 +94,46 @@ class ControllerJsons extends Controller
 
         DatosEmpleo AS (
             SELECT
-                h4.Id_SituacionPatrimonial,
-                h4NivelOrdenGobierno.valor as 'h4 nivelOrdenGobierno',
-                h4AmbitoPublico.valor as 'h4 ambitoPublico',
-                h4.NombreEntePublico as 'h4 nombreEntePublico',
-                h4.AreaAdscripcion as 'h4 areaAdscripcion',
-                h4.EmpleoCargoComision as 'h4 empleoCargoComision',
-                h4.ContratadoPorHonorarios as 'h4 contratadoPorHonorarios',
-                h4.nivelEmpleoCargoComision as 'h4 nivelEmpleoCargoComision',
-                h4.FuncionPrincipal as 'h4 funcionPrincipal',
-                CONVERT(VARCHAR(10), h4.FechaRegistro, 120) AS 'h4 fechaObtencion',
-                h4.TelefonoOficina as 'h4 telefono telefonoOficina',
-                h4.ExtensionTelefonoOficina as 'h4 extension telefonoOficina',
-                h4.Calle as 'h4 calle',
-                h4.NumeroExterior as 'h4 NumeroExterior',
-                h4.NumeroInterior as 'h4 NumeroInterior',
-                h4.ColoniaLocalidad as 'h4 coloniaLocalidad',
-                h4.CiudadLocalidad as 'h4 ciudadLocalidad',
-                h4.EstadoProvincia as 'h4 estadoProvincia',
-                h4.CodigoPostal as 'h4 codigoPostal',
-				m4Municio.clave_geologica as 'h4 clave municipioAlcaldia',
-			m4Municio.Municipio as 'h4 valor municipioAlcaldia',
-    RIGHT('0' + CAST(m4Estado.Clave AS VARCHAR(2)), 2) AS 'h4 clave entidadFederativa',
-			m4Estado.Estado as 'h4 valor entidadFederativa',
-                h4Pais.Pais as 'h4 pais',
-                h4.Aclaraciones as 'h4 aclaracionesObservaciones',
-                ROW_NUMBER() OVER (PARTITION BY h4.Id_SituacionPatrimonial ORDER BY h4.FechaRegistro DESC) as rn_empleo
-            FROM DECL_DatosEmpleoCargoComision as h4
-            INNER JOIN NivelOrdenGobierno as h4NivelOrdenGobierno ON h4NivelOrdenGobierno.clave = h4.Id_NivelOrdenGobierno
-            INNER JOIN AmbitoPublico as h4AmbitoPublico ON h4AmbitoPublico.clave = h4.Id_AmbitoPublico
-			LEFT JOIN Municipio as m4Municio on m4Municio.Clave =h4.Id_MunicipioAlcaldia
-			LEFT JOIN Estado as m4Estado on m4Estado.Clave =h4.Id_EntidadFederativa
-
-            LEFT JOIN Pais as h4Pais ON h4Pais.Clave = h4.Id_Pais
+            h4.Id_SituacionPatrimonial,
+            h4NivelOrdenGobierno.valor as 'h4 nivelOrdenGobierno',
+            h4AmbitoPublico.valor as 'h4 ambitoPublico',
+            h4.NombreEntePublico as 'h4 nombreEntePublico',
+            h4.AreaAdscripcion as 'h4 areaAdscripcion',
+            h4.EmpleoCargoComision as 'h4 empleoCargoComision',
+            h4.ContratadoPorHonorarios as 'h4 contratadoPorHonorarios',
+            
+            CASE
+                WHEN TRY_CAST(h4.NivelEmpleoCargoComision AS INT) = 1 THEN '1 Presidente Municipal, Regidores, Tesorero, Contralor, Oficial Mayor'
+                WHEN TRY_CAST(h4.NivelEmpleoCargoComision AS INT) = 2 THEN '2 Encargados, Jefes, Supervisores, Administradores, Sub Directores, Directores, Juez, Coordinadores'
+                WHEN TRY_CAST(h4.NivelEmpleoCargoComision AS INT) = 3 THEN '3 Operativos (secretaría, auxiliares, limpieza, administrativos, veladores, chofer, intendencia, fajineros, etc.)'
+                WHEN h4.NivelEmpleoCargoComision IS NULL THEN NULL
+                ELSE h4.NivelEmpleoCargoComision
+            END as 'h4 nivelEmpleoCargoComision',
+            
+            h4.FuncionPrincipal as 'h4 funcionPrincipal',
+            CONVERT(VARCHAR(10), h4.FechaRegistro, 120) AS 'h4 fechaObtencion',
+            h4.TelefonoOficina as 'h4 telefono telefonoOficina',
+            h4.ExtensionTelefonoOficina as 'h4 extension telefonoOficina',
+            h4.Calle as 'h4 calle',
+            h4.NumeroExterior as 'h4 NumeroExterior',
+            h4.NumeroInterior as 'h4 NumeroInterior',
+            h4.ColoniaLocalidad as 'h4 coloniaLocalidad',
+            h4.CiudadLocalidad as 'h4 ciudadLocalidad',
+            h4.EstadoProvincia as 'h4 estadoProvincia',
+            h4.CodigoPostal as 'h4 codigoPostal',
+            m4Municio.clave_geologica as 'h4 clave municipioAlcaldia',
+            m4Municio.Municipio as 'h4 valor municipioAlcaldia',
+            RIGHT('0' + CAST(m4Estado.Clave AS VARCHAR(2)), 2) AS 'h4 clave entidadFederativa',
+            m4Estado.Estado as 'h4 valor entidadFederativa',
+            h4Pais.Pais as 'h4 pais',
+            h4.Aclaraciones as 'h4 aclaracionesObservaciones',
+            ROW_NUMBER() OVER (PARTITION BY h4.Id_SituacionPatrimonial ORDER BY h4.FechaRegistro DESC) as rn_empleo
+        FROM DECL_DatosEmpleoCargoComision as h4
+        INNER JOIN NivelOrdenGobierno as h4NivelOrdenGobierno ON h4NivelOrdenGobierno.clave = h4.Id_NivelOrdenGobierno
+        INNER JOIN AmbitoPublico as h4AmbitoPublico ON h4AmbitoPublico.clave = h4.Id_AmbitoPublico
+        LEFT JOIN Municipio as m4Municio on m4Municio.Clave = h4.Id_MunicipioAlcaldia
+        LEFT JOIN Estado as m4Estado on m4Estado.Clave = h4.Id_EntidadFederativa
+        LEFT JOIN Pais as h4Pais ON h4Pais.Clave = h4.Id_Pais
         ),
         FilteredDatosEmpleo AS (
             SELECT * FROM DatosEmpleo WHERE rn_empleo = 1
@@ -108,6 +141,7 @@ class ControllerJsons extends Controller
         
         SELECT 
             Declaracion.Id_SituacionPatrimonial,
+            Declaracion.Id_User,
 			Declaracion.FechaRegistro,
 			Declaracion.EsSimplificada,
 			CASE
@@ -167,6 +201,7 @@ END as tipo,
 
     protected function generarEstructuraJson($declaracion)
     {
+
         $situacionPatrimonial = [
             "datosGenerales" => $this->generarSeccionDatosGenerales($declaracion),
             "domicilioDeclarante" => $this->generarSeccionDomicilio($declaracion),
@@ -188,19 +223,24 @@ END as tipo,
         $situacionPatrimonial["inversionesCuentasValores"] = $this->generarSeccionInversiones($declaracion->{'Id_SituacionPatrimonial'});
         $situacionPatrimonial["adeudos"] = $this->generarSeccionAdeudos($declaracion->{'Id_SituacionPatrimonial'});
         $situacionPatrimonial["prestamoOComodato"] = $this->generarSeccionPrestamosComodatos($declaracion->{'Id_SituacionPatrimonial'});
+        $interes = DB::selectOne("select * from DECL_Intereses where EstaCompleta = 1
+        and Id_user = ? and   YEAR(FechaRegistro) = YEAR(?);
+        
+           ", [$declaracion->{'Id_User'}, $declaracion->{'FechaRegistro'}]);
+
         return [
             "metaData" => $this->generarMetaData($declaracion),
             "declaracion" => [
                 "situacionPatrimonial" => $situacionPatrimonial
             ],
             "intereses" => [
-                "participacion" => [],
-                "participacionTomaDecisiones" => [],
-                "apoyos" => [],
-                "representacion" => [],
-                "clientesPrincipales" => [],
-                "beneficiosPrivados" => [],
-                "fideicomisos" => [],
+                "participacion" => $interes ? $this->generarSeccionParticipacion($interes->{'Id_Intereses'}) : ["ninguno" => true],
+                "participacionTomaDecisiones" => $interes ? $this->generarSeccionParticipacionTomaDecisiones($interes->{'Id_Intereses'}) : ["ninguno" => true],
+                "apoyos" => $interes ? $this->generarSeccionApoyos($interes->{'Id_Intereses'}) : ["ninguno" => true],
+                "representacion" => $interes ? $this->generarSeccionRepresentaciones($interes->{'Id_Intereses'}) : ["ninguno" => true],
+                "clientesPrincipales" => $interes ? $this->generarSeccionClientesPrincipales($interes->{'Id_Intereses'}) : ["ninguno" => true],
+                "beneficiosPrivados" => $interes ? $this->generarSeccionBeneficiosPrivados($interes->{'Id_Intereses'}) : ["ninguno" => true],
+                "fideicomisos" => $interes ? $this->generarSeccionFideocomisos($interes->{'Id_Intereses'})  : ["ninguno" => true],
 
             ],
         ];
@@ -277,7 +317,7 @@ END as tipo,
                 "pais" => $declaracion->{"h2 Pais"} ? $declaracion->{"h2 Pais"} : "",
                 "codigoPostal" => $declaracion->{"h2 Pais"} ? $declaracion->{"h2 CodigoPostal"} : "",
             ],
-            "aclaracionesObservaciones" => $declaracion->{"h2 aclaracionesObservaciones"},
+            "aclaracionesObservaciones" => $declaracion->{"h2 aclaracionesObservaciones"} ? $declaracion->{"h2 aclaracionesObservaciones"} : "",
         ];
     }
 
@@ -285,7 +325,7 @@ END as tipo,
     {
 
         return [
-            "escolaridad" => [
+            "escolaridad" => [[
                 "tipoOperacion" => "AGREGAR",
                 "nivel" => [
                     "clave" => $declaracion->{'h3 clave Nivel'},
@@ -300,8 +340,8 @@ END as tipo,
                 "estatus" => $declaracion->{'h3 estatus'},
                 "documentoObtenido" => $declaracion->{'h3 documentoObtenido'},
                 "fechaObtencion" => $declaracion->{'h3 fechaObtencion'},
-            ],
-            "aclaracionesObservaciones" => $declaracion->{'h3 aclaracionesObservaciones'},
+            ]],
+            "aclaracionesObservaciones" => $declaracion->{'h3 aclaracionesObservaciones'} ? $declaracion->{'h3 aclaracionesObservaciones'} : "",
         ];
     }
     protected function generarSeccionDatosEmpleoCargoComision($declaracion)
@@ -356,39 +396,55 @@ END as tipo,
     protected function generarSeccionExperienciaLaboral($id)
     {
         $experienciasLaborales = DB::select("
-            IF EXISTS (SELECT * FROM DECL_ExperienciaLaboral WHERE Id_SituacionPatrimonial = ?)
-            BEGIN
-                SELECT 
-                    Ex.Id_AmbitoPublico,
-                    Am.nombre AS ambitoSector_clave,
-                    Am.valor AS ambitoSector_valor,
-                    Nio.clave AS nivelOrdenGobierno, 
-                    Ap.valor AS ambitoPublico,
-                    Ex.nombreEntePublico,
-                    Ex.areaAdscripcion,
-                    Ex.empleoCargoComision,
-                    Ex.funcionPrincipal,
-                    Ex.NombreEmpresaSociedadAsociacion,
-                    Ex.RFC,
-                    Ex.Puesto,
-                    S.Abreviatura AS sector_clave,
-                    S.valor AS sector_valor,
-                    CONVERT(VARCHAR(10), Ex.fechaIngreso, 120) AS fechaIngreso,
-                    CONVERT(VARCHAR(10), Ex.FechaEngreso, 120) AS fechaEgreso,
-                    IIF(Ex.FueEnMexico = 1, 'MX', 'EX') AS ubicacion,
-                    Ex.Aclaraciones,
-                    Ex.FueEnMexico
-                FROM DECL_ExperienciaLaboral AS Ex 
-                LEFT JOIN AmbitoSector AS Am ON Am.clave = Ex.Id_AmbitoSector
-                LEFT JOIN NivelOrdenGobierno AS Nio ON Nio.clave = Ex.Id_NivelOrdenGobierno
-                LEFT JOIN AmbitoPublico AS Ap ON Ap.clave = Ex.Id_AmbitoPublico
-                LEFT JOIN Sector AS S ON S.clave = Ex.Id_Sector
-                WHERE Ex.Id_SituacionPatrimonial = ?;
-            END
-            ELSE 
-            BEGIN
-                SELECT 'No existen registros' AS message;
-            END
+        IF EXISTS (SELECT * FROM DECL_ExperienciaLaboral WHERE Id_SituacionPatrimonial = ?)
+        BEGIN
+            SELECT 
+                Ex.Id_AmbitoPublico,
+                Am.nombre AS ambitoSector_clave,
+                Am.valor AS ambitoSector_valor,
+                   CASE
+            WHEN TRY_CAST(h4.NivelEmpleoCargoComision AS INT) = 1 THEN '1 Presidente Municipal, Regidores, Tesorero, Contralor, Oficial Mayor'
+            WHEN TRY_CAST(h4.NivelEmpleoCargoComision AS INT) = 2 THEN '2 Encargados, Jefes, Supervisores, Administradores, Sub Directores, Directores, Juez, Coordinadores'
+            WHEN TRY_CAST(h4.NivelEmpleoCargoComision AS INT) = 3 THEN '3 Operativos (secretaría, auxiliares, limpieza, administrativos, veladores, chofer, intendencia, fajineros, etc.)'
+            WHEN h4.NivelEmpleoCargoComision IS NULL THEN NULL
+            ELSE h4.NivelEmpleoCargoComision
+        END as 'nivelOrdenGobierno',
+        
+                Ap.valor AS ambitoPublico,
+                Ex.nombreEntePublico,
+                Ex.areaAdscripcion,
+                Ex.empleoCargoComision,
+                Ex.Id_AmbitoSector,
+                Ex.funcionPrincipal,
+                Ex.NombreEmpresaSociedadAsociacion,
+                Ex.RFC,
+                Ex.Puesto,
+                case
+                when EX.Id_Sector = 1 then 'PRV'
+                when EX.Id_Sector = 2 then 'PUB'
+                when EX.Id_Sector = 0 then 'OTR'
+                end as sector_clave,
+                case
+                when EX.Id_Sector = 1 then 'Privado'
+                when EX.Id_Sector = 2 then 'Público'
+                when EX.Id_Sector = 0 then 'Otro'
+                end as sector_valor,
+                CONVERT(VARCHAR(10), Ex.fechaIngreso, 120) AS fechaIngreso,
+                CONVERT(VARCHAR(10), Ex.FechaEngreso, 120) AS fechaEgreso,
+                IIF(Ex.FueEnMexico = 1, 'MX', 'EX') AS ubicacion,
+                Ex.Aclaraciones,
+                Ex.FueEnMexico
+            FROM DECL_ExperienciaLaboral AS Ex 
+            LEFT JOIN AmbitoSector AS Am ON Am.clave = Ex.Id_AmbitoSector
+            LEFT JOIN AmbitoPublico AS Ap ON Ap.clave = Ex.Id_AmbitoPublico
+            left join DECL_DatosEmpleoCargoComision as h4 on h4.Id_SituacionPatrimonial = ex.Id_SituacionPatrimonial
+            WHERE Ex.Id_SituacionPatrimonial = ?;
+        END
+        ELSE 
+        BEGIN
+            SELECT 'No existen registros' AS message;
+        END
+
         ", [$id, $id]);
 
         // Verificar si no hay registros
@@ -403,7 +459,7 @@ END as tipo,
         // Procesar los resultados
         $experiencia = [];
         foreach ($experienciasLaborales as $item) {
-            if ($item->Id_AmbitoPublico == 1) {
+            if ($item->Id_AmbitoSector == 1) {
                 // Experiencia en sector público
                 $experiencia[] = [
                     "tipoOperacion" => 'AGREGAR',
@@ -651,6 +707,7 @@ END as tipo,
         foreach ($dependientesEconomicos as $dep) {
 
             $dependiente = [
+                "tipoOperacion" => "AGREGAR",
                 "nombre" => $dep->Nombre,
                 "primerApellido" => $dep->PrimerApellido,
                 "segundoApellido" => $dep->SegundoApellido,
@@ -1230,172 +1287,7 @@ END as tipo,
 
         return $resultado;
     }
-    // protected function generarSeccionBienesInmuebles($id)
-    // {
-    //     $declaracion = DB::select("
-    //     select ti.valor as 'valor TipoInmueble',ti.abreviatura as 'clave TipoInmueble',t.valor as 'valor titular',t.abreviatura as 'clave titular',bienes.PorcentajePropiedad,bienes.SuperficieTerreno,bienes.Superficieconstruncion,
-    //     CASE
-    //         WHEN bienes.TR_Id_TipoPersona = 1 or bienes.TR_Id_TipoPersona = 0 THEN 'FISICA'
-    //         WHEN bienes.T_id_TipoPersona = 2 THEN 'MORAL'
-    //     END AS 'tercero tipo_persona',bienes.T_NombreRazonSocial,bienes.T_Rfc,
-    //     CASE
-    //         WHEN bienes.TR_Id_TipoPersona = 1 or bienes.TR_Id_TipoPersona = 0 THEN 'FISICA'
-    //         WHEN bienes.TR_Id_TipoPersona = 2 THEN 'MORAL'
-    //     END AS 'transmisor tipo_persona',bienes.TR_NombreRazonSocial,bienes.TR_Rfc,
-    //     rd.valor as 'valor relacion',
-    //     rd.abreviatura as 'clave relacion',
-    //     fd.valor as 'valor FormaAdquisicion',
-    //     fd.abreviatura as 'clave FormaAdquisicion',
-    //     fp.valor as 'forma_pago',
-    //     bienes.ValorAdquisicion,
-    //     bienes.FechaAdquisicion,
-    //     bienes.DatoIdentificacion,
-    //     vc.valor as 'valor conformeA',
-    //     mb.valor as 'valor motivo_baja',
-    //     mb.abreviatura as 'clave motivo_baja',
-    //     bienes.Calle,
-    //     bienes.NumeroExterior,
-    //     bienes.NumeroInterior,
-    //     bienes.ColoniaLocalidad,
-    //     Municipio.clave_geologica as 'clave municipioAlcaldia',
-    //     Municipio.Municipio as 'valor municipioAlcaldia',
-    //     RIGHT('0' + CAST(Estado.Clave AS VARCHAR(2)), 2) AS 'clave entidadFederativa',
-    //     Estado.Estado as 'valor entidadFederativa',
-    //     bienes.CodigoPostal,
-    //     bienes.CiudadLocalidad,
-    //     bienes.EstadoProvincia,
-    //     p.Pais,
-    //     IIF(bienes.EsEnMexico = 1, 'MEXICO', 'EXTRANJERO') AS 'lugarDondeReside'
-    //     from DECL_BienesInmuebles as bienes
-    //     inner join TipoInmueble as ti on ti.clave = bienes.Id_TipoInmueble
-    //     inner join Titular as t on t.clave = bienes.Id_Titular
-    //     left join ParentescoRelacion as rd on rd.clave = bienes.Id_Relacion
-    //     left join FormaAdquisicion as fd on fd.clave = bienes.Id_FormaAdquisicion
-    //     left join FormaPago as fp on fp.clave = bienes.Id_FormaPago
-    //     left join ValorConformeA as vc on vc.clave = bienes.Id_ValorConformeA
-    //     left join MotivoBaja as mb on mb.clave = bienes.Id_MotivoBaja
-    //     LEFT JOIN Municipio  on Municipio.Clave =bienes.Id_MunicipioAlcaldia
-    //     LEFT JOIN Estado  on Estado.Clave =bienes.Id_EntidadFederativa
-    //     left join Pais as p on p.Clave  = bienes.Id_Pais
 
-    //         where bienes.Id_SituacionPatrimonial =?
-    //     ", [$id]);
-    //     $bienesInmuebles = [];
-    //     $bienesInmuebles["ninguno"] = !empty($declaracion) ? false : true;
-    //     if (empty($declaracion)) {
-    //         return $bienesInmuebles;
-    //     }
-    //     foreach ($declaracion as $dep) {
-    //         $bien = [];
-    //         $bienesInmuebles['tipoOperacion'] = "AGREGAR";
-    //         $bienesInmuebles['tipoInmueble'] = [
-    //             "clave" => $dep->{'clave TipoInmueble'},
-    //             "valor" => $dep->{'valor TipoInmueble'},
-
-    //         ];
-    //         $bienesInmuebles['titular'] = [
-    //             "titularBien" => [
-    //                 [
-    //                     "clave" => $dep->{'valor titular'},
-    //                     "valor" => $dep->{'valor titular'},
-
-    //                 ]
-    //             ]
-
-    //         ];
-    //         $bienesInmuebles['porcentajePropiedad'] = $dep->{'PorcentajePropiedad'};
-    //         $bienesInmuebles['superficieTerreno'] = [
-    //             "superficie" => [
-    //                 "valor" => $dep->{'SuperficieTerreno'},
-    //                 "unidad" => "m2",
-
-    //             ]
-
-    //         ];
-    //         $bienesInmuebles['superficieConstruccion'] = [
-    //             "superficie" => [
-    //                 "valor" => $dep->{'Superficieconstruncion'},
-    //                 "unidad" => "m2",
-    //             ]
-    //         ];
-    //         $bienesInmuebles['tercero'] = [
-    //             [
-    //                 "tipoPersona" => $dep->{'tercero tipo_persona'},
-    //                 "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
-    //             ]
-
-    //         ];
-    //         $bienesInmuebles['transmisor'] = [
-    //             [
-    //                 "tipoPersona" => $dep->{'transmisor tipo_persona'},
-    //                 "nombreRazonSocial" => $dep->{'TR_NombreRazonSocial'},
-    //                 "rfc" => $dep->{'TR_Rfc'},
-    //                 "relacion" => [
-    //                     "parentescoRelacion" => [
-    //                         "clave" => $dep->{'clave relacion'},
-    //                         "valor" => $dep->{'valor relacion'},
-
-    //                     ]
-    //                 ],
-
-    //             ]
-    //         ];
-    //         $bienesInmuebles['formaAdquisicion'] = [
-
-    //             "clave" => $dep->{'clave FormaAdquisicion'},
-    //             "valor" => $dep->{'valor FormaAdquisicion'},
-
-
-    //         ];
-    //         $bienesInmuebles["formaPago"] = $dep->{'forma_pago'};
-    //         $bienesInmuebles['valorAdquisicion'] = [
-    //             "monto" => [
-    //                 "valor" => $dep->{'ValorAdquisicion'},
-    //                 "moneda" => "MXN",
-
-    //             ]
-
-    //         ];
-    //         $bienesInmuebles["fechaAdquisicion"] = $dep->{'FechaAdquisicion'};
-    //         $bienesInmuebles["datoIdentificacion"] = $dep->{'DatoIdentificacion'};
-    //         $bienesInmuebles["valorConformeA"] = $dep->{'valor conformeA'};
-    //         $bienesInmuebles["domicilioMexico"] = [
-    //             "calle" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
-    //             "numeroExterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
-    //             "numeroInterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
-    //             "coloniaLocalidad" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
-    //             "municipioAlcaldia" => [
-    //                 "clave" => $dep->{'clave municipioAlcaldia'},
-    //                 "valor" => $dep->{'valor municipioAlcaldia'},
-
-    //             ],
-    //             "entidadFederativa" => [
-    //                 "clave" => $dep->{'clave entidadFederativa'},
-    //                 "valor" => $dep->{'valor entidadFederativa'},
-
-    //             ],
-    //             "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? "" :  $dep->{"CodigoPostal"},
-    //         ];
-    //         $bienesInmuebles["domicilioExtranjero"] = [
-    //             "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
-    //             "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
-    //             "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
-    //             "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
-    //             "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
-    //             "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
-    //             "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
-    //         ];
-    //         $bienesInmuebles['motivoBaja'] = [
-    //             "clave" => $dep->{"clave motivo_baja"},
-    //             "valor" => $dep->{"valor motivo_baja"},
-
-    //         ];
-    //         $bienesInmuebles['bienInmueble'][] = $bien;
-    //     }
-    //     $bienesInmuebles["aclaracionesObservaciones"] = "";
-
-    //     return $bienesInmuebles;
-    // }
     protected function generarSeccionVehiculos($id)
     {
         $declaracion = DB::select("
@@ -1973,6 +1865,510 @@ END as tipo,
                 ]
             ];
             $resultado['prestamo'][] = $prestamo;
+        }
+        return $resultado;
+    }
+    protected function generarSeccionParticipacion($id)
+    {
+        $interes = DB::select("
+        select rc.valor as 'relacion',p.NombreEmpresaSociedadAsociacion,p.RfcEmpresa,p.PorcentajeParticipacion,p.RecibeRemuneracion,p.MontoMensual,
+        tp.valor as 'valor_tipoparticipacion',tp.abreviatura as 'clave_tipoparticipacion',
+        RIGHT('0' + CAST(e.Clave AS VARCHAR(2)), 2) AS 'clave_entidadFederativa',
+            e.Estado as 'valor_entidadFederativa',
+			s.valor as 'valor_sector',
+			s.Abreviatura as 'clave_sector',
+            p.Aclaraciones
+
+        from DECL_Participacion  as p
+        inner join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
+        LEFT JOIN Estado as e on e.Clave = p.Id_EntidadFederativa
+        left join Sector as s on s.clave = p.Id_Sector
+        left join TipoParticipacion as tp on tp.clave = p.Id_TipoParticipacion
+        where Id_Intereses = ?
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "participacion" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $participacion = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
+                "nombreEmpresaSociedadAsociacion" => $dep->{'NombreEmpresaSociedadAsociacion'},
+                "rfc" => $dep->{'RfcEmpresa'},
+                "porcentajeParticipacion" => $dep->{'PorcentajeParticipacion'},
+                "tipoParticipacion" => [
+                    "clave" => $dep->{'clave_tipoparticipacion'},
+                    "valor" => $dep->{'valor_tipoparticipacion'},
+
+                ],
+                "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
+                "montoMensual" => [
+                    "monto" => [
+                        "valor" => $dep->{'MontoMensual'},
+                        "moneda" => "MXN",
+
+                    ]
+                ],
+                "ubicacion" => [
+                    "pais" => "MX",
+                    "entidadFederativa" => [
+                        "clave" => $dep->{'clave_entidadFederativa'},
+                        "valor" => $dep->{'valor_entidadFederativa'},
+
+                    ]
+                ],
+                "sector" => [
+                    "clave" => $dep->{'clave_sector'},
+                    "valor" => $dep->{'valor_sector'},
+
+                ]
+            ];
+            $resultado['participacion'][] = $participacion;
+        }
+
+        return $resultado;
+    }
+    protected function generarSeccionParticipacionTomaDecisiones($id)
+    {
+        $interes = DB::select("
+        select rc.valor as 'relacion',
+        ts.valor as 'valor_tipoinstitucion',
+        ts.abreviatura as 'clave_tipoinstitucion',
+        p.NombreInstitucion,
+        p.RfcInstitucion,
+        p.PuestoRol,
+        p.FechaInicioParticipacion,
+        p.RecibeRemuneracion,
+        p.MontoMensual,
+        p.Aclaraciones,
+
+         RIGHT('0' + CAST(e.Clave AS VARCHAR(2)), 2) AS 'clave_entidadFederativa',
+                    e.Estado as 'valor_entidadFederativa'
+                    
+        from DECL_ParticipacionTomaDecisiones  as p
+        inner join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
+         LEFT JOIN Estado as e on e.Clave = p.Id_EntidadFederativa
+         LEFT JOIN TipoInstitucion as ts on ts.clave = p.Id_TipoInstitucion
+        where Id_Intereses = ?
+
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "participacion" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $participacion = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
+                "tipoInstitucion" => [
+                    "clave" => $dep->{'clave_tipoinstitucion'},
+                    "valor" => $dep->{'valor_tipoinstitucion'},
+
+                ],
+                "nombreInstitucion" => $dep->{'NombreInstitucion'},
+                "rfc" => $dep->{'RfcInstitucion'},
+                "puestoRol" => $dep->{'PuestoRol'},
+                "fechaInicioParticipacion" => $dep->{'FechaInicioParticipacion'},
+                "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
+                "montoMensual" => [
+                    "valor" => $dep->{'MontoMensual'},
+                    "moneda" => "MXN",
+
+                ],
+
+                "ubicacion" => [
+                    "pais" => "MX",
+                    "entidadFederativa" => [
+                        "clave" => $dep->{'clave_entidadFederativa'},
+                        "valor" => $dep->{'valor_entidadFederativa'},
+
+                    ]
+                ],
+            ];
+            $resultado['participacion'][] = $participacion;
+        }
+        return $resultado;
+    }
+    protected function generarSeccionApoyos($id)
+    {
+        $interes = DB::select("
+        select 
+        pr.valor as 'valor_beneficiarioprograma',
+        pr.abreviatura as 'clave_beneficiarioprograma',
+        p.NombrePrograma,
+        p.InstitucionOtorgante,
+        ng.valor as 'nivelOrdenGobierno',
+        ta.valor as 'valor_tipoapoyo',
+        ta.abreviatura as 'clave_tipoapoyo',
+        fr.valor as 'formaRecepcion',
+        p.MontoApoyoMensual,
+        p.EspecifiqueApoyo,
+        p.Aclaraciones
+        
+        from DECL_Apoyos  as p
+        inner join ParentescoRelacion as pr on pr.clave = p.Id_BeneficiarioPrograma
+        left join NivelOrdenGobierno as ng on ng.clave = p.Id_NivelOrdenGobierno
+        left join TipoApoyo as ta on ta.clave = p.Id_TipoApoyo
+        left join FormaRecepcion as fr on fr.clave = p.Id_FormaRecepcion
+        where Id_Intereses  = ?
+
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "apoyo" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $participacion = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoPersona" => "FISICA",
+                "beneficiarioPrograma" => [
+                    "clave" => $dep->{'clave_beneficiarioprograma'},
+                    "valor" => $dep->{'valor_beneficiarioprograma'},
+
+                ],
+                "nombrePrograma" => $dep->{'NombrePrograma'},
+                "institucionOtorgante" => $dep->{'InstitucionOtorgante'},
+                "nivelOrdenGobierno" => $dep->{'nivelOrdenGobierno'},
+                "tipoApoyo" => [
+                    "clave" => $dep->{'clave_tipoapoyo'},
+                    "valor" => $dep->{'valor_tipoapoyo'},
+
+                ],
+                "formaRecepcion" => $dep->{'formaRecepcion'},
+                "montoApoyoMensual" => [
+                    "monto" => [
+                        "valor" => $dep->{'MontoApoyoMensual'},
+                        "moneda" => "MXN",
+                    ]
+
+                ],
+                "especifiqueApoyo" => $dep->{'EspecifiqueApoyo'},
+
+
+            ];
+            $resultado['participacion'][] = $participacion;
+        }
+        return $resultado;
+    }
+    protected function generarSeccionRepresentaciones($id)
+    {
+        $interes = DB::select("
+        select 
+        tr.valor as 'tipoRepresentacion',
+        r.FechaInicioRepresentacion,
+        r.NombreRazonSocial,
+        r.Rfc,
+        r.RecibeRemuneracion,
+        r.MontoMensual,
+        s.valor as 'valor_sector',
+        s.Abreviatura as 'clave_sector',
+        r.Aclaraciones
+        from DECL_Representaciones  as r
+        inner join TipoRepresentacion as tr on tr.clave = r.Id_Representaciones
+        inner join Sector as s on s.clave = r.Id_Sector
+        where Id_Intereses = ?
+
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "representacion" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $participacion = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoRelacion" => "DEPENDIENTE_ECONOMICO ",
+                "tipoRepresentacion" => $dep->{''},
+                "fechaInicioRepresentacion" => $dep->{''},
+                "tipoPersona" => "FISICA",
+                "nombreRazonSocial" => $dep->{''},
+                "rfc" => $dep->{''},
+                "recibeRemuneracion" => $dep->{''} == 0 ? false : true,
+                "montoMensual" => [
+                    "monto" => [
+                        "valor" => $dep->{''},
+                        "moneda" => "MXN",
+                    ]
+
+                ],
+                "ubicacion" => [
+                    "pais" => "MX",
+                    "entidadFederativa" => [
+                        "clave" => $dep->{'clave_entidadFederativa'},
+                        "valor" => $dep->{'valor_entidadFederativa'},
+
+                    ]
+                ],
+                "sector" => [
+                    "clave" => $dep->{'clave_sector'},
+                    "valor" =>  $dep->{'valor_sector'},
+                ]
+
+
+            ];
+            $resultado['participacion'][] = $participacion;
+        }
+        return $resultado;
+    }
+    protected function generarSeccionClientesPrincipales($id)
+    {
+        $interes = DB::select("
+        select 
+        c.RealizaActividadLucrativa,
+        c.NombreEmpresa,
+        c.RfcEmpresa,
+        c.Id_TipoPersona,
+        CASE
+                    WHEN c.Id_TipoPersona = 1 or c.Id_TipoPersona = 0 THEN 'FISICA'
+                    WHEN c.Id_TipoPersona = 2 THEN 'MORAL'
+                END AS 'tipo_persona',
+        c.NombreRazonSocial,
+        c.RfcCliente,
+        s.valor as 'sector_valor',
+        s.Abreviatura as 'sector_abreviatura',
+        c.MontoAproximadoGanancia,
+         RIGHT('0' + CAST(e.Clave AS VARCHAR(2)), 2) AS clave_entidadFederativa,
+                    e.Estado AS valor_entidadFederativa,
+        c.Aclaraciones
+        
+        from DECL_ClientesPrincipales  as c
+        inner join Sector as s on s.clave = c.Id_Sector
+        LEFT JOIN Estado e ON e.Clave = c.Id_EntidadFederativa
+        
+        where Id_Intereses = ?
+
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "cliente" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $participacion = [
+                "tipoOperacion" => "AGREGAR",
+                "realizaActividadLucrativa" => $dep->{'RealizaActividadLucrativa'} == 0 ? false : true,
+                "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
+                "empresa" => [
+                    "nombreEmpresaServicio" => $dep->{'NombreEmpresa'},
+                    "rfc" => $dep->{'RfcEmpresa'},
+                ],
+                "clientePrincipal" => [
+                    "tipoPersona" => $dep->{'tipo_persona'},
+                    "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
+                    "rfc" => $dep->{'RfcCliente'},
+
+                ],
+                "sector" => [
+                    "clave" => $dep->{'sector_abreviatura'},
+                    "valor" => $dep->{'sector_valor'},
+                ],
+                "montoAproximadoGanancia" => [
+                    "monto" => [
+                        "valor" => $dep->{'MontoAproximadoGanancia'},
+                        "moneda" => "MXN",
+
+                    ]
+                ],
+                "ubicacion" => [
+                    "pais" => "MX",
+                    "entidadFederativa" => [
+                        "clave" => $dep->{'clave_entidadFederativa'},
+                        "valor" => $dep->{'valor_entidadFederativa'},
+
+                    ]
+                ],
+            ];
+            $resultado['participacion'][] = $participacion;
+        }
+        return $resultado;
+    }
+    protected function generarSeccionBeneficiosPrivados($id)
+    {
+        $interes = DB::select("
+        select 
+        CASE
+          WHEN bp.Id_TipoPersona = 1 or bp.Id_TipoPersona = 0 THEN 'FISICA'
+          WHEN bp.Id_TipoPersona = 2 THEN 'MORAL'
+        END AS 'tipo_persona',
+        tb.valor as 'valor_tipobeneficio',
+        tb.nombre as 'clave_tipobeneficio',
+        bep.valor as 'valor_beneficiarioprograma',
+        bep.nombre as 'clave_beneficiarioprograma',
+        bp.NombreRazonSocial,
+        bp.RfcCliente,
+        fr.valor as 'formaRecepcion',
+        bp.EspecifiqueBeneficio,
+        bp.MontoMensualAproximado,
+        s.valor as 'valor_sector',
+        s.Abreviatura as 'clave_sector',
+        bp.Aclaraciones
+     from DECL_BeneficiosPrivados  as bp
+     inner join TipoBeneficio as tb on tb.clave = bp.Id_TipoBeneficio
+     inner join BeneficiariosPrograma as bep on bep.clave  = bp.Id_BeneficiarioPrograma
+     inner join FormaRecepcion as fr on fr.clave = bp.Id_FormaRecepcion
+     inner join Sector as s on s.clave = bp.Id_Sector
+     where Id_Intereses  = ?
+
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "beneficio" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $beneficio = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoPersona" => $dep->{'tipo_persona'},
+                "tipoBeneficio" => [
+                    "clave" => $dep->{'clave_tipobeneficio'},
+                    "valor" => $dep->{'valor_tipobeneficio'},
+
+                ],
+                "beneficiario" => [
+                    [
+                        "beneficiariosPrograma" => [
+                            "clave" => $dep->{'clave_beneficiarioprograma'},
+                            "valor" => $dep->{'valor_beneficiarioprograma'},
+
+                        ]
+                    ],
+                ],
+                "otorgante" => [
+                    "tipoPersona" => $dep->{'tipo_persona'},
+                    "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
+                    "rfc" => $dep->{'RfcCliente'},
+
+                ],
+                "formaRecepcion" => $dep->{'formaRecepcion'},
+                "especifiqueBeneficio" => $dep->{'EspecifiqueBeneficio'},
+                "montoMensualAproximado" => [
+                    "monto" => [
+                        "valor" => $dep->{'MontoMensualAproximado'},
+                        "moneda" => "MXN",
+
+                    ]
+                ],
+                "sector" => [
+                    "clave" => $dep->{'clave_sector'},
+                    "valor" => $dep->{'valor_sector'},
+
+                ]
+            ];
+
+            $resultado['beneficio'][] = $beneficio;
+        }
+        return $resultado;
+    }
+    protected function generarSeccionFideocomisos($id)
+    {
+        $interes = DB::select("
+        select  
+        pr.valor as 'relacion',
+        tf.valor as 'fideocomiso',
+        tp.valor as 'tipoparticipacion',
+        fc.RfcFideicomiso,
+            CASE
+                    WHEN fc.Id_TipoPersonaFideicomitente = 1 or fc.Id_TipoPersonaFideicomitente = 0 THEN 'FISICA'
+                    WHEN fc.Id_TipoPersonaFideicomitente = 2 THEN 'MORAL'
+                END AS 'tipoPersona fideicomitente',
+        fc.NombreRazonSocialFideicomitente,
+        fc.RfcFideicomitente,
+        fc.NombreRazonSocialFideicomisario,
+        fc.RfcFideicomisario,
+         CASE
+                    WHEN fc.Id_TipoPersonaFideicomisario = 1 or fc.Id_TipoPersonaFideicomisario = 0 THEN 'FISICA'
+                    WHEN fc.Id_TipoPersonaFideicomisario = 2 THEN 'MORAL'
+                END AS 'tipoPersona fideicomisario',
+        fc.NombreRazonSocialFideicomisario,
+        fc.RfcFideicomisario,
+        s.valor 'valor_sector',
+        s.Abreviatura 'clave_sector',
+        IIF(fc.EsEnMexico=1,'MX','EX') 'extranjero',
+        fc.Aclaraciones
+        from DECL_Fideicomisos  as fc
+        inner join ParentescoRelacion as pr on pr.clave = fc.Id_TipoRelacion
+        inner join TipoFideicomiso as tf on tf.clave = fc.Id_TipoFideicomiso
+        inner join TipoParticipacion as tp on tp.clave = fc.Id_TipoParticipacion
+        inner join Sector as s on s.clave = fc.Id_Sector
+        
+             where Id_Intereses  = ?
+
+      ", [$id]);
+        $resultado = [
+            "ninguno" => empty($interes),
+            "fideicomiso" => [],
+            "aclaracionesObservaciones" => ""
+        ];
+
+        if (empty($interes)) {
+            return $resultado;
+        }
+        foreach ($interes as $dep) {
+            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            $fideicomiso = [
+                "tipoOperacion" => "AGREGAR",
+                "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
+                "tipoFideicomiso" => $dep->{'fideocomiso'},
+                "tipoParticipacion" => $dep->{'tipoparticipacion'},
+                "rfcFideicomiso" => $dep->{'RfcFideicomiso'},
+                "fideicomitente" => [
+                    "tipoPersona" => $dep->{'tipoPersona fideicomitente'},
+                    "nombreRazonSocial" => $dep->{'NombreRazonSocialFideicomitente'},
+                    "rfc" => $dep->{'RfcFideicomitente'},
+
+                ],
+                "fiduciario" => [
+                    "nombreRazonSocial" => $dep->{'NombreRazonSocialFideicomisario'},
+                    "rfc" => $dep->{'RfcFideicomisario'},
+                ],
+                "fideicomisario" => [
+                    "tipoPersona" => $dep->{'tipoPersona fideicomisario'},
+                    "nombreRazonSocial" => $dep->{'NombreRazonSocialFideicomisario'},
+                    "rfc" => $dep->{'RfcFideicomisario'},
+                ],
+                "sector" => [
+                    "clave" => $dep->{'clave_sector'},
+                    "valor" => $dep->{'valor_sector'},
+
+                ],
+                "extranjero"=>$dep->{'extranjero'},
+            ];
+
+            $resultado['fideicomiso'][] = $fideicomiso;
         }
         return $resultado;
     }
