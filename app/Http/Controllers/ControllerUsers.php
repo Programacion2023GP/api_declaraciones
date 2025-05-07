@@ -130,14 +130,17 @@ class ControllerUsers extends Controller
 
         try {
             $maxIdUser = DB::table('USR_User')->max('Id_User');
-            $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
-
-            if ($existingUser) {
-                // Si el correo electrónico ya existe, retornar un error
-                $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
-                return response()->json($response, $response->data["status_code"]);
+            if ($request->Id_Role != 2 && $request->Id_Role != 3) {
+                # code...
+                $existingUser = DB::table('USR_User')->where('Email', $request->Email)->first();
+                
+                if ($existingUser) {
+                    // Si el correo electrónico ya existe, retornar un error
+                    $response->data = ObjResponse::CatchResponse("El correo electrónico ya está en uso");
+                    return response()->json($response, $response->data["status_code"]);
+                }
+                $existingUser = DB::table('MD_Person')->where('Nomina', $request->Nomina)->first();
             }
-            $existingUser = DB::table('MD_Person')->where('Nomina', $request->Nomina)->first();
             // if ($existingUser && $request->Nomina != 999999) {
             //     // Si el correo electrónico ya existe, retornar un error
             //     $response->data = ObjResponse::CatchResponse("ya esta registrado el numero de nomina");
@@ -398,10 +401,10 @@ class ControllerUsers extends Controller
                 ->first();
 
             // Si la persona existe y el rol es 4, filtrar por adscripción
-            if ($person && $person->Id_Role == 4) {
+            // if ($person && $person->Id_Role == 4) {
                 $usuarios = $usuarios->where('MD_Person.AreaAdscripcion', $person->AreaAdscripcion)
                     ->where('MD_Person.Id_Person', '<>', $idPerson);
-            }
+            // }
 
             // Aplicar filtro de usuarios activos
             $usuarios = $usuarios->where('USR_User.Active', 1)

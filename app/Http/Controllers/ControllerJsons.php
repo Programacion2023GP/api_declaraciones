@@ -40,29 +40,29 @@ class ControllerJsons extends Controller
 
         // return response()->download($zipPath)->deleteFileAfterSend(true);
 
-        
+
         set_time_limit(12000);
         ini_set('memory_limit', '1024M');
         $declaraciones = $this->obtenerDeclaraciones();
-    
+
         // Crear un array que contendrá todas las declaraciones
         $jsonCompleto = [];
-        
+
         foreach ($declaraciones as $declaracion) {
             // Generar la estructura JSON para cada declaración y añadirla al array
             $jsonCompleto[] = $this->generarEstructuraJson($declaracion);
         }
-    
+
         // Convertir el array completo a JSON
         $jsonData = json_encode($jsonCompleto, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        
+
         // Nombre del archivo único
         $jsonFileName = 'declaraciones_completas.json';
         $jsonPath = storage_path("app/$jsonFileName");
-    
+
         // Guardar el JSON en un archivo temporal
         file_put_contents($jsonPath, $jsonData);
-    
+
         // Descargar el archivo y eliminarlo después
         return response()->download($jsonPath)->deleteFileAfterSend(true);
     }
@@ -195,6 +195,7 @@ END as tipo,
         INNER JOIN FilteredHoja3 ON FilteredHoja3.h3_Id_SituacionPatrimonial = Declaracion.Id_SituacionPatrimonial
         INNER JOIN FilteredDatosEmpleo ON FilteredDatosEmpleo.Id_SituacionPatrimonial = Declaracion.Id_SituacionPatrimonial
         WHERE Declaracion.EstaCompleta = 1 
+        AND YEAR(Declaracion.FechaRegistro) >= YEAR(GETDATE()) - 1
         ORDER BY Declaracion.Id_SituacionPatrimonial DESC;
         ");
     }
@@ -204,14 +205,13 @@ END as tipo,
 
         $situacionPatrimonial = [
             "datosGenerales" => $this->generarSeccionDatosGenerales($declaracion),
-            "domicilioDeclarante" => $this->generarSeccionDomicilio($declaracion),
+            // "domicilioDeclarante" => $this->generarSeccionDomicilio($declaracion),
             "datosCurricularesDeclarante" => $this->generarSeccionDatosCurriculares($declaracion),
             "datosEmpleoCargoComision" => $this->generarSeccionDatosEmpleoCargoComision($declaracion),
             "experienciaLaboral" => $this->generarSeccionExperienciaLaboral($declaracion->{'Id_SituacionPatrimonial'}),
-            "datosPareja" => $this->generarSeccionDatosPareja($declaracion->{'Id_SituacionPatrimonial'}),
-            "datosDependienteEconomico" => $this->generarSeccionDatosDependientesEconomicos($declaracion->{'Id_SituacionPatrimonial'}),
+            // "datosPareja" => $this->generarSeccionDatosPareja($declaracion->{'Id_SituacionPatrimonial'}),
+            // "datosDependienteEconomico" => $this->generarSeccionDatosDependientesEconomicos($declaracion->{'Id_SituacionPatrimonial'}),
             "ingresos" => $this->generarSeccionIngresos($declaracion->{'Id_SituacionPatrimonial'}),
-
         ];
 
         if ($declaracion->{'tipo'} != 'MODIFICACIÓN') {
@@ -229,7 +229,7 @@ END as tipo,
            ", [$declaracion->{'Id_User'}, $declaracion->{'FechaRegistro'}]);
 
         return [
-            "metaData" => $this->generarMetaData($declaracion),
+            "metadata" => $this->generarMetaData($declaracion),
             "declaracion" => [
                 "situacionPatrimonial" => $situacionPatrimonial
             ],
@@ -255,36 +255,86 @@ END as tipo,
             "actualizacionConflictoInteres" => false,
         ];
     }
+    protected function  limitedString($texto, $limite)
+    {
+        if (strlen($texto) > $limite) {
+            return substr($texto, 0, $limite);
+        }
+        return $texto;
+    }
+    /**
+     * Evalúa condicionalmente si debe incluir un campo basado en el tipo de persona
+     */
+    protected function conditionalField($condition, $key, $value)
+    {
+        return $condition ? [$key => $value] : [];
+    }
+    protected function nullConvert($value, $type = "string")
+    {
+        // Manejo de valores vacíos (null, '', false, array vacío, etc.)
+        if (empty($value) && $value !== 0 && $value !== '0') {
+            switch ($type) {
+                case 'string':
+                    return "";
+                case 'number':
+                case 'integer':
+                    return 0;
+                default:
+                    return $value;
+            }
+        }
+
+        // Conversión según el tipo especificado
+        switch ($type) {
+            case 'string':
+                return (string)$value;
+            case 'number':
+                return is_numeric($value) ? $value + 0 : 0; // float o int según el valor
+            case 'integer':
+                return is_numeric($value) ? intval($value) : 0; // fuerza un entero (sin decimales)
+            default:
+                return $value;
+        }
+    }
+    protected function defaultValue($value, $default)
+    {
+        $text = $value;
+        if (!$text) {
+            $text = $default;
+        }
+        return $text;
+    }
+
     protected function generarSeccionDatosGenerales($declaracion)
     {
         return [
-            "nombre" => $declaracion->{"h1 nombre"},
-            "primerApellido" => $declaracion->{"h1 primerApellido"},
-            "segundoApellido" => $declaracion->{"h1 segundoApellido"},
-            "curp" => $declaracion->{"h1 curp"},
-            "rfc" => [
-                "rfc" => $declaracion->{"h1 rfc"},
-                "homoClave" => $declaracion->{"h1 homoClave"},
-            ],
+            "nombre" => $this->nullConvert($declaracion->{"h1 nombre"}),
+            "primerApellido" => $this->nullConvert($declaracion->{"h1 primerApellido"}),
+            "segundoApellido" => $this->nullConvert($declaracion->{"h1 segundoApellido"}),
+            // "curp" => $this->nullConvert($declaracion->{"h1 curp"}),
+            // "rfc" => [
+            //     "rfc" => $this->limitedString($declaracion->{"h1 rfc"}, 10),
+            //     "homoClave" => $this->limitedString($declaracion->{"h1 homoClave"}, 3),
+            // ],
             "correoElectronico" => [
-                "institucional" => $declaracion->{"h1 institucional"},
-                "personal" => $declaracion->{"h1 personal"},
+                "institucional" => $this->nullConvert($declaracion->{"h1 institucional"}),
+                // "personal" => $this->nullConvert($declaracion->{"h1 personal"}),
             ],
-            "telefono" => [
-                "casa" => $declaracion->{"h1 casa"},
-                "celularPersonal" => $declaracion->{"h1 celularPersonal"},
-            ],
-            "situacionPersonalEstadoCivil" => [
-                "clave" => $declaracion->h1_clave_Estadocivil,
-                "valor" => $declaracion->h1_valor_Estadocivil,
-            ],
-            "regimenMatrimonial" => [
-                "clave" => $declaracion->{'h1 clave regimenMatrimonial'},
-                "valor" => $declaracion->{'h1 valor regimenMatrimonial'},
-            ],
-            "paisNacimiento" => $declaracion->{'h1 Pais'},
-            "nacionalidad" => $declaracion->{'h1 Nacionalidad'},
-            "aclaracionesObservaciones" => $declaracion->{'h1 aclaracionesObservaciones'} ? $declaracion->{'h1 aclaracionesObservaciones'} : "",
+            // "telefono" => [
+            //     "casa" => $this->nullConvert($declaracion->{"h1 casa"}),
+            //     "celularPersonal" => $this->nullConvert($declaracion->{"h1 celularPersonal"}),
+            // ],
+            // "situacionPersonalEstadoCivil" => [
+            //     "clave" => $this->nullConvert($declaracion->h1_clave_Estadocivil),
+            //     "valor" => $this->nullConvert($declaracion->h1_valor_Estadocivil),
+            // ],
+            // "regimenMatrimonial" => [
+            //     "clave" => $this->nullConvert($declaracion->{'h1 clave regimenMatrimonial'}),
+            //     "valor" => $this->nullConvert($declaracion->{'h1 valor regimenMatrimonial'}),
+            // ],
+            // "paisNacimiento" => $this->nullConvert($declaracion->{'h1 Pais'}),
+            // "nacionalidad" => $this->nullConvert($declaracion->{'h1 Nacionalidad'}),
+            // "aclaracionesObservaciones" => $this->nullConvert($declaracion->{'h1 aclaracionesObservaciones'}),
         ];
     }
 
@@ -292,21 +342,21 @@ END as tipo,
     {
         return [
             "domicilioMexico" => [
-                "calle" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 calle"},
-                "numeroExterior" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 numeroExterior"},
-                "numeroInterior" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 numeroInterior"},
-                "coloniaLocalidad" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 coloniaLocalidad"},
+                "calle" => $this->nullConvert($declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 calle"}),
+                "numeroExterior" => $this->nullConvert($declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 numeroExterior"}),
+                "numeroInterior" => $this->nullConvert($declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 numeroInterior"}),
+                "coloniaLocalidad" => $this->nullConvert($declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 coloniaLocalidad"}),
                 "municipioAlcaldia" => $declaracion->{"h2 Pais"} ? "" :  [
                     "clave" => $declaracion->{'h2 clave municipioAlcaldia'},
                     "valor" => $declaracion->{'h2 valor municipioAlcaldia'},
 
                 ],
                 "entidadFederativa" => $declaracion->{"h2 Pais"} ? "" :  [
-                    "clave" => $declaracion->{'h2 clave entidadFederativa'},
-                    "valor" => $declaracion->{'h2 valor entidadFederativa'},
+                    "clave" => $this->nullConvert($declaracion->{'h2 clave entidadFederativa'}),
+                    "valor" => $this->nullConvert($declaracion->{'h2 valor entidadFederativa'}),
 
                 ],
-                "codigoPostal" => $declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 CodigoPostal"},
+                "codigoPostal" => $this->nullConvert($declaracion->{"h2 Pais"} ? "" :  $declaracion->{"h2 CodigoPostal"}),
             ],
             "domicilioExtranjero" => [
                 "calle" => $declaracion->{"h2 Pais"} ? $declaracion->{"h2 calle"} : "",
@@ -328,68 +378,68 @@ END as tipo,
             "escolaridad" => [[
                 "tipoOperacion" => "AGREGAR",
                 "nivel" => [
-                    "clave" => $declaracion->{'h3 clave Nivel'},
-                    "valor" => $declaracion->{'h3 valor Nivel'},
+                    "clave" => $this->nullConvert($declaracion->{'h3 clave Nivel'}),
+                    "valor" => $this->nullConvert($declaracion->{'h3 valor Nivel'}),
                 ],
                 "institucionEducativa" => [
-                    "nombre" => $declaracion->{'h3 nombre institucion'},
-                    "ubicacion" => $declaracion->{'h3 ubicacion institucion'},
+                    "nombre" => $this->nullConvert($declaracion->{'h3 nombre institucion'}),
+                    "ubicacion" => $this->nullConvert($declaracion->{'h3 ubicacion institucion'}),
 
                 ],
-                "carreraAreaConocimiento" => $declaracion->{'h3 carreraAreaConocimiento'},
-                "estatus" => $declaracion->{'h3 estatus'},
-                "documentoObtenido" => $declaracion->{'h3 documentoObtenido'},
-                "fechaObtencion" => $declaracion->{'h3 fechaObtencion'},
+                "carreraAreaConocimiento" => $this->nullConvert($declaracion->{'h3 carreraAreaConocimiento'}),
+                "estatus" => $this->nullConvert($declaracion->{'h3 estatus'}),
+                "documentoObtenido" => $this->nullConvert($declaracion->{'h3 documentoObtenido'}),
+                "fechaObtencion" => $this->nullConvert($declaracion->{'h3 fechaObtencion'}),
             ]],
-            "aclaracionesObservaciones" => $declaracion->{'h3 aclaracionesObservaciones'} ? $declaracion->{'h3 aclaracionesObservaciones'} : "",
+            // "aclaracionesObservaciones" => $declaracion->{'h3 aclaracionesObservaciones'} ? $declaracion->{'h3 aclaracionesObservaciones'} : "",
         ];
     }
     protected function generarSeccionDatosEmpleoCargoComision($declaracion)
     {
         return [
             "tipoOperacion" => "AGREGAR",
-            "nivelOrdenGobierno" => $declaracion->{'h4 nivelOrdenGobierno'},
-            "ambitoPublico" => $declaracion->{'h4 ambitoPublico'},
-            "nombreEntePublico" => $declaracion->{'h4 nombreEntePublico'},
-            "areaAdscripcion" => $declaracion->{'h4 areaAdscripcion'},
-            "empleoCargoComision" => $declaracion->{'h4 empleoCargoComision'},
+            "nivelOrdenGobierno" => $this->nullConvert($declaracion->{'h4 nivelOrdenGobierno'}),
+            "ambitoPublico" => $this->nullConvert($declaracion->{'h4 ambitoPublico'}),
+            "nombreEntePublico" => $this->nullConvert($declaracion->{'h4 nombreEntePublico'}),
+            "areaAdscripcion" => $this->nullConvert($declaracion->{'h4 areaAdscripcion'}),
+            "empleoCargoComision" => $this->nullConvert($declaracion->{'h4 empleoCargoComision'}),
             "contratadoPorHonorarios" => $declaracion->{'h4 contratadoPorHonorarios'} ? true : false, //boleano
-            "nivelEmpleoCargoComision" => $declaracion->{'h4 nivelEmpleoCargoComision'},
-            "funcionPrincipal" => $declaracion->{'h4 funcionPrincipal'},
-            "fechaTomaPosesion" => $declaracion->{'h4 fechaObtencion'},
+            "nivelEmpleoCargoComision" => $this->nullConvert($declaracion->{'h4 nivelEmpleoCargoComision'}),
+            "funcionPrincipal" => $this->nullConvert($declaracion->{'h4 funcionPrincipal'}),
+            "fechaTomaPosesion" => $this->nullConvert($declaracion->{'h4 fechaObtencion'}),
             "telefonoOficina" => [
-                "telefono" => $declaracion->{'h4 telefono telefonoOficina'},
-                "extension" => $declaracion->{'h4 extension telefonoOficina'},
+                "telefono" => $this->nullConvert($declaracion->{'h4 telefono telefonoOficina'}),
+                "extension" => $this->nullConvert($declaracion->{'h4 extension telefonoOficina'}),
 
             ],
             "domicilioMexico" => [
-                "calle" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 calle'},
-                "numeroExterior" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 NumeroExterior'},
-                "numeroInterior" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 NumeroInterior'},
-                "coloniaLocalidad" => $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 coloniaLocalidad'},
+                "calle" => $this->nullConvert($declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 calle'}),
+                "numeroExterior" => $this->nullConvert($declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 NumeroExterior'}),
+                "numeroInterior" => $this->nullConvert($declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 NumeroInterior'}),
+                "coloniaLocalidad" => $this->nullConvert($declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 coloniaLocalidad'}),
                 "municipioAlcaldia" => $declaracion->{"h4 pais"} ? "" :  [
-                    "clave" => $declaracion->{'h4 clave municipioAlcaldia'},
-                    "valor" => $declaracion->{'h4 valor municipioAlcaldia'},
+                    "clave" => $this->nullConvert($declaracion->{'h4 clave municipioAlcaldia'}),
+                    "valor" => $this->nullConvert($declaracion->{'h4 valor municipioAlcaldia'}),
 
                 ],
                 "entidadFederativa" => $declaracion->{"h2 Pais"} ? "" :  [
-                    "clave" => $declaracion->{'h4 clave entidadFederativa'},
-                    "valor" => $declaracion->{'h4 valor entidadFederativa'},
+                    "clave" => $this->nullConvert($declaracion->{'h4 clave entidadFederativa'}),
+                    "valor" => $this->nullConvert($declaracion->{'h4 valor entidadFederativa'}),
 
                 ],
-                "codigoPostal" =>  $declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 codigoPostal'},
+                "codigoPostal" =>  $this->nullConvert($declaracion->{'h4 pais'} ? "" : $declaracion->{'h4 codigoPostal'}),
             ],
             "domicilioExtranjero" => [
-                "calle" => $declaracion->{'h4 pais'} ?  $declaracion->{'h4 calle'} : "",
-                "numeroExterior" => $declaracion->{'h4 pais'} ? $declaracion->{'h4 NumeroExterior'} : "",
-                "numeroInterior" => $declaracion->{'h4 pais'} ? $declaracion->{'h4 NumeroInterior'} : "",
-                "ciudadLocalidad" => $declaracion->{'h4 pais'} ? $declaracion->{'h4 ciudadLocalidad'} : "",
-                "estadoProvincia" => $declaracion->{'h4 pais'} ? $declaracion->{'h4 estadoProvincia'} : "",
-                "pais" => $declaracion->{'h4 pais'} ? $declaracion->{'h4 pais'} : "",
-                "codigoPostal" => $declaracion->{'h4 pais'} ? $declaracion->{'h4 codigoPostal'} : "",
+                "calle" => $this->nullConvert($declaracion->{'h4 pais'} ?  $declaracion->{'h4 calle'} : ""),
+                "numeroExterior" => $this->nullConvert($declaracion->{'h4 pais'} ? $declaracion->{'h4 NumeroExterior'} : ""),
+                "numeroInterior" => $this->nullConvert($declaracion->{'h4 pais'} ? $declaracion->{'h4 NumeroInterior'} : ""),
+                "ciudadLocalidad" => $this->nullConvert($declaracion->{'h4 pais'} ? $declaracion->{'h4 ciudadLocalidad'} : ""),
+                "estadoProvincia" => $this->nullConvert($declaracion->{'h4 pais'} ? $declaracion->{'h4 estadoProvincia'} : ""),
+                "pais" => $this->nullConvert($declaracion->{'h4 pais'} ? $declaracion->{'h4 pais'} : ""),
+                "codigoPostal" => $this->nullConvert($declaracion->{'h4 pais'} ? $declaracion->{'h4 codigoPostal'} : ""),
 
             ],
-            "aclaracionesObservaciones" => $declaracion->{'h4 aclaracionesObservaciones'},
+            // "aclaracionesObservaciones" => $this->nullConvert($declaracion->{'h4 aclaracionesObservaciones'}),
 
         ];
     }
@@ -452,7 +502,7 @@ END as tipo,
             return [
                 "ninguno" => true,
                 "experienciaLaboral" => [],
-                "aclaracionesObservaciones" => ""
+                // "aclaracionesObservaciones" => ""
             ];
         }
 
@@ -464,47 +514,47 @@ END as tipo,
                 $experiencia[] = [
                     "tipoOperacion" => 'AGREGAR',
                     "ambitoSector" => [
-                        "clave" => $item->ambitoSector_clave ?? null,
-                        "valor" => $item->ambitoSector_valor ?? null
+                        "clave" => $this->nullConvert($item->ambitoSector_clave ?? null),
+                        "valor" => $this->nullConvert($item->ambitoSector_valor ?? null)
                     ],
-                    "nivelOrdenGobierno" => $item->nivelOrdenGobierno ?? null,
-                    "ambitoPublico" => $item->ambitoPublico ?? null,
-                    "nombreEntePublico" => $item->nombreEntePublico ?? null,
-                    "areaAdscripcion" => $item->areaAdscripcion ?? null,
-                    "empleoCargoComision" => $item->empleoCargoComision ?? null,
-                    "funcionPrincipal" => $item->funcionPrincipal ?? null,
-                    "fechaIngreso" => $item->fechaIngreso ?? null,
-                    "fechaEgreso" => $item->fechaEgreso ?? null,
-                    "ubicacion" => $item->ubicacion ?? null
+                    "nivelOrdenGobierno" => $this->nullConvert($item->nivelOrdenGobierno ?? null),
+                    "ambitoPublico" => $this->nullConvert($item->ambitoPublico ?? null),
+                    "nombreEntePublico" => $this->nullConvert($item->nombreEntePublico ?? null),
+                    "areaAdscripcion" => $this->nullConvert($item->areaAdscripcion ?? null),
+                    "empleoCargoComision" => $this->nullConvert($item->empleoCargoComision ?? null),
+                    "funcionPrincipal" => $this->nullConvert($item->funcionPrincipal ?? null),
+                    "fechaIngreso" => $this->nullConvert($item->fechaIngreso ?? null),
+                    "fechaEgreso" => $this->nullConvert($item->fechaEgreso ?? null),
+                    "ubicacion" => $this->nullConvert($item->ubicacion ?? null)
                 ];
             } else {
                 // Experiencia en sector privado
                 $experiencia[] = [
                     "tipoOperacion" => 'AGREGAR',
                     "ambitoSector" => [
-                        "clave" => $item->ambitoSector_clave ?? null,
-                        "valor" => $item->ambitoSector_valor ?? null
+                        "clave" => $this->nullConvert($item->ambitoSector_clave ?? null),
+                        "valor" => $this->nullConvert($item->ambitoSector_valor ?? null)
                     ],
-                    "nombreEmpresaSociedadAsociacion" => $item->NombreEmpresaSociedadAsociacion ?? null,
-                    "rfc" => $item->RFC ?? null,
-                    "area" => $item->areaAdscripcion ?? null,
-                    "puesto" => $item->Puesto ?? null,
+                    "nombreEmpresaSociedadAsociacion" => $this->nullConvert($item->NombreEmpresaSociedadAsociacion ?? null),
+                    "rfc" => $this->nullConvert($item->RFC ?? null),
+                    "area" => $this->nullConvert($item->areaAdscripcion ?? null),
+                    "puesto" => $this->nullConvert($item->Puesto ?? null),
                     "sector" => [
-                        "clave" => $item->sector_clave ?? null,
-                        "valor" => $item->sector_valor ?? null
+                        "clave" => $this->nullConvert($item->sector_clave ?? null),
+                        "valor" => $this->nullConvert($item->sector_valor ?? null)
                     ],
-                    "ubicacion" => $item->ubicacion ?? null
+                    "ubicacion" => $this->nullConvert($item->ubicacion ?? null)
                 ];
             }
         }
 
         // Obtener aclaraciones (del primer registro)
-        $aclaraciones = $experienciasLaborales[0]->Aclaraciones ?? '';
+        // $aclaraciones = $experienciasLaborales[0]->Aclaraciones ?? '';
 
         return [
             "ninguno" => empty($experiencia),
             "experiencia" => $experiencia,
-            "aclaracionesObservaciones" => $aclaraciones
+            // "aclaracionesObservaciones" => $aclaraciones
         ];
     }
     protected function generarSeccionDatosPareja($id)
@@ -558,84 +608,84 @@ END as tipo,
                     "ninguno" => isset($pareja->message) ? true : false,
 
                     "tipoOperacion" => 'AGREGAR',
-                    "nombre" => $pareja->Nombre,
-                    "primerApellido" => $pareja->PrimerApellido,
-                    "segundoApellido" => $pareja->SegundoApellido,
-                    "fechaNacimiento" => $pareja->FechaNacimiento,
-                    "rfc" => $pareja->RfcPareja,
-                    "relacionConDeclarante" => $pareja->relacionConDeclarante,
+                    "nombre" => $this->nullConvert($pareja->Nombre),
+                    "primerApellido" => $this->nullConvert($pareja->PrimerApellido),
+                    "segundoApellido" => $this->nullConvert($pareja->SegundoApellido),
+                    "fechaNacimiento" => $this->nullConvert($pareja->FechaNacimiento),
+                    "rfc" => $this->nullConvert($pareja->RfcPareja),
+                    "relacionConDeclarante" => $this->nullConvert($pareja->relacionConDeclarante),
                     "ciudadanoExtranjero" => $pareja->EsCiudadanoExtranjero ? true : false,
-                    "curp" => $pareja->Curp,
+                    "curp" => $this->nullConvert($pareja->Curp),
                     "esDependienteEconomico" => $pareja->EsDependienteEconomico ? true : false,
                     "habitaDomicilioDeclarante" => $pareja->HabitaDomicilioDeclarante ? true : false,
-                    "lugarDondeReside" => $pareja->lugarDondeReside,
+                    "lugarDondeReside" => $this->nullConvert($pareja->lugarDondeReside),
                     "domicilioMexico" => [
-                        "calle" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"Calle"} : "",
-                        "numeroExterior" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroExterior"} : "",
-                        "numeroInterior" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroInterior"} : "",
-                        "coloniaLocalidad" =>  $pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"ColoniaLocalidad"} : "",
+                        "calle" =>  $this->nullConvert($pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"Calle"} : ""),
+                        "numeroExterior" =>  $this->nullConvert($pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroExterior"} : ""),
+                        "numeroInterior" =>  $this->nullConvert($pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"NumeroInterior"} : ""),
+                        "coloniaLocalidad" =>  $this->nullConvert($pareja->{"lugarDondeReside"} == "MEXICO" ? $pareja->{"ColoniaLocalidad"} : ""),
                         "municipioAlcaldia" => [
-                            "clave" => $pareja->{'clave municipioAlcaldia'},
-                            "valor" => $pareja->{'valor municipioAlcaldia'},
+                            "clave" => $this->nullConvert($pareja->{'clave municipioAlcaldia'}),
+                            "valor" => $this->nullConvert($pareja->{'valor municipioAlcaldia'}),
 
                         ],
                         "entidadFederativa" => [
-                            "clave" => $pareja->{'clave entidadFederativa'},
-                            "valor" => $pareja->{'valor entidadFederativa'},
+                            "clave" => $this->nullConvert($pareja->{'clave entidadFederativa'}),
+                            "valor" => $this->nullConvert($pareja->{'valor entidadFederativa'}),
 
                         ],
-                        "codigoPostal" => $pareja->{"lugarDondeReside"} == "MEXICO" ? "" :  $pareja->{"CodigoPostal"},
+                        "codigoPostal" => $this->nullConvert($pareja->{"lugarDondeReside"} == "MEXICO" ? "" :  $pareja->{"CodigoPostal"}),
                     ],
                     "domicilioExtranjero" => [
-                        "calle" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Calle"} : "",
-                        "numeroExterior" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"NumeroExterior"} : "",
-                        "numeroInterior" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"NumeroInterior"} : "",
-                        "ciudadLocalidad" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CiudadLocalidad"} : "",
-                        "estadoProvincia" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"EstadoProvincia"} : "",
-                        "pais" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Pais"} : "",
-                        "codigoPostal" => $pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CodigoPostal"} : "",
+                        "calle" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Calle"} : ""),
+                        "numeroExterior" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"NumeroExterior"} : ""),
+                        "numeroInterior" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"NumeroInterior"} : ""),
+                        "ciudadLocalidad" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CiudadLocalidad"} : ""),
+                        "estadoProvincia" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"EstadoProvincia"} : ""),
+                        "pais" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"Pais"} : ""),
+                        "codigoPostal" => $this->nullConvert($pareja->{"lugarDondeReside"} == "EXTRANJERO" ? $pareja->{"CodigoPostal"} : ""),
                     ],
                 ];
         }
         if ($pareja->{'actividad valor'}) {
             $datosPareja["actividadLaboral"] = [
-                "clave" => $pareja->{'actividad clave'},
-                "valor" => $pareja->{'actividad valor'},
+                "clave" => $this->nullConvert($pareja->{'actividad clave'}),
+                "valor" => $this->nullConvert($pareja->{'actividad valor'}),
             ];
         }
         if ($pareja->{'actividad clave'} == 'PUB') {
             $datosPareja["actividadLaboralSectorPublico"] = [
-                "nivelOrdenGobierno" => $pareja->nivelOrdenGobierno,
-                "ambitoPublico" => $pareja->ambitoPublico,
-                "nombreEntePublico" => $pareja->NombreEntePublico,
-                "areaAdscripcion" => $pareja->AreaAdscripcion,
-                "empleoCargoComision" => $pareja->EmpleoCargoComision,
-                "funcionPrincipal" => $pareja->FuncionPrincipal,
+                "nivelOrdenGobierno" => $this->nullConvert($pareja->nivelOrdenGobierno),
+                "ambitoPublico" => $this->nullConvert($pareja->ambitoPublico),
+                "nombreEntePublico" => $this->nullConvert($pareja->NombreEntePublico),
+                "areaAdscripcion" => $this->nullConvert($pareja->AreaAdscripcion),
+                "empleoCargoComision" => $this->nullConvert($pareja->EmpleoCargoComision),
+                "funcionPrincipal" => $this->nullConvert($pareja->FuncionPrincipal),
                 "salarioMensualNeto" => [
                     "monto" => [
-                        "valor" =>  $pareja->{'monto valor'},
-                        "moneda" =>  $pareja->Divisa,
+                        "valor" =>  $this->nullConvert($pareja->{'monto valor'}),
+                        "moneda" =>  $this->nullConvert($pareja->Divisa),
 
                     ],
-                    "fechaIngreso" => $pareja->FechaIngreso,
+                    "fechaIngreso" => $this->nullConvert($pareja->FechaIngreso),
                 ]
             ];
         }
         if ($pareja->{'actividad clave'} == 'PRI') {
             $datosPareja["actividadLaboralSectorPrivadoOtro"] = [
-                "nombreEmpresaSociedadAsociacion" => $pareja->nombreEmpresaSociedadAsociacion,
-                "empleoCargoComision" => $pareja->EmpleoCargoComision,
-                "rfc" => $pareja->RfcEmpresa,
-                "fechaIngreso" => $pareja->FechaIngreso,
+                "nombreEmpresaSociedadAsociacion" => $this->nullConvert($pareja->nombreEmpresaSociedadAsociacion),
+                "empleoCargoComision" => $this->nullConvert($pareja->EmpleoCargoComision),
+                "rfc" => $this->nullConvert($pareja->RfcEmpresa),
+                "fechaIngreso" => $this->nullConvert($pareja->FechaIngreso),
                 "sector" => [
-                    "clave" => $pareja->{'sector clave'},
-                    "valor" => $pareja->{'sector valor'},
+                    "clave" => $this->nullConvert($pareja->{'sector clave'}),
+                    "valor" => $this->nullConvert($pareja->{'sector valor'}),
                 ],
                 "salarioMensualNeto" =>
                 [
                     "monto" => [
-                        "valor" => $pareja->{'monto valor'},
-                        "moneda" => $pareja->Divisa,
+                        "valor" => $this->nullConvert($pareja->{'monto valor'}),
+                        "moneda" => $this->nullConvert($pareja->Divisa),
 
                     ]
                 ],
@@ -644,7 +694,7 @@ END as tipo,
 
             ];
         }
-        $datosPareja["aclaracionesObservaciones"] = $pareja->Aclaraciones;
+        $datosPareja["aclaracionesObservaciones"] = $this->nullConvert($pareja->Aclaraciones);
 
 
         return $datosPareja;
@@ -698,7 +748,7 @@ END as tipo,
         $dependientes = [
             "ninguno" => isset($dependientesEconomicos[0]->message) ? true : false,
             "dependienteEconomico" => [],
-            "aclaracionesObservaciones" => "",
+            // "aclaracionesObservaciones" => "",
 
         ];
         if (isset($dependientesEconomicos[0]->message)) {
@@ -708,88 +758,88 @@ END as tipo,
 
             $dependiente = [
                 "tipoOperacion" => "AGREGAR",
-                "nombre" => $dep->Nombre,
-                "primerApellido" => $dep->PrimerApellido,
-                "segundoApellido" => $dep->SegundoApellido,
-                "fechaNacimiento" => $dep->{'h3 FechaNacimiento'},
-                "rfc" => $dep->RfcDependiente,
+                "nombre" => $this->nullConvert($dep->Nombre),
+                "primerApellido" => $this->nullConvert($dep->PrimerApellido),
+                "segundoApellido" => $this->nullConvert($dep->SegundoApellido),
+                "fechaNacimiento" => $this->nullConvert($dep->{'h3 FechaNacimiento'}),
+                "rfc" => $this->nullConvert($dep->RfcDependiente),
                 "parentescoRelacion" => [
-                    "clave" => $dep->{'clave parentescoRelacion'},
-                    "valor" => $dep->{'valor parentescoRelacion'},
+                    "clave" => $this->nullConvert($dep->{'clave parentescoRelacion'}),
+                    "valor" => $this->nullConvert($dep->{'valor parentescoRelacion'}),
                 ],
                 "extranjero" => $dep->EsCiudadanoExtranjero ? true : false,
-                "curp" => $dep->Curp,
+                "curp" => $this->nullConvert($dep->Curp),
                 "habitaDomicilioDeclarante" => $dep->HabitaDomicilioDeclarante ? true : false,
-                "lugarDondeReside" => $dep->lugarDondeReside,
+                "lugarDondeReside" => $this->nullConvert($dep->lugarDondeReside),
                 "domicilioMexico" => [
-                    "calle" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
-                    "numeroExterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
-                    "numeroInterior" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
-                    "coloniaLocalidad" =>  $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
+                    "calle" =>  $this->nullConvert($dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : ""),
+                    "numeroExterior" =>  $this->nullConvert($dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : ""),
+                    "numeroInterior" =>  $this->nullConvert($dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : ""),
+                    "coloniaLocalidad" =>  $this->nullConvert($dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : ""),
                     "municipioAlcaldia" => [
-                        "clave" => $dep->{'clave municipioAlcaldia'},
-                        "valor" => $dep->{'valor municipioAlcaldia'},
+                        "clave" => $this->nullConvert($dep->{'clave municipioAlcaldia'}),
+                        "valor" => $this->nullConvert($dep->{'valor municipioAlcaldia'}),
 
                     ],
                     "entidadFederativa" => [
-                        "clave" => $dep->{'clave entidadFederativa'},
-                        "valor" => $dep->{'valor entidadFederativa'},
+                        "clave" => $this->nullConvert($dep->{'clave entidadFederativa'}),
+                        "valor" => $this->nullConvert($dep->{'valor entidadFederativa'}),
 
                     ],
-                    "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? "" :  $dep->{"CodigoPostal"},
+                    "codigoPostal" => $this->nullConvert($dep->{"lugarDondeReside"} == "MEXICO" ? "" :  $dep->{"CodigoPostal"}),
                 ],
                 "domicilioExtranjero" => [
-                    "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
-                    "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
-                    "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
-                    "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
-                    "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
-                    "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
-                    "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
+                    "calle" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : ""),
+                    "numeroExterior" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : ""),
+                    "numeroInterior" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : ""),
+                    "ciudadLocalidad" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : ""),
+                    "estadoProvincia" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : ""),
+                    "pais" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : ""),
+                    "codigoPostal" => $this->nullConvert($dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : ""),
                 ],
 
 
             ];
             if ($dep->{'actividad valor'}) {
                 $dependiente["actividadLaboral"] = [
-                    "clave" => $dep->{'actividad clave'},
-                    "valor" => $dep->{'actividad valor'},
+                    "clave" => $this->nullConvert($dep->{'actividad clave'}),
+                    "valor" => $this->nullConvert($dep->{'actividad valor'}),
                 ];
             }
             if ($dep->{'actividad clave'} == 'PUB') {
                 $dependiente["actividadLaboralSectorPublico"] = [
-                    "nivelOrdenGobierno" => $dep->nivelOrdenGobierno,
-                    "ambitoPublico" => $dep->ambitoPublico,
-                    "nombreEntePublico" => $dep->NombreEntePublico,
-                    "areaAdscripcion" => $dep->AreaAdscripcion,
-                    "empleoCargoComision" => $dep->EmpleoCargoComision,
-                    "funcionPrincipal" => $dep->FuncionPrincipal,
+                    "nivelOrdenGobierno" => $this->nullConvert($dep->nivelOrdenGobierno),
+                    "ambitoPublico" => $this->nullConvert($dep->ambitoPublico),
+                    "nombreEntePublico" => $this->nullConvert($dep->NombreEntePublico),
+                    "areaAdscripcion" => $this->nullConvert($dep->AreaAdscripcion),
+                    "empleoCargoComision" => $this->nullConvert($dep->EmpleoCargoComision),
+                    "funcionPrincipal" => $this->nullConvert($dep->FuncionPrincipal),
                     "salarioMensualNeto" => [
                         "monto" => [
-                            "valor" =>  $dep->{'monto valor'},
-                            "moneda" =>  $dep->Divisa,
+                            "valor" =>  $this->nullConvert($dep->{'monto valor'}),
+                            "moneda" =>  $this->nullConvert($dep->Divisa),
 
                         ],
-                        "fechaIngreso" => $dep->FechaIngreso,
+                        "fechaIngreso" => $this->nullConvert($dep->FechaIngreso),
                     ]
                 ];
             }
             if ($dep->{'actividad clave'} == 'PRI') {
                 $dependiente["actividadLaboralSectorPrivadoOtro"] = [
-                    "nombreEmpresaSociedadAsociacion" => $dep->nombreEmpresaSociedadAsociacion,
-                    "empleoCargoComision" => $dep->EmpleoCargoComision,
-                    "rfc" => $dep->RfcEmpresa,
-                    "fechaIngreso" => $dep->FechaIngreso,
+                    "nombreEmpresaSociedadAsociacion" => $this->nullConvert($dep->nombreEmpresaSociedadAsociacion),
+                    "empleoCargoComision" => $this->nullConvert($dep->EmpleoCargoComision),
+                    "rfc" => $this->nullConvert($dep->RfcEmpresa),
+                    "fechaIngreso" => $this->nullConvert($dep->FechaIngreso),
                     "proveedorContratistaGobierno" => false,
                     "sector" => [
-                        "clave" => $dep->{'sector clave'},
-                        "valor" => $dep->{'sector valor'},
+                        "clave" => $this->nullConvert($dep->{'sector clave'}),
+                        "valor" => $this->nullConvert($dep->{'sector valor'}),
                     ],
                     "salarioMensualNeto" =>
                     [
                         "monto" => [
-                            "valor" => $dep->{'monto valor'},
-                            "moneda" => $dep->Divisa,
+                            "valor" => $this->nullConvert($dep->{'monto valor'}),
+                            "moneda" => $this->nullConvert($dep->Divisa),
 
                         ]
                     ],
@@ -830,17 +880,17 @@ END as tipo,
         }
         return [
             "remuneracionMensualCargoPublico" => [
-                "valor" => $declaracion->{'h8 valor remuneracionMensualCargoPublico'},
+                "valor" => $this->nullConvert($declaracion->{'h8 valor remuneracionMensualCargoPublico'}, 'number'),
                 "moneda" => "MXN",
             ],
             "otrosIngresosMensualesTotal" => [
-                "valor" => $declaracion->{'h8 valor otrosIngresosMensualesTotal'},
+                "valor" => $this->nullConvert($declaracion->{'h8 valor otrosIngresosMensualesTotal'}, 'number'),
                 "moneda" => "MXN",
             ],
             "actividadIndustrialComercialEmpresarial" => [
                 "remuneracionTotal" => [
                     "monto" => [
-                        "valor" => $declaracion->{'h8 valor actividadIndustrialComercialEmpresarial'},
+                        "valor" => $this->nullConvert($declaracion->{'h8 valor actividadIndustrialComercialEmpresarial'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
@@ -848,11 +898,11 @@ END as tipo,
                     [
                         "remuneracion" => [
                             "monto" => [
-                                "valor" => $declaracion->{'h8 valor actividadIndustrialComercialEmpresarial'},
+                                "valor" => $this->nullConvert($declaracion->{'h8 valor actividadIndustrialComercialEmpresarial'}, 'number'),
                                 "moneda" => "MXN",
                             ],
-                            "nombreRazonSocial" => $declaracion->{'h8 nombreRazonSocial'},
-                            "tipoNegocio" => $declaracion->{'h8 TipoNegocio'},
+                            "nombreRazonSocial" => $this->nullConvert($declaracion->{'h8 nombreRazonSocial'}),
+                            "tipoNegocio" => $this->nullConvert($declaracion->{'h8 TipoNegocio'}),
                         ]
                     ]
                 ],
@@ -860,20 +910,20 @@ END as tipo,
             "actividadFinanciera" => [
                 "remuneracionTotal" => [
                     "monto" => [
-                        "valor" => $declaracion->{'h8 valor actividadFinanciera'},
+                        "valor" => $this->nullConvert($declaracion->{'h8 valor actividadFinanciera'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
                 "actividades" => [[
                     "remuneracion" => [
                         "monto" => [
-                            "valor" => $declaracion->{'h8 valor actividadFinanciera'},
+                            "valor" => $this->nullConvert($declaracion->{'h8 valor actividadFinanciera'}, 'number'),
                             "moneda" => "MXN",
                         ]
                     ],
                     "tipoInstrumento" => [
-                        "clave" => $declaracion->{'h8 clave tipoInstrumento'},
-                        "valor" => $declaracion->{'h8 valor tipoInstrumento'},
+                        "clave" => $this->nullConvert($declaracion->{'h8 clave tipoInstrumento'}),
+                        "valor" => $this->nullConvert($declaracion->{'h8 valor tipoInstrumento'}),
                     ]
                 ]],
 
@@ -881,7 +931,7 @@ END as tipo,
             "serviciosProfesionales" => [
                 "remuneracionTotal" => [
                     "monto" => [
-                        "valor" => $declaracion->{'h8 RemuneracionTotal'},
+                        "valor" => $this->nullConvert($declaracion->{'h8 RemuneracionTotal'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
@@ -889,11 +939,11 @@ END as tipo,
                     [
                         "remuneracion" => [
                             "monto" => [
-                                "valor" => $declaracion->{'h8 RemuneracionTotal'},
+                                "valor" => $this->nullConvert($declaracion->{'h8 RemuneracionTotal'}, 'number'),
                                 "moneda" => "MXN",
                             ]
                         ],
-                        "tipoServicio" => $declaracion->{'h8 servicios tipoServicio'},
+                        "tipoServicio" => $this->nullConvert($declaracion->{'h8 servicios tipoServicio'}),
                     ]
                 ]
             ],
@@ -919,7 +969,7 @@ END as tipo,
             "otrosIngresos" => [
                 "remuneracionTotal" => [
                     "monto" => [
-                        "valor" => $declaracion->{'h8 valor otrosIngresosMensualesTotal'},
+                        "valor" => $this->nullConvert($declaracion->{'h8 valor otrosIngresosMensualesTotal'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
@@ -927,7 +977,7 @@ END as tipo,
                     [
                         "remuneracion" => [
                             "monto" => [
-                                "valor" => $declaracion->{'h8 valor otrosIngresosMensualesTotal'},
+                                "valor" => $this->nullConvert($declaracion->{'h8 valor otrosIngresosMensualesTotal'}, 'number'),
                                 "moneda" => "MXN",
                             ]
                         ],
@@ -937,23 +987,23 @@ END as tipo,
             ],
             "ingresoMensualNetoDeclarante" => [
                 "monto" => [
-                    "valor" => $declaracion->{'h8 ingresos'},
+                    "valor" => $this->nullConvert($declaracion->{'h8 ingresos'}, 'number'),
                     "moneda" => "MXN",
                 ]
             ],
-            "ingresoMensualNetoParejaDependiente" => [
-                "monto" => [
-                    "valor" => $declaracion->{'h8 ingresoMensualNetoParejaDependiente'},
-                    "moneda" => "MXN",
-                ]
-            ],
+            // "ingresoMensualNetoParejaDependiente" => [
+            //     "monto" => [
+            //         "valor" => $this->nullConvert($declaracion->{'h8 ingresoMensualNetoParejaDependiente'}),
+            //         "moneda" => "MXN",
+            //     ]
+            // ],
             "totalIngresosMensualesNetos" => [
                 "monto" => [
-                    "valor" => $declaracion->{'h8 totalIngresosMensualesNetos'},
+                    "valor" => $this->nullConvert($declaracion->{'h8 totalIngresosMensualesNetos'}, 'number'),
                     "moneda" => "MXN",
                 ]
             ],
-            "aclaracionesObservaciones" => $declaracion->{'h8 Aclaraciones'},
+            // "aclaracionesObservaciones" => $this->nullConvert($declaracion->{'h8 Aclaraciones'}),
         ];
     }
     protected function generarSeccionActividadAnualAnterior($id)
@@ -989,24 +1039,24 @@ END as tipo,
         if (!$declaracion) {
             return $actividadAnual;
         }
-        $actividadAnual["fechaIngreso"] =  $declaracion->{'FechaInicio'};
-        $actividadAnual["fechaConclusion"] = $declaracion->{'FechaConclusion'};
+        $actividadAnual["fechaIngreso"] =  $this->nullConvert($declaracion->{'FechaInicio'});
+        $actividadAnual["fechaConclusion"] = $this->nullConvert($declaracion->{'FechaConclusion'});
         $actividadAnual["remuneracionNetaCargoPublico"] = [
             "monto" => [
-                "valor" => $declaracion->{'valor remuneracionMensualCargoPublico'},
+                "valor" => $this->nullConvert($declaracion->{'valor remuneracionMensualCargoPublico'}, 'number'),
                 "moneda" => "MXN"
             ]
         ];
         $actividadAnual["otrosIngresosTotal"] = [
             "monto" => [
-                "valor" => $declaracion->{'valor otrosIngresosMensualesTotal'},
+                "valor" => $this->nullConvert($declaracion->{'valor otrosIngresosMensualesTotal'}, 'number'),
                 "moneda" => "MXN"
             ]
         ];
         $actividadAnual["actividadIndustrialComercialEmpresarial"] = [
             "remuneracionTotal" => [
                 "monto" => [
-                    "valor" => $declaracion->{'valor actividadIndustrialComercialEmpresarial'},
+                    "valor" => $this->nullConvert($declaracion->{'valor actividadIndustrialComercialEmpresarial'}, 'number'),
                     "moneda" => "MXN"
                 ]
             ],
@@ -1014,13 +1064,13 @@ END as tipo,
                 [
                     "remuneracion" => [
                         "monto" => [
-                            "valor" => $declaracion->{'valor actividadIndustrialComercialEmpresarial'},
+                            "valor" => $this->nullConvert($declaracion->{'valor actividadIndustrialComercialEmpresarial'}, 'number'),
                             "moneda" => "MXN"
                         ],
 
                     ],
-                    "nombreRazonSocial" => $declaracion->{'nombreRazonSocial'},
-                    "tipoNegocio" => $declaracion->{'TipoNegocio'},
+                    "nombreRazonSocial" => $this->nullConvert($declaracion->{'nombreRazonSocial'}),
+                    "tipoNegocio" => $this->nullConvert($declaracion->{'TipoNegocio'}),
 
                 ]
             ]
@@ -1028,7 +1078,7 @@ END as tipo,
         $actividadAnual["actividadFinanciera"] = [
             "remuneracionTotal" => [
                 "monto" => [
-                    "valor" => $declaracion->{'valor actividadFinanciera'},
+                    "valor" => $this->nullConvert($declaracion->{'valor actividadFinanciera'}, 'number'),
                     "moneda" => "MXN"
                 ]
             ],
@@ -1036,14 +1086,14 @@ END as tipo,
                 [
                     "remuneracion" => [
                         "monto" => [
-                            "valor" => $declaracion->{'valor actividadFinanciera'},
+                            "valor" => $this->nullConvert($declaracion->{'valor actividadFinanciera'}, 'number'),
                             "moneda" => "MXN"
                         ],
 
                     ],
                     "tipoInstrumento" => [
-                        "clave" => $declaracion->{'clave tipoInstrumento'},
-                        "valor" => $declaracion->{'valor tipoInstrumento'},
+                        "clave" => $this->nullConvert($declaracion->{'clave tipoInstrumento'}),
+                        "valor" => $this->nullConvert($declaracion->{'valor tipoInstrumento'}),
 
 
                     ],
@@ -1054,7 +1104,7 @@ END as tipo,
         $actividadAnual["serviciosProfesionales"] = [
             "remuneracionTotal" => [
                 "monto" => [
-                    "valor" => $declaracion->{'RemuneracionTotal'},
+                    "valor" => $this->nullConvert($declaracion->{'RemuneracionTotal'} . 'number'),
                     "moneda" => "MXN",
                 ]
             ],
@@ -1062,18 +1112,18 @@ END as tipo,
                 [
                     "remuneracion" => [
                         "monto" => [
-                            "valor" => $declaracion->{'RemuneracionTotal'},
+                            "valor" => $this->nullConvert($declaracion->{'RemuneracionTotal'}, 'number'),
                             "moneda" => "MXN",
                         ]
                     ],
-                    "tipoServicio" => $declaracion->{'servicios tipoServicio'},
+                    "tipoServicio" => $this->nullConvert($declaracion->{'servicios tipoServicio'}),
                 ]
             ]
         ];
         $actividadAnual["enajenacionBienes"] = [
             "remuneracionTotal" => [
                 "monto" => [
-                    "valor" => "",
+                    "valor" => 0,
                     "moneda" => "MXN",
                 ]
             ],
@@ -1081,18 +1131,18 @@ END as tipo,
                 [
                     "remuneracion" => [
                         "monto" => [
-                            "valor" => "",
+                            "valor" => 0,
                             "moneda" => "MXN",
                         ]
                     ],
-                    "tipoBienEnajenado" => $declaracion->{'tipoBienEnajenado'},
+                    "tipoBienEnajenado" => $this->nullConvert($declaracion->{'tipoBienEnajenado'}),
                 ]
             ]
         ];
         $actividadAnual["otrosIngresos"] = [
             "remuneracionTotal" => [
                 "monto" => [
-                    "valor" => $declaracion->{'ingresos'},
+                    "valor" => $this->nullConvert($declaracion->{'ingresos'}, 'number'),
                     "moneda" => "MXN",
                 ]
             ],
@@ -1100,7 +1150,7 @@ END as tipo,
                 [
                     "remuneracion" => [
                         "monto" => [
-                            "valor" => $declaracion->{'ingresos'},
+                            "valor" => $this->nullConvert($declaracion->{'ingresos'}, 'number'),
                             "moneda" => "MXN",
                         ]
                     ],
@@ -1110,23 +1160,23 @@ END as tipo,
         ];
         $actividadAnual["ingresoNetoAnualDeclarante"] = [
             "monto" => [
-                "valor" => $declaracion->{'ingresos'},
+                "valor" => $this->nullConvert($declaracion->{'ingresos'}, 'number'),
                 "moneda" => "MXN",
             ]
         ];
-        $actividadAnual["ingresoNetoAnualParejaDependiente"] = [
-            "monto" => [
-                "valor" => $declaracion->{'ingresoMensualNetoParejaDependiente'},
-                "moneda" => "MXN",
-            ]
-        ];
+        // $actividadAnual["ingresoNetoAnualParejaDependiente"] = [
+        //     "monto" => [
+        //         "valor" => $this->nullConvert($declaracion->{'ingresoMensualNetoParejaDependiente'}),
+        //         "moneda" => "MXN",
+        //     ]
+        // ];
         $actividadAnual["totalIngresosNetosAnuales"] = [
             "monto" => [
-                "valor" => $declaracion->{'totalIngresosMensualesNetos'},
+                "valor" => $this->nullConvert($declaracion->{'totalIngresosMensualesNetos'}, 'number'),
                 "moneda" => "MXN",
             ]
         ];
-        $actividadAnual["aclaracionesObservaciones"] = $declaracion->{'Aclaraciones'};
+        // $actividadAnual["aclaracionesObservaciones"] = $this->nullConvert($declaracion->{'Aclaraciones'});
         return $actividadAnual;
     }
     protected function generarSeccionBienesInmuebles($id)
@@ -1177,13 +1227,13 @@ END as tipo,
         LEFT JOIN Municipio  on Municipio.Clave =bienes.Id_MunicipioAlcaldia
         LEFT JOIN Estado  on Estado.Clave =bienes.Id_EntidadFederativa
         left join Pais as p on p.Clave  = bienes.Id_Pais
-        where bienes.Id_SituacionPatrimonial =?
+        where t.clave = 1 and bienes.Id_SituacionPatrimonial =?
         ", [$id]);
 
         $resultado = [
             "ninguno" => empty($declaracion),
             "bienInmueble" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($declaracion)) {
@@ -1191,94 +1241,106 @@ END as tipo,
         }
 
         foreach ($declaracion as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $bien = [
                 'tipoOperacion' => "AGREGAR",
                 'tipoInmueble' => [
-                    "clave" => $dep->{'clave TipoInmueble'},
-                    "valor" => $dep->{'valor TipoInmueble'},
+                    "clave" => $this->nullConvert($dep->{'clave TipoInmueble'}),
+                    "valor" => $this->nullConvert($dep->{'valor TipoInmueble'}),
                 ],
                 'titular' => [
-                    "titularBien" => [
-                        [
-                            "clave" => $dep->{'clave titular'},
-                            "valor" => $dep->{'valor titular'},
+                    [
+                        "titularBien" => [
+                            [
+                                "clave" => $this->nullConvert($dep->{'clave titular'}),
+                                "valor" => $this->nullConvert($dep->{'valor titular'}),
+                            ]
                         ]
                     ]
                 ],
-                'porcentajePropiedad' => $dep->{'PorcentajePropiedad'},
+                'porcentajePropiedad' => $this->nullConvert($dep->{'PorcentajePropiedad'}, 'integer'),
                 'superficieTerreno' => [
                     "superficie" => [
-                        "valor" => $dep->{'SuperficieTerreno'},
+                        "valor" => $this->nullConvert($dep->{'SuperficieTerreno'}, 'integer'),
                         "unidad" => "m2",
                     ]
                 ],
                 'superficieConstruccion' => [
                     "superficie" => [
-                        "valor" => $dep->{'Superficieconstruncion'},
+                        "valor" => $this->nullConvert($dep->{'Superficieconstruncion'}, 'integer'),
                         "unidad" => "m2",
                     ]
                 ],
                 'tercero' => [
                     [
-                        "tipoPersona" => $dep->{'tercero tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
+                        "tipoPersona" => $this->nullConvert($dep->{'tercero tipo_persona'}),
+                        "nombreRazonSocial" => $this->nullConvert($dep->{'T_NombreRazonSocial'}),
                     ]
                 ],
                 'transmisor' => [
                     [
-                        "tipoPersona" => $dep->{'transmisor tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'TR_NombreRazonSocial'},
-                        "rfc" => $dep->{'TR_Rfc'},
-                        "relacion" => [
-                            "parentescoRelacion" => [
-                                "clave" => $dep->{'clave relacion'},
-                                "valor" => $dep->{'valor relacion'},
-                            ]
-                        ],
+                        "tipoPersona" => $this->nullConvert($dep->{'transmisor tipo_persona'}),
+                        ...$this->conditionalField(
+                            $dep->{'transmisor tipo_persona'} == 'MORAL',
+                            'nombreRazonSocial',
+                            $this->nullConvert($dep->{'TR_NombreRazonSocial'})
+                        ),
+                        ...$this->conditionalField(
+                            $dep->{'transmisor tipo_persona'} == 'MORAL',
+                            'rfc',
+                            $this->nullConvert($dep->{'TR_Rfc'})
+                        ),
+                        // "nombreRazonSocial" =>    $this->nullConvert($dep->{'TR_NombreRazonSocial'}),
+                        // "rfc" => $this->nullConvert($dep->{'TR_Rfc'}),
+                        // "relacion" => [
+                        //     "parentescoRelacion" => [
+                        //         "clave" => $this->nullConvert($dep->{'clave relacion'}),
+                        //         "valor" => $this->nullConvert($dep->{'valor relacion'}),
+                        //     ]
+                        // ],
                     ]
                 ],
                 'formaAdquisicion' => [
-                    "clave" => $dep->{'clave FormaAdquisicion'},
-                    "valor" => $dep->{'valor FormaAdquisicion'},
+                    "clave" => $this->nullConvert($dep->{'clave FormaAdquisicion'}),
+                    "valor" => $this->nullConvert($dep->{'valor FormaAdquisicion'}),
                 ],
-                "formaPago" => $dep->{'forma_pago'},
+                "formaPago" => $this->nullConvert($dep->{'forma_pago'}),
                 'valorAdquisicion' => [
                     "monto" => [
-                        "valor" => $dep->{'ValorAdquisicion'},
+                        "valor" => $this->nullConvert($dep->{'ValorAdquisicion'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
-                "fechaAdquisicion" => $dep->{'FechaAdquisicion'},
-                "datoIdentificacion" => $dep->{'DatoIdentificacion'},
-                "valorConformeA" => $dep->{'valor conformeA'},
-                'domicilioMexico' => [
-                    "calle" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
-                    "numeroExterior" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
-                    "numeroInterior" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
-                    "coloniaLocalidad" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
-                    "municipioAlcaldia" => [
-                        "clave" => $dep->{'clave municipioAlcaldia'},
-                        "valor" => $dep->{'valor municipioAlcaldia'},
-                    ],
-                    "entidadFederativa" => [
-                        "clave" => $dep->{'clave entidadFederativa'},
-                        "valor" => $dep->{'valor entidadFederativa'},
-                    ],
-                    "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"CodigoPostal"} : "",
-                ],
-                "domicilioExtranjero" => [
-                    "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
-                    "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
-                    "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
-                    "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
-                    "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
-                    "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
-                    "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
-                ],
+                "fechaAdquisicion" => $this->nullConvert($dep->{'FechaAdquisicion'}),
+                // "datoIdentificacion" => $this->nullConvert($dep->{'DatoIdentificacion'}),
+                "valorConformeA" => $this->nullConvert($dep->{'valor conformeA'}),
+                // 'domicilioMexico' => [
+                //     "calle" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"Calle"} : "",
+                //     "numeroExterior" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroExterior"} : "",
+                //     "numeroInterior" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"NumeroInterior"} : "",
+                //     "coloniaLocalidad" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"ColoniaLocalidad"} : "",
+                //     "municipioAlcaldia" => [
+                //         "clave" => $dep->{'clave municipioAlcaldia'},
+                //         "valor" => $dep->{'valor municipioAlcaldia'},
+                //     ],
+                //     "entidadFederativa" => [
+                //         "clave" => $dep->{'clave entidadFederativa'},
+                //         "valor" => $dep->{'valor entidadFederativa'},
+                //     ],
+                //     "codigoPostal" => $dep->{"lugarDondeReside"} == "MEXICO" ? $dep->{"CodigoPostal"} : "",
+                // ],
+                // "domicilioExtranjero" => [
+                //     "calle" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Calle"} : "",
+                //     "numeroExterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroExterior"} : "",
+                //     "numeroInterior" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"NumeroInterior"} : "",
+                //     "ciudadLocalidad" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CiudadLocalidad"} : "",
+                //     "estadoProvincia" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"EstadoProvincia"} : "",
+                //     "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
+                //     "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
+                // ],
                 'motivoBaja' => [
-                    "clave" => $dep->{"clave motivo_baja"},
-                    "valor" => $dep->{"valor motivo_baja"},
+                    "clave" => $this->nullConvert($dep->{"clave motivo_baja"}),
+                    "valor" => $this->nullConvert($dep->{"valor motivo_baja"}),
                 ]
             ];
 
@@ -1358,6 +1420,7 @@ END as tipo,
             LEFT JOIN MotivoBaja mb ON mb.clave = vh.Id_MotivoBaja
         WHERE 
             vh.RowNum = 1  
+            AND t.clave =1
     and vh.Id_SituacionPatrimonial =?
 
         
@@ -1365,7 +1428,7 @@ END as tipo,
         $resultado = [
             "ninguno" => empty($declaracion),
             "vehiculo" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($declaracion)) {
@@ -1376,68 +1439,80 @@ END as tipo,
             $vehiculo = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoVehiculo" => [
-                    "clave" => $dep->{'clave_vehiculo'},
-                    "valor" => $dep->{'valor_vehiculo'},
+                    "clave" => $this->nullConvert($dep->{'clave_vehiculo'}),
+                    "valor" => $this->nullConvert($dep->{'valor_vehiculo'}),
 
                 ],
                 "titular" => [
-                    "titularBien" => [
-                        [
+                    [
+                        "titularBien" => [
+                            [
 
-                            "clave" => $dep->{'clave_titular'},
-                            "valor" => $dep->{'valor_titular'},
+                                "clave" => $this->nullConvert($dep->{'clave_titular'}),
+                                "valor" => $this->nullConvert($dep->{'valor_titular'}),
+                            ]
                         ]
                     ]
 
                 ],
                 "transmisor" => [
                     [
-                        "tipoPersona" => $dep->{'transmisor_tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'TR_NombreRazonSocial'},
-                        "rfc" => $dep->{'TR_Rfc'},
-                        "relacion" => [
-                            "parentescoRelacion" => [
-                                "clave" => "OTRO",
-                                "valor" => "OTRO"
-                            ]
-                        ],
+                        "tipoPersona" => $this->nullConvert($dep->{'transmisor_tipo_persona'}),
+                        // "nombreRazonSocial" => $this->nullConvert($dep->{'TR_NombreRazonSocial'}),
+                        ...$this->conditionalField(
+                            $dep->{'transmisor_tipo_persona'} == 'MORAL',
+                            'nombreRazonSocial',
+                            $this->nullConvert($dep->{'TR_NombreRazonSocial'})
+                        ),
+                        ...$this->conditionalField(
+                            $dep->{'transmisor_tipo_persona'} == 'MORAL',
+                            'rfc',
+                            $this->nullConvert($dep->{'TR_Rfc'})
+                        ),
+                        // "rfc" => $this->nullConvert($dep->{'TR_Rfc'}),
+                        // "relacion" => [
+                        //     "parentescoRelacion" => [
+                        //         "clave" => "OTRO",
+                        //         "valor" => "OTRO"
+                        //     ]
+                        // ],
 
                     ]
                 ],
-                "marca" => $dep->{'Marca'},
-                "modelo" => $dep->{'Modelo'},
-                "anio" => $dep->{'Anio'},
-                "numeroSerieRegistro" => $dep->{'NumeroSerieRegistro'},
+                "marca" => $this->nullConvert($dep->{'Marca'}),
+                "modelo" => $this->nullConvert($dep->{'Modelo'}),
+                "anio" => $this->nullConvert($dep->{'Anio'}),
+                // "numeroSerieRegistro" => $this->nullConvert($dep->{'NumeroSerieRegistro'}),
                 "tercero" => [
 
                     [
-                        "tipoPersona" => $dep->{'tercero_tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
-                        "rfc" => $dep->{'T_Rfc'},
+                        "tipoPersona" => $this->nullConvert($dep->{'tercero_tipo_persona'}),
+                        "nombreRazonSocial" => $this->nullConvert($dep->{'T_NombreRazonSocial'}),
+                        "rfc" => $this->nullConvert($dep->{'T_Rfc'}),
 
                     ]
                 ],
-                "lugarRegistro" => [
-                    "pais" => "MX",
-                    "entidadFederativa" => [
-                        "clave" => $dep->{'clave_entidadFederativa'},
-                        "valor" => $dep->{'valor_entidadFederativa'},
+                // "lugarRegistro" => [
+                //     "pais" => "MX",
+                //     "entidadFederativa" => [
+                //         "clave" => $this->nullConvert($dep->{'clave_entidadFederativa'}),
+                //         "valor" => $this->nullConvert($dep->{'valor_entidadFederativa'}),
 
-                    ]
-                ],
+                //     ]
+                // ],
                 "formaAdquisicion" => [
-                    "clave" => $dep->{'clave_adquisicion'},
-                    "valor" => $dep->{'valor_adquisicion'},
+                    "clave" => $this->nullConvert($dep->{'clave_adquisicion'}),
+                    "valor" => $this->nullConvert($dep->{'valor_adquisicion'}),
                 ],
-                "formaPago" => $dep->{'forma_pago'},
+                "formaPago" => $this->nullConvert($dep->{'forma_pago'}),
                 "valorAdquisicion" => [
-                    "valor" => $dep->{'ValorAdquisicion'},
+                    "valor" => $this->nullConvert($dep->{'ValorAdquisicion'}, 'number'),
                     "moneda" => "MXN",
                 ],
-                "fechaAdquisicion" => $dep->{'FechaAdquisicion'},
+                "fechaAdquisicion" => $this->nullConvert($dep->{'FechaAdquisicion'}),
                 "motivoBaja" => [
-                    "clave" => $dep->{'clave_motivo_baja'},
-                    "valor" => $dep->{'valor_motivo_baja'},
+                    "clave" => $this->nullConvert($dep->{'clave_motivo_baja'}),
+                    "valor" => $this->nullConvert($dep->{'valor_motivo_baja'}),
                 ],
 
             ];
@@ -1480,70 +1555,84 @@ END as tipo,
         LEFT JOIN FormaAdquisicion as fa ON fa.clave = bm.Id_FormaAdquisicion
         LEFT JOIN FormaPago as fp ON fp.clave = bm.Id_FormaPago
         LEFT JOIN MotivoBaja as mb ON mb.clave = bm.Id_MotivoBaja
-        WHERE bm.Id_SituacionPatrimonial = ?
+        WHERE 
+        t.clave = 1 and
+        bm.Id_SituacionPatrimonial = ?
     ", [$id]);
         $resultado = [
             "ninguno" => empty($declaracion),
             "bienMueble" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($declaracion)) {
             return $resultado;
         }
         foreach ($declaracion as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $bienMueble = [
                 "tipoOperacion" => "AGREGAR",
                 "titular" => [
-                    "titularBien" => [
-                        [
-                            "clave" => $dep->{'clave_titular'},
-                            "valor" => $dep->{'valor_titular'},
+                    [
+                        "titularBien" => [
+                            [
+                                "clave" => $this->nullConvert($dep->{'clave_titular'}),
+                                "valor" => $this->nullConvert($dep->{'valor_titular'}),
+                            ]
                         ]
                     ]
 
                 ],
                 "tipoBien" => [
-                    "clave" => $dep->{'clave_bien'},
-                    "valor" => $dep->{'valor_bien'},
+                    "clave" => $this->nullConvert($dep->{'clave_bien'}),
+                    "valor" => $this->nullConvert($dep->{'valor_bien'}),
                 ],
                 "transmisor" => [
                     [
-                        "tipoPersona" => $dep->{'transmisor_tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'TR_NombreRazonSocial'},
-                        "rfc" => $dep->{'TR_Rfc'},
-                        "relacion" => [
-                            "parentescoRelacion" => [
-                                "clave" => "OTRO",
-                                "valor" => "OTRO",
-                            ]
-                        ],
+                        "tipoPersona" => $this->nullConvert($dep->{'transmisor_tipo_persona'}),
+                        // "nombreRazonSocial" => $this->nullConvert($dep->{'TR_NombreRazonSocial'}),
+                        ...$this->conditionalField(
+                            $dep->{'transmisor_tipo_persona'} == 'MORAL',
+                            'nombreRazonSocial',
+                            $this->nullConvert($dep->{'TR_NombreRazonSocial'})
+                        ),
+                        ...$this->conditionalField(
+                            $dep->{'transmisor_tipo_persona'} == 'MORAL',
+                            'rfc',
+                            $this->nullConvert($dep->{'TR_Rfc'})
+                        ),
+                        // "rfc" => $this->nullConvert($dep->{'TR_Rfc'}),
+                        // "relacion" => [
+                        //     "parentescoRelacion" => [
+                        //         "clave" => "OTRO",
+                        //         "valor" => "OTRO",
+                        //     ]
+                        // ],
                     ]
                 ],
                 "tercero" => [
-                    "tipoPersona" => $dep->{'tercero_tipo_persona'},
-                    "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
-                    "rfc" => $dep->{'T_Rfc'},
+                    "tipoPersona" => $this->nullConvert($dep->{'tercero_tipo_persona'}),
+                    "nombreRazonSocial" => $this->nullConvert($dep->{'T_NombreRazonSocial'}),
+                    "rfc" => $this->nullConvert($dep->{'T_Rfc'}),
 
 
                 ],
-                "descripcionGeneralBien" => $dep->{'DescripcionGeneralBien'},
+                "descripcionGeneralBien" => $this->nullConvert($dep->{'DescripcionGeneralBien'}),
                 "formaAdquisicion" => [
-                    "clave" => $dep->{'clave_formadquiscion'},
-                    "valor" => $dep->{'valor_formadquiscion'},
+                    "clave" => $this->nullConvert($dep->{'clave_formadquiscion'}),
+                    "valor" => $this->nullConvert($dep->{'valor_formadquiscion'}),
 
                 ],
-                "formaPago" => $dep->{'valor_formapago'},
+                "formaPago" => $this->nullConvert($dep->{'valor_formapago'}),
                 "valorAdquisicion" => [
-                    "valor" => $dep->{'ValorAdquisicion'},
+                    "valor" => $this->nullConvert($dep->{'ValorAdquisicion'}, 'number'),
                     "moneda" => "MXN",
 
                 ],
-                "fechaAdquisicion" => $dep->{'FechaAdquisicion'},
+                "fechaAdquisicion" => $this->nullConvert($dep->{'FechaAdquisicion'}),
                 "motivoBaja" => [
-                    "clave" => $dep->{'clave_motivo_baja'},
-                    "valor" => $dep->{'valor_motivo_baja'},
+                    "clave" => $this->nullConvert($dep->{'clave_motivo_baja'}),
+                    "valor" => $this->nullConvert($dep->{'valor_motivo_baja'}),
 
                 ],
             ];
@@ -1584,62 +1673,65 @@ END as tipo,
         Titular AS t ON t.clave = icv.Id_Titular
     left join 
         Pais as p on p.Clave = icv.Id_Pais
-    where icv.Id_SituacionPatrimonial =?
+    where
+    t.clave = 1 and
+    icv.Id_SituacionPatrimonial =?
         ;", [$id]);
         $resultado = [
             "ninguno" => empty($declaracion),
             "inversion" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($declaracion)) {
             return $resultado;
         }
         foreach ($declaracion as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $inversion = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoInversion" => [
-                    "clave" => $dep->{'clave_tipoinversion'},
-                    "valor" => $dep->{'valor_tipoinversion'},
+                    "clave" => $this->nullConvert($dep->{'clave_tipoinversion'}),
+                    "valor" => $this->nullConvert($dep->{'valor_tipoinversion'}),
 
                 ],
                 "subTipoInversion" => [
-                    "clave" => $dep->{'clave_subtipoinversion'},
-                    "valor" => $dep->{'valor_subtipoinversion'},
+                    "clave" => $this->nullConvert($dep->{'clave_subtipoinversion'}),
+                    "valor" => $this->nullConvert($dep->{'valor_subtipoinversion'}),
 
                 ],
                 "titular" => [
-                    "titularBien" => [
-                        "clave" => $dep->{'clave_titular'},
-                        "valor" => $dep->{'titular_valor'},
-                    ]
+                    ["titularBien" => [
+                        "clave" => $this->nullConvert($dep->{'clave_titular'}),
+                        "valor" => $this->nullConvert($dep->{'titular_valor'}),
+                    ]]
+
 
                 ],
                 "tercero" => [
                     [
-                        "tipoPersona" => $dep->{'tercero_tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
-                        "rfc" => $dep->{'T_Rfc'},
+                        "tipoPersona" => $this->nullConvert($dep->{'tercero_tipo_persona'}),
+                        "nombreRazonSocial" => $this->nullConvert($dep->{'T_NombreRazonSocial'}),
+                        "rfc" => $this->nullConvert($dep->{'T_Rfc'}),
 
                     ]
                 ],
-                "numeroCuentaContrato" => $dep->{'NumeroCuentaContrato'},
+                // "numeroCuentaContrato" => $this->nullConvert($dep->{'NumeroCuentaContrato'}),
                 "localizacionInversion" => [
 
-                    "pais" => $dep->{'code'},
-                    "institucionRazonSocial" => $dep->{'InstitucionRazonSocial'},
-                    "rfc" => $dep->{'RfcInstitucion'},
+                    "pais" => $this->nullConvert($dep->{'code'}),
+                    "institucionRazonSocial" => $this->nullConvert($dep->{'InstitucionRazonSocial'}),
+                    "rfc" => $this->nullConvert($dep->{'RfcInstitucion'}),
 
 
                 ],
-                "saldoSituacionActual" => [
+                // "saldoSituacionActual" => [
 
-                    "valor" => $dep->{'SaldoSituacionActual'},
-                    "moneda" => "MXN",
+                //     "valor" => $this->nullConvert($dep->{'SaldoSituacionActual'}),
+                //     "moneda" => "MXN",
 
 
-                ],
+                // ],
 
             ];
             $resultado['inversion'][] = $inversion;
@@ -1676,64 +1768,78 @@ END as tipo,
         left join Titular as t on t.clave = adp.Id_Titular
         left join TipoAdeudo as ta on ta.clave = adp.Id_TipoAdeudo
         left join pais as p on p.Clave = adp.Id_Pais
-        where adp.Id_SituacionPatrimonial = ?
+        where 
+        t.clave = 1 and
+        adp.Id_SituacionPatrimonial = ?
         ;", [$id]);
         $resultado = [
             "ninguno" => empty($declaracion),
             "adeudo" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($declaracion)) {
             return $resultado;
         }
         foreach ($declaracion as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $adeudo = [
                 "tipoOperacion" => "AGREGAR",
                 "titular" => [
+                   [
                     "titularBien" => [
                         [
-                            "clave" => $dep->{'clave_titular'},
-                            "valor" => $dep->{'valor_titular'},
+                            "clave" => $this->nullConvert($dep->{'clave_titular'}),
+                            "valor" => $this->nullConvert($dep->{'valor_titular'}),
                         ]
 
                     ]
+                   ]
                 ],
                 "tipoAdeudo" => [
-                    "clave" => $dep->{'clave_adeudo'},
-                    "valor" => $dep->{'valor_adeudo'},
+                    "clave" => $this->nullConvert($dep->{'clave_adeudo'}),
+                    "valor" => $this->nullConvert($dep->{'valor_adeudo'}),
                 ],
-                "numeroCuentaContrato" => $dep->{'NumeroCuentaContrato'},
-                "fechaAdquisicion" => $dep->{'FechaAdquisicion'},
+                // "numeroCuentaContrato" => $this->nullConvert($dep->{'NumeroCuentaContrato'}),
+                "fechaAdquisicion" => $this->nullConvert($dep->{'FechaAdquisicion'}),
                 "montoOriginal" => [
                     "monto" => [
-                        "valor" => $dep->{'Monto'},
+                        "valor" => $this->nullConvert($dep->{'Monto'},'number'),
                         "moneda" => "MXN",
                     ]
                 ],
                 "saldoInsolutoSituacionActual" => [
                     "monto" => [
-                        "valor" => $dep->{'SaldoInsolutoSituacionActual'},
+                        "valor" => $this->nullConvert($dep->{'SaldoInsolutoSituacionActual'},'number'),
                         "moneda" => "MXN",
                     ]
                 ],
                 "tercero" => [
                     [
-                        "tipoPersona" => $dep->{'tercero tipo_persona'},
-                        "nombreRazonSocial" => $dep->{'T_NombreRazonSocial'},
-                        "rfc" => $dep->{'T_Rfc'},
+                        "tipoPersona" => $this->nullConvert($dep->{'tercero tipo_persona'}),
+                        "nombreRazonSocial" => $this->nullConvert($dep->{'T_NombreRazonSocial'}),
+                        "rfc" => $this->nullConvert($dep->{'T_Rfc'}),
                     ]
 
                 ],
                 "otorganteCredito" => [
-                    "tipoPersona" => $dep->{'otorgante tipo_persona'},
-                    "nombreInstitucion" => $dep->{'OC_NombreRazonSocial'},
-                    "rfc" => $dep->{'OC_Rfc'},
+                    "tipoPersona" => $this->nullConvert($dep->{'otorgante tipo_persona'}),
+                    ...$this->conditionalField(
+                        $dep->{'otorgante tipo_persona'} == 'MORAL',
+                        'nombreInstitucion',
+                        $this->nullConvert($dep->{'OC_NombreRazonSocial'})
+                    ),
+                    // "nombreInstitucion" => $this->nullConvert($dep->{'OC_NombreRazonSocial'}),
+                    // "rfc" => $this->nullConvert($dep->{'OC_Rfc'}),
+                    ...$this->conditionalField(
+                        $dep->{'otorgante tipo_persona'} == 'MORAL',
+                        'rfc',
+                        $this->nullConvert($dep->{'OC_Rfc'})
+                    ),
                 ],
                 "localizacionAdeudo" =>
                 [
-                    "pais" => $dep->{'code'},
+                    "pais" => $this->nullConvert($dep->{'code'}),
                 ],
             ];
             $resultado['adeudo'][] = $adeudo;
@@ -1764,8 +1870,8 @@ END as tipo,
         dp.NumeroSerieRegistro,
         pvh.Code as vehiculo_code,
          CASE
-                    WHEN dp.V_Id_EntidadFederativa = 1 or dp.V_Id_EntidadFederativa = 0 THEN 'FISICA'
-                    WHEN dp.V_Id_EntidadFederativa = 2 THEN 'MORAL'
+                    WHEN dp.Id_TipoDuenoTitular = 1 or dp.Id_TipoDuenoTitular = 0 THEN 'FISICA'
+                    WHEN dp.Id_TipoDuenoTitular = 2 THEN 'MORAL'
                 END AS 'tipoDuenoTitular',
                 dp.NombreTitular as 'Nombret',
                 dp.RfcTitular,
@@ -1789,78 +1895,93 @@ END as tipo,
         $resultado = [
             "ninguno" => empty($declaracion),
             "prestamo" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($declaracion)) {
             return $resultado;
         }
         foreach ($declaracion as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $prestamo = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoBien" => [
                     "inmueble" => [
                         "tipoInmueble" => [
-                            "clave" => $dep->{'clave_tipoinmueble'},
-                            "valor" => $dep->{'valor_tipoinmueble'},
+                            "clave" => $this->nullConvert($dep->{'clave_tipoinmueble'}),
+                            "valor" => $this->nullConvert($dep->{'valor_tipoinmueble'}),
 
                         ],
-                        "domicilioMexico" => [
-                            "calle" => $dep->{'Calle'},
-                            "numeroExterior" => $dep->{'NumeroExterior'},
-                            "numeroInterior" => $dep->{'NumeroInterior'},
-                            "coloniaLocalidad" => $dep->{'ColoniaLocalidad'},
-                            "municipioAlcaldia" => [
-                                "clave" => $dep->{'clave_municipioAlcaldia'},
-                                "valor" => $dep->{'valor_municipioAlcaldia'},
+                        // "domicilioMexico" => [
+                        //     "calle" => $this->nullConvert($dep->{'Calle'}),
+                        //     "numeroExterior" => $this->nullConvert($dep->{'NumeroExterior'}),
+                        //     "numeroInterior" => $this->nullConvert($dep->{'NumeroInterior'}),
+                        //     "coloniaLocalidad" => $this->nullConvert($dep->{'ColoniaLocalidad'}),
+                        //     "municipioAlcaldia" => [
+                        //         "clave" => $this->nullConvert($dep->{'clave_municipioAlcaldia'}),
+                        //         "valor" => $this->nullConvert($dep->{'valor_municipioAlcaldia'}),
 
-                            ],
-                            "entidadFederativa" => [
-                                "clave" => $dep->{'clave_entidadFederativa'},
-                                "valor" => $dep->{'valor_entidadFederativa'},
-                            ]
-                        ],
-                        "domicilioExtranjero" => [
-                            "calle" => $dep->{'Calle'},
-                            "numeroExterior" => $dep->{'NumeroExterior'},
-                            "numeroInterior" => $dep->{'NumeroInterior'},
-                            "ciudadLocalidad" => $dep->{'CiudadLocalidad'},
-                            "estadoProvincia" => $dep->{'EstadoProvincia'},
-                            "pais" => $dep->{'Code'},
-                            "codigoPostal" => $dep->{'CodigoPostal'},
+                        //     ],
+                        //     "entidadFederativa" => [
+                        //         "clave" => $this->nullConvert($dep->{'clave_entidadFederativa'}),
+                        //         "valor" => $this->nullConvert($dep->{'valor_entidadFederativa'}),
+                        //     ]
+                        // ],
+                        // "domicilioExtranjero" => [
+                        //     "calle" => $this->nullConvert($dep->{'Calle'}),
+                        //     "numeroExterior" => $this->nullConvert($dep->{'NumeroExterior'}),
+                        //     "numeroInterior" => $this->nullConvert($dep->{'NumeroInterior'}),
+                        //     "ciudadLocalidad" => $this->nullConvert($dep->{'CiudadLocalidad'}),
+                        //     "estadoProvincia" => $this->nullConvert($dep->{'EstadoProvincia'}),
+                        //     "pais" => $this->nullConvert($dep->{'Code'}),
+                        //     "codigoPostal" => $this->nullConvert($dep->{'CodigoPostal'}),
 
-                        ],
+                        // ],
 
                     ],
                     "vehiculo" => [
                         "tipo" => [
                             "tipoVehiculo" => [
-                                "clave" => $dep->{'clave_vehiculo'},
-                                "valor" => $dep->{'valor_vehiculo'},
+                                "clave" => $this->nullConvert($dep->{'clave_vehiculo'}),
+                                "valor" => $this->nullConvert($dep->{'valor_vehiculo'}),
 
                             ]
                         ],
-                        "marca" => $dep->{'Marca'},
-                        "modelo" => $dep->{'Modelo'},
-                        "anio" => $dep->{'Anio'},
-                        "numeroSerieRegistro" => $dep->{'NumeroSerieRegistro'},
-                        "lugarRegistro" => [
-                            "pais" => $dep->{'vehiculo_code'},
-                            "entidadFederativa" => [
-                                "clave" => $dep->{'vehiculo_clave_entidadFederativa'},
-                                "valor" => $dep->{'vehiculo_valor_entidadFederativa'},
+                        "marca" => $this->nullConvert($dep->{'Marca'}),
+                        "modelo" => $this->nullConvert($dep->{'Modelo'}),
+                        "anio" => $this->nullConvert($dep->{'Anio'}),
+                        // "numeroSerieRegistro" => $this->nullConvert($dep->{'NumeroSerieRegistro'}),
+                        // "lugarRegistro" => [
+                        //     "pais" => $this->nullConvert($dep->{'vehiculo_code'}),
+                        //     "entidadFederativa" => [
+                        //         "clave" => $this->nullConvert($dep->{'vehiculo_clave_entidadFederativa'}),
+                        //         "valor" => $this->nullConvert($dep->{'vehiculo_valor_entidadFederativa'}),
 
-                            ]
-                        ],
+                        //     ]
+                        // ],
                     ],
 
                 ],
                 "duenoTitular" => [
-                    "tipoDuenoTitular" => $dep->{'tipoDuenoTitular'},
-                    "nombreTitular" => $dep->{'Nombret'},
-                    "rfc" => $dep->{'RfcTitular'},
-                    "relacionConTitular" => $dep->{'relacion'},
+                    "tipoDuenoTitular" => $this->nullConvert($dep->{'tipoDuenoTitular'}),
+                    // "nombreTitular" =>  $this->nullConvert($dep->{'Nombret'}),
+                    ...$this->conditionalField(
+                        $dep->{'tipoDuenoTitular'} == 'MORAL',
+                        'nombreTitular',
+                        $this->nullConvert($dep->{'Nombret'})
+                    ),
+                    ...$this->conditionalField(
+                        $dep->{'tipoDuenoTitular'} == 'MORAL',
+                        'rfc',
+                        $this->nullConvert($dep->{'RfcTitular'})
+                    ),
+                    // "rfc" => $this->nullConvert($dep->{'RfcTitular'}),
+                    ...$this->conditionalField(
+                        $dep->{'tipoDuenoTitular'} == 'MORAL',
+                        'relacionConTitular',
+                        $this->nullConvert($dep->{'relacion'})
+                    ),
+                    // "relacionConTitular" => $this->nullConvert($dep->{'relacion'}),
 
                 ]
             ];
@@ -1880,38 +2001,39 @@ END as tipo,
             p.Aclaraciones
 
         from DECL_Participacion  as p
-        inner join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
+        LEFT join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
         LEFT JOIN Estado as e on e.Clave = p.Id_EntidadFederativa
         left join Sector as s on s.clave = p.Id_Sector
         left join TipoParticipacion as tp on tp.clave = p.Id_TipoParticipacion
-        where Id_Intereses = ?
+        where rc.valor is null and Id_Intereses = ?
       ", [$id]);
         $resultado = [
             "ninguno" => empty($interes),
             "participacion" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
+        
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $this->nullConvert($dep->{'Aclaraciones'});
             $participacion = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
-                "nombreEmpresaSociedadAsociacion" => $dep->{'NombreEmpresaSociedadAsociacion'},
-                "rfc" => $dep->{'RfcEmpresa'},
-                "porcentajeParticipacion" => $dep->{'PorcentajeParticipacion'},
+                "nombreEmpresaSociedadAsociacion" => $this->nullConvert($dep->{'NombreEmpresaSociedadAsociacion'}),
+                "rfc" => $this->nullConvert($dep->{'RfcEmpresa'}),
+                "porcentajeParticipacion" => $this->nullConvert($dep->{'PorcentajeParticipacion'},'integer'),
                 "tipoParticipacion" => [
-                    "clave" => $dep->{'clave_tipoparticipacion'},
-                    "valor" => $dep->{'valor_tipoparticipacion'},
+                    "clave" => $this->nullConvert($dep->{'clave_tipoparticipacion'}),
+                    "valor" => $this->nullConvert($dep->{'valor_tipoparticipacion'}),
 
                 ],
                 "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
                 "montoMensual" => [
                     "monto" => [
-                        "valor" => $dep->{'MontoMensual'},
+                        "valor" => $this->nullConvert($dep->{'MontoMensual'}),
                         "moneda" => "MXN",
 
                     ]
@@ -1919,14 +2041,14 @@ END as tipo,
                 "ubicacion" => [
                     "pais" => "MX",
                     "entidadFederativa" => [
-                        "clave" => $dep->{'clave_entidadFederativa'},
-                        "valor" => $dep->{'valor_entidadFederativa'},
+                        "clave" => $this->nullConvert($dep->{'clave_entidadFederativa'}),
+                        "valor" => $this->nullConvert($dep->{'valor_entidadFederativa'}),
 
                     ]
                 ],
                 "sector" => [
-                    "clave" => $dep->{'clave_sector'},
-                    "valor" => $dep->{'valor_sector'},
+                    "clave" => $this->nullConvert($dep->{'clave_sector'}),
+                    "valor" => $this->nullConvert($dep->{'valor_sector'}),
 
                 ]
             ];
@@ -1956,35 +2078,35 @@ END as tipo,
         inner join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
          LEFT JOIN Estado as e on e.Clave = p.Id_EntidadFederativa
          LEFT JOIN TipoInstitucion as ts on ts.clave = p.Id_TipoInstitucion
-        where Id_Intereses = ?
+        where rc.valor is null and Id_Intereses = ?
 
       ", [$id]);
         $resultado = [
             "ninguno" => empty($interes),
             "participacion" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $participacion = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
                 "tipoInstitucion" => [
-                    "clave" => $dep->{'clave_tipoinstitucion'},
-                    "valor" => $dep->{'valor_tipoinstitucion'},
+                    "clave" => $this->nullConvert($dep->{'clave_tipoinstitucion'}),
+                    "valor" => $this->nullConvert($dep->{'valor_tipoinstitucion'}),
 
                 ],
-                "nombreInstitucion" => $dep->{'NombreInstitucion'},
-                "rfc" => $dep->{'RfcInstitucion'},
-                "puestoRol" => $dep->{'PuestoRol'},
-                "fechaInicioParticipacion" => $dep->{'FechaInicioParticipacion'},
+                // "nombreInstitucion" => $dep->{'NombreInstitucion'},
+                // "rfc" => $dep->{'RfcInstitucion'},
+                "puestoRol" => $this->nullConvert($dep->{'PuestoRol'}),
+                "fechaInicioParticipacion" => $this->nullConvert($dep->{'FechaInicioParticipacion'}),
                 "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
                 "montoMensual" => [
-                    "valor" => $dep->{'MontoMensual'},
+                    "valor" => $this->nullConvert($dep->{'MontoMensual'},'number'),
                     "moneda" => "MXN",
 
                 ],
@@ -1992,8 +2114,8 @@ END as tipo,
                 "ubicacion" => [
                     "pais" => "MX",
                     "entidadFederativa" => [
-                        "clave" => $dep->{'clave_entidadFederativa'},
-                        "valor" => $dep->{'valor_entidadFederativa'},
+                        "clave" => $this->nullConvert($dep->{'clave_entidadFederativa'}),
+                        "valor" => $this->nullConvert($dep->{'valor_entidadFederativa'}),
 
                     ]
                 ],
@@ -2029,39 +2151,48 @@ END as tipo,
         $resultado = [
             "ninguno" => empty($interes),
             "apoyo" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $participacion = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoPersona" => "FISICA",
-                "beneficiarioPrograma" => [
-                    "clave" => $dep->{'clave_beneficiarioprograma'},
-                    "valor" => $dep->{'valor_beneficiarioprograma'},
+                // ...$this->conditionalField(
+                //     $dep->{'tipoPersona'} == 'MORAL',
+                //     'beneficiarioPrograma',
+                //     [
+                //         "clave" => $this->nullConvert($dep->{'clave_beneficiarioprograma'}),
+                //         "valor" => $this->nullConvert($dep->{'valor_beneficiarioprograma'}),
 
-                ],
-                "nombrePrograma" => $dep->{'NombrePrograma'},
-                "institucionOtorgante" => $dep->{'InstitucionOtorgante'},
-                "nivelOrdenGobierno" => $dep->{'nivelOrdenGobierno'},
+                //     ]
+                // ),
+                // "beneficiarioPrograma" => [
+                //     "clave" => $this->nullConvert($dep->{'clave_beneficiarioprograma'}),
+                //     "valor" => $this->nullConvert($dep->{'valor_beneficiarioprograma'}),
+
+                // ],
+                "nombrePrograma" => $this->nullConvert($dep->{'NombrePrograma'}),
+                "institucionOtorgante" => $this->nullConvert($dep->{'InstitucionOtorgante'}),
+                "nivelOrdenGobierno" => $this->nullConvert($dep->{'nivelOrdenGobierno'}),
                 "tipoApoyo" => [
-                    "clave" => $dep->{'clave_tipoapoyo'},
-                    "valor" => $dep->{'valor_tipoapoyo'},
+                    "clave" => $this->nullConvert($dep->{'clave_tipoapoyo'}),
+                    "valor" => $this->nullConvert($dep->{'valor_tipoapoyo'}),
 
                 ],
-                "formaRecepcion" => $dep->{'formaRecepcion'},
+                "formaRecepcion" => $this->nullConvert($dep->{'formaRecepcion'}),
                 "montoApoyoMensual" => [
                     "monto" => [
-                        "valor" => $dep->{'MontoApoyoMensual'},
+                        "valor" => $this->nullConvert($dep->{'MontoApoyoMensual'},'number'),
                         "moneda" => "MXN",
                     ]
 
                 ],
-                "especifiqueApoyo" => $dep->{'EspecifiqueApoyo'},
+                "especifiqueApoyo" => $this->nullConvert($dep->{'EspecifiqueApoyo'}),
 
 
             ];
@@ -2077,6 +2208,10 @@ END as tipo,
         r.FechaInicioRepresentacion,
         r.NombreRazonSocial,
         r.Rfc,
+		CASE
+                    WHEN r.Id_TipoPersona = 1 or r.Id_TipoPersona = 0 THEN 'FISICA'
+                    WHEN r.Id_TipoPersona = 2 THEN 'MORAL'
+                END AS 'tipopersona',
         r.RecibeRemuneracion,
         r.MontoMensual,
         s.valor as 'valor_sector',
@@ -2091,26 +2226,36 @@ END as tipo,
         $resultado = [
             "ninguno" => empty($interes),
             "representacion" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $participacion = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoRelacion" => "DEPENDIENTE_ECONOMICO ",
-                "tipoRepresentacion" => $dep->{''},
-                "fechaInicioRepresentacion" => $dep->{''},
-                "tipoPersona" => "FISICA",
-                "nombreRazonSocial" => $dep->{''},
-                "rfc" => $dep->{''},
-                "recibeRemuneracion" => $dep->{''} == 0 ? false : true,
+                "tipoRepresentacion" => $dep->{'tipoRepresentacion'},
+                "fechaInicioRepresentacion" => $dep->{'FechaInicioRepresentacion'},
+                "tipoPersona" => $dep->{'tipopersona'},
+                ...$this->conditionalField(
+                    $dep->{'tipopersona'} == 'MORAL',
+                    'nombreRazonSocial',
+                    $this->nullConvert($dep->{'NombreRazonSocial'})
+                ),
+                ...$this->conditionalField(
+                    $dep->{'tipopersona'} == 'MORAL',
+                    'rfc',
+                    $this->nullConvert($dep->{'Rfc'})
+                ),
+                // "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
+                // "rfc" => $dep->{'Rfc'},
+                "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
                 "montoMensual" => [
                     "monto" => [
-                        "valor" => $dep->{''},
+                        "valor" => $this->nullConvert($dep->{'MontoMensual'},'number'),
                         "moneda" => "MXN",
                     ]
 
@@ -2118,14 +2263,14 @@ END as tipo,
                 "ubicacion" => [
                     "pais" => "MX",
                     "entidadFederativa" => [
-                        "clave" => $dep->{'clave_entidadFederativa'},
-                        "valor" => $dep->{'valor_entidadFederativa'},
+                        "clave" => $this->nullConvert($dep->{'clave_entidadFederativa'}),
+                        "valor" => $this->nullConvert($dep->{'valor_entidadFederativa'}),
 
                     ]
                 ],
                 "sector" => [
-                    "clave" => $dep->{'clave_sector'},
-                    "valor" =>  $dep->{'valor_sector'},
+                    "clave" => $this->nullConvert($dep->{'clave_sector'}),
+                    "valor" =>  $this->nullConvert($dep->{'valor_sector'}),
                 ]
 
 
@@ -2158,21 +2303,22 @@ END as tipo,
         from DECL_ClientesPrincipales  as c
         inner join Sector as s on s.clave = c.Id_Sector
         LEFT JOIN Estado e ON e.Clave = c.Id_EntidadFederativa
-        
-        where Id_Intereses = ?
+        where 
+		c.Id_TipoRelacion = 0 
+        and Id_Intereses = ?
 
       ", [$id]);
         $resultado = [
             "ninguno" => empty($interes),
             "cliente" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $participacion = [
                 "tipoOperacion" => "AGREGAR",
                 "realizaActividadLucrativa" => $dep->{'RealizaActividadLucrativa'} == 0 ? false : true,
@@ -2183,17 +2329,27 @@ END as tipo,
                 ],
                 "clientePrincipal" => [
                     "tipoPersona" => $dep->{'tipo_persona'},
-                    "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
-                    "rfc" => $dep->{'RfcCliente'},
+                    ...$this->conditionalField(
+                        $dep->{'tipo_persona'} == 'MORAL',
+                        'nombreRazonSocial',
+                        $this->nullConvert($dep->{'NombreRazonSocial'})
+                    ),
+                    ...$this->conditionalField(
+                        $dep->{'tipo_persona'} == 'MORAL',
+                        'rfc',
+                        $this->nullConvert($dep->{'RfcCliente'})
+                    ),
+                    // "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
+                    // "rfc" => $dep->{'RfcCliente'},
 
                 ],
                 "sector" => [
-                    "clave" => $dep->{'sector_abreviatura'},
-                    "valor" => $dep->{'sector_valor'},
+                    "clave" => $this->nullConvert($dep->{'sector_abreviatura'}),
+                    "valor" => $this->nullConvert($dep->{'sector_valor'}),
                 ],
                 "montoAproximadoGanancia" => [
                     "monto" => [
-                        "valor" => $dep->{'MontoAproximadoGanancia'},
+                        "valor" => $this->nullConvert($dep->{'MontoAproximadoGanancia'},'number'),
                         "moneda" => "MXN",
 
                     ]
@@ -2201,8 +2357,8 @@ END as tipo,
                 "ubicacion" => [
                     "pais" => "MX",
                     "entidadFederativa" => [
-                        "clave" => $dep->{'clave_entidadFederativa'},
-                        "valor" => $dep->{'valor_entidadFederativa'},
+                        "clave" => $this->nullConvert($dep->{'clave_entidadFederativa'}),
+                        "valor" => $this->nullConvert($dep->{'valor_entidadFederativa'}),
 
                     ]
                 ],
@@ -2242,49 +2398,70 @@ END as tipo,
         $resultado = [
             "ninguno" => empty($interes),
             "beneficio" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $beneficio = [
                 "tipoOperacion" => "AGREGAR",
-                "tipoPersona" => $dep->{'tipo_persona'},
+                "tipoPersona" => $this->nullConvert($dep->{'tipo_persona'}),
                 "tipoBeneficio" => [
-                    "clave" => $dep->{'clave_tipobeneficio'},
-                    "valor" => $dep->{'valor_tipobeneficio'},
+                    "clave" => $this->nullConvert($dep->{'clave_tipobeneficio'}),
+                    "valor" => $this->nullConvert($dep->{'valor_tipobeneficio'}),
 
                 ],
-                "beneficiario" => [
+                ...$this->conditionalField(
+                    $dep->{'tipo_persona'} == 'MORAL',
+                    'beneficiario',
                     [
                         "beneficiariosPrograma" => [
-                            "clave" => $dep->{'clave_beneficiarioprograma'},
-                            "valor" => $dep->{'valor_beneficiarioprograma'},
+                            "clave" => $this->nullConvert($dep->{'clave_beneficiarioprograma'}),
+                            "valor" => $this->nullConvert($dep->{'valor_beneficiarioprograma'}),
 
                         ]
                     ],
-                ],
+                ),
+                // "beneficiario" => [
+                //     [
+                //         "beneficiariosPrograma" => [
+                //             "clave" => $dep->{'clave_beneficiarioprograma'},
+                //             "valor" => $dep->{'valor_beneficiarioprograma'},
+
+                //         ]
+                //     ],
+                // ],
                 "otorgante" => [
                     "tipoPersona" => $dep->{'tipo_persona'},
-                    "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
-                    "rfc" => $dep->{'RfcCliente'},
+                    ...$this->conditionalField(
+                        $dep->{'tipo_persona'} == 'MORAL',
+                        'nombreRazonSocial',
+                        $this->nullConvert($dep->{'NombreRazonSocial'})
+                    ),
+                    // "nombreRazonSocial" => $dep->{'NombreRazonSocial'},
+                    ...$this->conditionalField(
+                        $dep->{'tipo_persona'} == 'MORAL',
+                        'rfc',
+                        $this->nullConvert($dep->{'RfcCliente'})
+                    ),
+                    // "rfc" => $dep->{'RfcCliente'},
 
                 ],
                 "formaRecepcion" => $dep->{'formaRecepcion'},
                 "especifiqueBeneficio" => $dep->{'EspecifiqueBeneficio'},
                 "montoMensualAproximado" => [
                     "monto" => [
-                        "valor" => $dep->{'MontoMensualAproximado'},
+                        "valor" => $this->nullConvert($dep->{'MontoMensualAproximado'},'number'),
                         "moneda" => "MXN",
 
                     ]
                 ],
                 "sector" => [
-                    "clave" => $dep->{'clave_sector'},
-                    "valor" => $dep->{'valor_sector'},
+                    "clave" => $this->nullConvert($dep->{'clave_sector'}),
+                    "valor" => $this->nullConvert($dep->{'valor_sector'}),
 
                 ]
             ];
@@ -2325,47 +2502,47 @@ END as tipo,
         inner join TipoParticipacion as tp on tp.clave = fc.Id_TipoParticipacion
         inner join Sector as s on s.clave = fc.Id_Sector
         
-             where Id_Intereses  = ?
+             where pr.valor is null and Id_Intereses  = ?
 
       ", [$id]);
         $resultado = [
             "ninguno" => empty($interes),
             "fideicomiso" => [],
-            "aclaracionesObservaciones" => ""
+            // "aclaracionesObservaciones" => ""
         ];
 
         if (empty($interes)) {
             return $resultado;
         }
         foreach ($interes as $dep) {
-            $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
+            // $resultado['aclaracionesObservaciones'] = $dep->{'Aclaraciones'};
             $fideicomiso = [
                 "tipoOperacion" => "AGREGAR",
                 "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
-                "tipoFideicomiso" => $dep->{'fideocomiso'},
-                "tipoParticipacion" => $dep->{'tipoparticipacion'},
-                "rfcFideicomiso" => $dep->{'RfcFideicomiso'},
+                "tipoFideicomiso" => $this->nullConvert($dep->{'fideocomiso'}),
+                "tipoParticipacion" => $this->nullConvert($dep->{'tipoparticipacion'}),
+                "rfcFideicomiso" => $this->nullConvert($dep->{'RfcFideicomiso'}),
                 "fideicomitente" => [
-                    "tipoPersona" => $dep->{'tipoPersona fideicomitente'},
-                    "nombreRazonSocial" => $dep->{'NombreRazonSocialFideicomitente'},
-                    "rfc" => $dep->{'RfcFideicomitente'},
+                    "tipoPersona" => $this->nullConvert($dep->{'tipoPersona fideicomitente'}),
+                    "nombreRazonSocial" => $this->nullConvert($dep->{'NombreRazonSocialFideicomitente'}),
+                    "rfc" => $this->nullConvert($dep->{'RfcFideicomitente'}),
 
                 ],
                 "fiduciario" => [
-                    "nombreRazonSocial" => $dep->{'NombreRazonSocialFideicomisario'},
-                    "rfc" => $dep->{'RfcFideicomisario'},
+                    "nombreRazonSocial" => $this->nullConvert($dep->{'NombreRazonSocialFideicomisario'}),
+                    "rfc" => $this->nullConvert($dep->{'RfcFideicomisario'}),
                 ],
                 "fideicomisario" => [
-                    "tipoPersona" => $dep->{'tipoPersona fideicomisario'},
-                    "nombreRazonSocial" => $dep->{'NombreRazonSocialFideicomisario'},
-                    "rfc" => $dep->{'RfcFideicomisario'},
+                    "tipoPersona" => $this->nullConvert($dep->{'tipoPersona fideicomisario'}),
+                    "nombreRazonSocial" => $this->nullConvert($dep->{'NombreRazonSocialFideicomisario'}),
+                    "rfc" => $this->nullConvert($dep->{'RfcFideicomisario'}),
                 ],
                 "sector" => [
-                    "clave" => $dep->{'clave_sector'},
-                    "valor" => $dep->{'valor_sector'},
+                    "clave" => $this->nullConvert($dep->{'clave_sector'}),
+                    "valor" => $this->nullConvert($dep->{'valor_sector'}),
 
                 ],
-                "extranjero"=>$dep->{'extranjero'},
+                "extranjero" => $this->nullConvert($dep->{'extranjero'}),
             ];
 
             $resultado['fideicomiso'][] = $fideicomiso;

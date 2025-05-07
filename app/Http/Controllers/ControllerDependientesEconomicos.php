@@ -16,7 +16,12 @@ class ControllerDependientesEconomicos extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
-            // // return $request->all();
+            // // return  DB::table('DECL_DatosDependienteEconomico')
+            DB::table('DECL_DatosDependienteEconomico')
+            ->where('Id_SituacionPatrimonial',$request->Id_SituacionPatrimonial)
+            ->delete();
+
+
             foreach ($request->all() as $datos) {
                 // Eliminar el campo 'identificador' de los datos
                 unset($datos['id']);

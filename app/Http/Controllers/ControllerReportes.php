@@ -23,6 +23,8 @@ class ControllerReportes extends Controller
             $nivel = DB::table('VistaTrimestres')
                 ->where('Ejercicio', $ejercicio)
                 ->where('Trimestre', $trimestre)
+                ->where('EsActivo',1)
+
                 ->get();
 
             $response->data = ObjResponse::CorrectResponse();
