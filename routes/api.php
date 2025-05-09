@@ -27,6 +27,7 @@ use App\Http\Controllers\ControllerFormaPago;
 use App\Http\Controllers\ControllerFormaRecepcion;
 use App\Http\Controllers\ControllerIngresosNetos;
 use App\Http\Controllers\ControllerInstituciones;
+use App\Http\Controllers\ControllerInteresPdf;
 use App\Http\Controllers\ControllerInversionesCuentasValores;
 use App\Http\Controllers\ControllerJsons;
 use App\Http\Controllers\ControllerMonedas;
@@ -646,5 +647,15 @@ Route::prefix('reportes')->group(function () {
 Route::prefix('dowloand')->group(function () {
     Route::post('jsons', [ControllerJsons::class, 'descargarJsonZip']);
     Route::get('/', [ControllerJsons::class, 'descargarJsonZip']);
+
+});
+Route::prefix('interespdf')->group(function () {
+    Route::get('/participacion/{id}', [ControllerInteresPdf::class, 'participacion']);
+    Route::get('/participaciontomaDecisiones/{id}', [ControllerInteresPdf::class, 'participacionTomaDecision']);
+    Route::get('/apoyos/{id}', [ControllerInteresPdf::class, 'apoyos']);
+    Route::get('/representacion/{id}', [ControllerInteresPdf::class, 'representacion']);
+    Route::get('/clientes/{id}', [ControllerInteresPdf::class, 'clientes']);
+    Route::get('/beneficiariosprivados/{id}', [ControllerInteresPdf::class, 'beneficiariosprivados']);
+    Route::get('/fideicomisos/{id}', [ControllerInteresPdf::class, 'fideicomisos']);
 
 });

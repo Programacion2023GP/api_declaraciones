@@ -32,6 +32,7 @@ class ControllerPrestamosComodatos extends Controller
                 ->update([
                     'EstaCompleta' => 1,
                     'SeEnvioAcuse' => 1,
+                    'EsActivo' => 1,
 
                     'FechaTerminada' => now()
                 ]);

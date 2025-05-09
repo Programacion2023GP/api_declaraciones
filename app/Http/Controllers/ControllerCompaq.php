@@ -14,6 +14,7 @@ class ControllerCompaq extends Controller
         $response->data = ObjResponse::DefaultResponse();
 
         try {
+            
             $usuario = DB::table('USR_Compaq')->select('*')->where("codigoEmpleado", $nomina)->get();
 
             // Convertir el ID a número
