@@ -384,7 +384,7 @@ class ControllerUsers extends Controller
                     'MD_Person.Id_TipoIntegrante',
                     'MD_Person.ClaseNivelPuesto',
                     'MD_Person.AreaAdscripcion',
-                    'MD_Person.organismo'
+                    DB::raw("CASE WHEN MD_Person.organismo = 'PR' THEN 'Presidencia' ELSE MD_Person.organismo END as organismo")
                 )
                 ->leftJoin('USR_User', 'USR_User.Id_Person', '=', 'MD_Person.Id_Person')
                 ->leftJoin('USR_UserRole', 'USR_User.Id_User', '=', 'USR_UserRole.Id_User')
@@ -402,8 +402,7 @@ class ControllerUsers extends Controller
 
             // Si la persona existe y el rol es 4, filtrar por adscripción
             // if ($person && $person->Id_Role == 4) {
-                $usuarios = $usuarios->where('MD_Person.AreaAdscripcion', $person->AreaAdscripcion)
-                    ->where('MD_Person.Id_Person', '<>', $idPerson);
+          
             // }
 
             // Aplicar filtro de usuarios activos

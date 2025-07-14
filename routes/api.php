@@ -580,7 +580,7 @@ Route::prefix('apartados')->group(function () {
     Route::post("create/{situacionPatrimonial}/{hoja}/{borrar?}", [ControllerApartados::class, 'create']);
     Route::post("interes/{interes}/{hoja}/{borrar?}/{idUser?}/{crear?}", [ControllerApartados::class, 'interes']);
 
-    Route::get('show/{id}', [ControllerApartados::class, 'show']);
+    Route::get('show/{id?}', [ControllerApartados::class, 'show']);
     Route::get('hoja/{id}', [ControllerApartados::class, 'hoja']);
     Route::get('exist/{id}/{hoja}', [ControllerApartados::class, 'exist']);
 

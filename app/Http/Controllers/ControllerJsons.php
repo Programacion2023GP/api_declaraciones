@@ -214,9 +214,8 @@ END as tipo,
             "ingresos" => $this->generarSeccionIngresos($declaracion->{'Id_SituacionPatrimonial'}),
         ];
 
-        if ($declaracion->{'tipo'} != 'MODIFICACIÓN') {
             $situacionPatrimonial["actividadAnualAnterior"] = $this->generarSeccionActividadAnualAnterior($declaracion->{'Id_SituacionPatrimonial'});
-        }
+        
         $situacionPatrimonial["bienesInmuebles"] = $this->generarSeccionBienesInmuebles($declaracion->{'Id_SituacionPatrimonial'});
         $situacionPatrimonial["vehiculos"] = $this->generarSeccionVehiculos($declaracion->{'Id_SituacionPatrimonial'});
         $situacionPatrimonial["bienesMuebles"] = $this->generarSeccionBienesMuebles($declaracion->{'Id_SituacionPatrimonial'});
@@ -914,18 +913,22 @@ END as tipo,
                         "moneda" => "MXN",
                     ]
                 ],
-                "actividades" => [[
-                    "remuneracion" => [
-                        "monto" => [
-                            "valor" => $this->nullConvert($declaracion->{'h8 valor actividadFinanciera'}, 'number'),
-                            "moneda" => "MXN",
+                "actividades" => (
+                    in_array($declaracion->{'h8 clave tipoInstrumento'}, ["CAP", "FIN", "OPR", "SSI", "VBU", "BON", "OTRO"])
+                    ? [[
+                        "remuneracion" => [
+                            "monto" => [
+                                "valor" => $this->nullConvert($declaracion->{'h8 valor actividadFinanciera'}, 'number'),
+                                "moneda" => "MXN",
+                            ]
+                        ],
+                        "tipoInstrumento" => [
+                            "clave" => $this->nullConvert($declaracion->{'h8 clave tipoInstrumento'}),
+                            "valor" => $this->nullConvert($declaracion->{'h8 valor tipoInstrumento'}),
                         ]
-                    ],
-                    "tipoInstrumento" => [
-                        "clave" => $this->nullConvert($declaracion->{'h8 clave tipoInstrumento'}),
-                        "valor" => $this->nullConvert($declaracion->{'h8 valor tipoInstrumento'}),
-                    ]
-                ]],
+                    ]]
+                    : []
+                ),
 
             ],
             "serviciosProfesionales" => [
@@ -1030,7 +1033,7 @@ END as tipo,
             from DECL_ActividadAnualAnterior as i
     left join TipoInstrumento as ti on ti.clave = i.AF_Id_TipoInstrumento
 	left join TipoBienEnajenacionBienes as tb on tb.clave = i.EB_Id_TipoBienEnajenado
-    where i.Id_SituacionPatrimonial =?
+    where tb.clave is not null and i.Id_SituacionPatrimonial =?
     ",
             [$id]
         );
@@ -1060,8 +1063,9 @@ END as tipo,
                     "moneda" => "MXN"
                 ]
             ],
-            "actividades" => [
-                [
+            "actividades" => (
+                in_array($declaracion->{'clave tipoInstrumento'}, ["CAP", "FIN", "OPR", "SSI", "VBU", "BON", "OTRO"])
+                ?    [
                     "remuneracion" => [
                         "monto" => [
                             "valor" => $this->nullConvert($declaracion->{'valor actividadIndustrialComercialEmpresarial'}, 'number'),
@@ -1073,7 +1077,8 @@ END as tipo,
                     "tipoNegocio" => $this->nullConvert($declaracion->{'TipoNegocio'}),
 
                 ]
-            ]
+                : []
+            ),
         ];
         $actividadAnual["actividadFinanciera"] = [
             "remuneracionTotal" => [
@@ -1128,15 +1133,18 @@ END as tipo,
                 ]
             ],
             "bienes" => [
-                [
-                    "remuneracion" => [
-                        "monto" => [
-                            "valor" => 0,
-                            "moneda" => "MXN",
+              
+                    [
+                        "remuneracion" => [
+                            "monto" => [
+                                "valor" => 0,
+                                "moneda" => "MXN",
+                            ]
                         ]
                     ],
-                    "tipoBienEnajenado" => $this->nullConvert($declaracion->{'tipoBienEnajenado'}),
-                ]
+               "tipoBienEnajenado" => $this->nullConvert($declaracion->{'tipoBienEnajenado'})
+                   
+                
             ]
         ];
         $actividadAnual["otrosIngresos"] = [
@@ -1227,7 +1235,7 @@ END as tipo,
         LEFT JOIN Municipio  on Municipio.Clave =bienes.Id_MunicipioAlcaldia
         LEFT JOIN Estado  on Estado.Clave =bienes.Id_EntidadFederativa
         left join Pais as p on p.Clave  = bienes.Id_Pais
-        where t.clave = 1 and bienes.Id_SituacionPatrimonial =?
+        where t.clave = 1 and  vc.clave is not null and bienes.Id_SituacionPatrimonial =?
         ", [$id]);
 
         $resultado = [
@@ -1338,10 +1346,16 @@ END as tipo,
                 //     "pais" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"Pais"} : "",
                 //     "codigoPostal" => $dep->{"lugarDondeReside"} == "EXTRANJERO" ? $dep->{"CodigoPostal"} : "",
                 // ],
-                'motivoBaja' => [
-                    "clave" => $this->nullConvert($dep->{"clave motivo_baja"}),
-                    "valor" => $this->nullConvert($dep->{"valor motivo_baja"}),
-                ]
+                "motivoBaja" => (
+                    in_array($dep->{'clave motivo_baja'}, ["VNT", "DNC", "SNT", "OTRO"])
+                    ?    [
+                        "clave" => $this->nullConvert($dep->{"clave motivo_baja"}),
+                        "valor" => $this->nullConvert($dep->{"valor motivo_baja"}),
+    
+                    ]
+                    : []
+                ),
+          
             ];
 
             $resultado['bienInmueble'][] = $bien;
@@ -1786,15 +1800,15 @@ END as tipo,
             $adeudo = [
                 "tipoOperacion" => "AGREGAR",
                 "titular" => [
-                   [
-                    "titularBien" => [
-                        [
-                            "clave" => $this->nullConvert($dep->{'clave_titular'}),
-                            "valor" => $this->nullConvert($dep->{'valor_titular'}),
-                        ]
+                    [
+                        "titularBien" => [
+                            [
+                                "clave" => $this->nullConvert($dep->{'clave_titular'}),
+                                "valor" => $this->nullConvert($dep->{'valor_titular'}),
+                            ]
 
+                        ]
                     ]
-                   ]
                 ],
                 "tipoAdeudo" => [
                     "clave" => $this->nullConvert($dep->{'clave_adeudo'}),
@@ -1804,13 +1818,13 @@ END as tipo,
                 "fechaAdquisicion" => $this->nullConvert($dep->{'FechaAdquisicion'}),
                 "montoOriginal" => [
                     "monto" => [
-                        "valor" => $this->nullConvert($dep->{'Monto'},'number'),
+                        "valor" => $this->nullConvert($dep->{'Monto'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
                 "saldoInsolutoSituacionActual" => [
                     "monto" => [
-                        "valor" => $this->nullConvert($dep->{'SaldoInsolutoSituacionActual'},'number'),
+                        "valor" => $this->nullConvert($dep->{'SaldoInsolutoSituacionActual'}, 'number'),
                         "moneda" => "MXN",
                     ]
                 ],
@@ -2001,11 +2015,12 @@ END as tipo,
             p.Aclaraciones
 
         from DECL_Participacion  as p
-        LEFT join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
+        LEFT join TipoRelacion as rc on rc.clave = p.Id_TipoRelacion
         LEFT JOIN Estado as e on e.Clave = p.Id_EntidadFederativa
         left join Sector as s on s.clave = p.Id_Sector
         left join TipoParticipacion as tp on tp.clave = p.Id_TipoParticipacion
-        where rc.valor is null and Id_Intereses = ?
+
+        where rc.clave = 1  and Id_Intereses = ?
       ", [$id]);
         $resultado = [
             "ninguno" => empty($interes),
@@ -2016,7 +2031,7 @@ END as tipo,
         if (empty($interes)) {
             return $resultado;
         }
-        
+
         foreach ($interes as $dep) {
             // $resultado['aclaracionesObservaciones'] = $this->nullConvert($dep->{'Aclaraciones'});
             $participacion = [
@@ -2024,7 +2039,7 @@ END as tipo,
                 "tipoRelacion" => "DEPENDIENTE_ECONOMICO",
                 "nombreEmpresaSociedadAsociacion" => $this->nullConvert($dep->{'NombreEmpresaSociedadAsociacion'}),
                 "rfc" => $this->nullConvert($dep->{'RfcEmpresa'}),
-                "porcentajeParticipacion" => $this->nullConvert($dep->{'PorcentajeParticipacion'},'integer'),
+                "porcentajeParticipacion" => $this->nullConvert($dep->{'PorcentajeParticipacion'}, 'integer'),
                 "tipoParticipacion" => [
                     "clave" => $this->nullConvert($dep->{'clave_tipoparticipacion'}),
                     "valor" => $this->nullConvert($dep->{'valor_tipoparticipacion'}),
@@ -2075,10 +2090,10 @@ END as tipo,
                     e.Estado as 'valor_entidadFederativa'
                     
         from DECL_ParticipacionTomaDecisiones  as p
-        inner join ParentescoRelacion as rc on rc.clave = p.Id_TipoRelacion
+        inner join TipoRelacion as rc on rc.clave = p.Id_TipoRelacion
          LEFT JOIN Estado as e on e.Clave = p.Id_EntidadFederativa
          LEFT JOIN TipoInstitucion as ts on ts.clave = p.Id_TipoInstitucion
-        where rc.valor is null and Id_Intereses = ?
+        where rc.clave = 1 and Id_Intereses = ?
 
       ", [$id]);
         $resultado = [
@@ -2106,7 +2121,7 @@ END as tipo,
                 "fechaInicioParticipacion" => $this->nullConvert($dep->{'FechaInicioParticipacion'}),
                 "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
                 "montoMensual" => [
-                    "valor" => $this->nullConvert($dep->{'MontoMensual'},'number'),
+                    "valor" => $this->nullConvert($dep->{'MontoMensual'}, 'number'),
                     "moneda" => "MXN",
 
                 ],
@@ -2187,7 +2202,7 @@ END as tipo,
                 "formaRecepcion" => $this->nullConvert($dep->{'formaRecepcion'}),
                 "montoApoyoMensual" => [
                     "monto" => [
-                        "valor" => $this->nullConvert($dep->{'MontoApoyoMensual'},'number'),
+                        "valor" => $this->nullConvert($dep->{'MontoApoyoMensual'}, 'number'),
                         "moneda" => "MXN",
                     ]
 
@@ -2205,6 +2220,7 @@ END as tipo,
         $interes = DB::select("
         select 
         tr.valor as 'tipoRepresentacion',
+		
         r.FechaInicioRepresentacion,
         r.NombreRazonSocial,
         r.Rfc,
@@ -2220,7 +2236,8 @@ END as tipo,
         from DECL_Representaciones  as r
         inner join TipoRepresentacion as tr on tr.clave = r.Id_Representaciones
         inner join Sector as s on s.clave = r.Id_Sector
-        where Id_Intereses = ?
+		where r.Id_TipoRelacion = 1
+        and Id_Intereses = ?
 
       ", [$id]);
         $resultado = [
@@ -2255,7 +2272,7 @@ END as tipo,
                 "recibeRemuneracion" => $dep->{'RecibeRemuneracion'} == 0 ? false : true,
                 "montoMensual" => [
                     "monto" => [
-                        "valor" => $this->nullConvert($dep->{'MontoMensual'},'number'),
+                        "valor" => $this->nullConvert($dep->{'MontoMensual'}, 'number'),
                         "moneda" => "MXN",
                     ]
 
@@ -2302,9 +2319,9 @@ END as tipo,
         
         from DECL_ClientesPrincipales  as c
         inner join Sector as s on s.clave = c.Id_Sector
-        LEFT JOIN Estado e ON e.Clave = c.Id_EntidadFederativa
+        inner JOIN Estado e ON e.Clave = c.Id_EntidadFederativa
         where 
-		c.Id_TipoRelacion = 0 
+		c.Id_TipoRelacion = 1 
         and Id_Intereses = ?
 
       ", [$id]);
@@ -2349,7 +2366,7 @@ END as tipo,
                 ],
                 "montoAproximadoGanancia" => [
                     "monto" => [
-                        "valor" => $this->nullConvert($dep->{'MontoAproximadoGanancia'},'number'),
+                        "valor" => $this->nullConvert($dep->{'MontoAproximadoGanancia'}, 'number'),
                         "moneda" => "MXN",
 
                     ]
@@ -2454,7 +2471,7 @@ END as tipo,
                 "especifiqueBeneficio" => $dep->{'EspecifiqueBeneficio'},
                 "montoMensualAproximado" => [
                     "monto" => [
-                        "valor" => $this->nullConvert($dep->{'MontoMensualAproximado'},'number'),
+                        "valor" => $this->nullConvert($dep->{'MontoMensualAproximado'}, 'number'),
                         "moneda" => "MXN",
 
                     ]

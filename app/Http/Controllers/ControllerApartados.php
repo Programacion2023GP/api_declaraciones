@@ -196,85 +196,84 @@ class ControllerApartados extends Controller
         return response()->json($response, $response->data["status_code"]);
     }
 
-    public function show(Response $response, $id)
-    {
-        $response->data = ObjResponse::DefaultResponse();
+public function show(Response $response, $id = null)
+{
+    $response->data = ObjResponse::DefaultResponse();
 
-        try {
-            $apartado = DB::select("
-            select max(DECL_Situacionpatrimonial.Id_SituacionPatrimonial) as Folio,
-            max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
-            MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno,
-            CASE
-                 WHEN  DECL_Situacionpatrimonial.EsSimplificada = 0 THEN 'Completa'
-                 WHEN  DECL_Situacionpatrimonial.EsSimplificada = 1 THEN 'Simplificada'
-                END AS Declaracion,
-             CASE
-                 WHEN  DECL_Situacionpatrimonial.EstaCompleta =1 THEN 'Terminada'
+    try {
+        $query = "
+        select max(DECL_Situacionpatrimonial.Id_SituacionPatrimonial) as Folio,
+        max(DECL_SPApartados.Id_SituacionPatrimonialApartado) as Hoja,
+        MD_Person.Name as Nombre, MD_Person.PaternalSurname as ApPaterno, MD_Person.MaternalSurname as ApMaterno,
+        max(MD_Person.fechaAlta) as fechaAlta,
+        CASE
+             WHEN DECL_Situacionpatrimonial.EsSimplificada = 0 THEN 'Completa'
+             WHEN DECL_Situacionpatrimonial.EsSimplificada = 1 THEN 'Simplificada'
+            END AS Declaracion,
+         CASE
+             WHEN DECL_Situacionpatrimonial.EstaCompleta = 1 THEN 'Terminada'
+             ELSE 'En proceso'
+         END AS Status,
+        FORMAT(DECL_Situacionpatrimonial.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
+        CASE
+             WHEN DECL_Situacionpatrimonial.Id_Plazo = 1 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Inicial'
+             WHEN DECL_Situacionpatrimonial.Id_Plazo = 2 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Modificación'
+             WHEN DECL_Situacionpatrimonial.Id_Plazo = 3 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Conclusión'
+         END AS Tipo_declaracion
+        from DECL_SPApartados
+        INNER JOIN DECL_Situacionpatrimonial ON DECL_Situacionpatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
+        INNER JOIN USR_User on USR_User.Id_User = DECL_Situacionpatrimonial.Id_User
+        INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
+        WHERE DECL_Situacionpatrimonial.EsActivo = 1";
 
-                 ELSE 'En proceso'
-             END AS Status,
-        
-            FORMAT(DECL_Situacionpatrimonial.FechaRegistro, 'dd/MM/yyyy') AS FechaRegistroFormateada,
-          CASE
-                 WHEN DECL_Situacionpatrimonial.Id_Plazo = 1 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Inicial'
-                 WHEN DECL_Situacionpatrimonial.Id_Plazo = 2 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Modificación'
-                 WHEN DECL_Situacionpatrimonial.Id_Plazo = 3 AND (DECL_Situacionpatrimonial.EsSimplificada = 0 OR DECL_Situacionpatrimonial.EsSimplificada = 1) THEN 'Conclusión'
-             END AS Tipo_declaracion
-            from DECL_SPApartados
-            INNER JOIN DECL_Situacionpatrimonial ON DECL_Situacionpatrimonial.Id_SituacionPatrimonial = DECL_SPApartados.Id_SituacionPatrimonial
-            INNER JOIN USR_User on USR_User.Id_User = DECL_Situacionpatrimonial.Id_User
-            INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
+        $queryIntereses = "
+        select max(DECL_Intereses.Id_Intereses) as Folio, max(DECL_IApartados.Id_interesesApartado) as Hoja,
+        MD_Person.Name as Nombre, MD_Person.PaternalSurname as ApPaterno, MD_Person.MaternalSurname as ApMaterno,
+        max(MD_Person.fechaAlta) as fechaAlta,
+        'Interes' as Declaracion,
+        CASE
+            WHEN max(DECL_IApartados.Id_interesesApartado) = 7 THEN 'Terminada'
+            ELSE 'En proceso'
+        END AS Status,
+        FORMAT(DECL_Intereses.FechaInicioInforma, 'dd/MM/yyyy') AS FechaRegistroFormateada,
+        'Intereses' as Tipo_declaracion
+        from DECL_Intereses 
+        inner join DECL_IApartados on DECL_IApartados.Id_Intereses = DECL_Intereses.Id_Intereses
+        INNER JOIN USR_User on USR_User.Id_User = DECL_Intereses.Id_User
+        INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
+        WHERE DECL_Intereses.EsActivo = 1";
 
-
-            WHERE DECL_Situacionpatrimonial.Id_User =? and  DECL_Situacionpatrimonial.EsActivo =1  
-			      group by DECL_SPApartados.Id_SituacionPatrimonial,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,
-            DECL_Situacionpatrimonial.Id_Plazo,DECL_Situacionpatrimonial.EsSimplificada,DECL_Situacionpatrimonial.FechaRegistro,DECL_Situacionpatrimonial.EstaCompleta
-
-            UNION ALL
-
-
-
-            select max (DECL_Intereses.Id_Intereses) as Folio, max (DECL_IApartados.Id_interesesApartado) as Hoja,
-                        MD_Person.Name as Nombre,MD_Person.PaternalSurname as ApPaterno,MD_Person.MaternalSurname as ApMaterno, 'Interes' as Declaracion,
-                        CASE
-     WHEN  max(DECL_IApartados.Id_interesesApartado) =7 THEN 'Terminada'
-
-     ELSE 'En proceso'
- END AS Status,
-             FORMAT(DECL_Intereses.FechaInicioInforma, 'dd/MM/yyyy') AS FechaRegistroFormateada
-             , 'Intereses' as Tipo_declaracion
-            from DECL_Intereses 
-            inner join DECL_IApartados on DECL_IApartados.Id_Intereses =DECL_Intereses.Id_Intereses
-            INNER JOIN USR_User on USR_User.Id_User = DECL_Intereses.Id_User
-                        INNER JOIN MD_Person ON MD_Person.Id_Person = USR_User.Id_Person
-                                    WHERE DECL_Intereses.Id_User =? and  DECL_Intereses.EsActivo =1
-
-            group by DECL_Intereses.Id_Intereses,MD_Person.Name,MD_Person.PaternalSurname,MD_Person.MaternalSurname,DECL_Intereses.FechaInicioInforma
-                        ORDER BY folio DESC
-
-
-
-
-
-
-
-
-
-
-            ", [$id, $id]);
-
-            $response->data = ObjResponse::CorrectResponse();
-            $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
-            $response->data["alert_text"] = "AmbitoPublico encontrados";
-            $response->data["result"] = $apartado;
-        } catch (\Exception $ex) {
-
-            $response->data = ObjResponse::CatchResponse($ex);
+        // Añadir condición de ID si está presente
+        if ($id !== null) {
+            $query .= " AND DECL_Situacionpatrimonial.Id_User = ?";
+            $queryIntereses .= " AND DECL_Intereses.Id_User = ?";
+            $params = [$id, $id];
+        } else {
+            $params = [];
         }
 
-        return response()->json($response, $response->data["status_code"]);
+        $query .= "
+        group by DECL_SPApartados.Id_SituacionPatrimonial, MD_Person.Name, MD_Person.PaternalSurname, MD_Person.MaternalSurname,
+        DECL_Situacionpatrimonial.Id_Plazo, DECL_Situacionpatrimonial.EsSimplificada, DECL_Situacionpatrimonial.FechaRegistro, DECL_Situacionpatrimonial.EstaCompleta
+
+        UNION ALL
+
+        " . $queryIntereses . "
+        group by DECL_Intereses.Id_Intereses, MD_Person.Name, MD_Person.PaternalSurname, MD_Person.MaternalSurname, DECL_Intereses.FechaInicioInforma
+        ORDER BY folio DESC";
+
+        $apartado = DB::select($query, $params);
+
+        $response->data = ObjResponse::CorrectResponse();
+        $response->data["message"] = 'Petición satisfactoria | lista de AmbitoPublico.';
+        $response->data["alert_text"] = "AmbitoPublico encontrados";
+        $response->data["result"] = $apartado;
+    } catch (\Exception $ex) {
+        $response->data = ObjResponse::CatchResponse($ex);
     }
+
+    return response()->json($response, $response->data["status_code"]);
+}
     public function all(Response $response)
     {
         $response->data = ObjResponse::DefaultResponse();
@@ -313,7 +312,7 @@ class ControllerApartados extends Controller
             SELECT 
             DSP.Id_SituacionPatrimonial AS Folio,
             MP.Gender,
-            UC.fechaAlta as EmpleadoFechaAlta,
+            MP.fechaAlta as EmpleadoFechaAlta,
             MP.Name AS Nombre,
             MP.PaternalSurname AS ApPaterno,
             MP.MaternalSurname AS ApMaterno,
